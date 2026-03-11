@@ -7,34 +7,42 @@ function todayISO() {
 }
 
 export function useGameData() {
-  const [state,       setState]       = useState(null)
-  const [progress,    setProgress]    = useState(null)
+  const [state, setState] = useState(null)
+  const [progress, setProgress] = useState(null)
   const [todayHabits, setTodayHabits] = useState([])
-  const [loading,     setLoading]     = useState(true)
-  const [error,       setError]       = useState(null)
+  const [activity, setActivity] = useState([])
+  const [weeklySummary, setWeeklySummary] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const today = todayISO()
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [stateRes, progressRes, habitsRes] = await Promise.all([
+      const [stateRes, progressRes, habitsRes, activityRes, weeklyRes] = await Promise.all([
         fetch(`${BASE}/state`),
         fetch(`${BASE}/progress`),
         fetch(`${BASE}/habits/${today}`),
+        fetch(`${BASE}/activity?days=180`),
+        fetch(`${BASE}/weekly-summary`),
       ])
-      if (!stateRes.ok)    throw new Error(`State fetch failed: ${stateRes.status}`)
+      if (!stateRes.ok) throw new Error(`State fetch failed: ${stateRes.status}`)
       if (!progressRes.ok) throw new Error(`Progress fetch failed: ${progressRes.status}`)
 
-      const [stateData, progressData, habitsData] = await Promise.all([
+      const [stateData, progressData, habitsData, activityData, weeklyData] = await Promise.all([
         stateRes.json(),
         progressRes.json(),
         habitsRes.ok ? habitsRes.json() : Promise.resolve([]),
+        activityRes.ok ? activityRes.json() : Promise.resolve([]),
+        weeklyRes.ok ? weeklyRes.json() : Promise.resolve(null),
       ])
 
       setState(stateData)
       setProgress(progressData)
       setTodayHabits(Array.isArray(habitsData) ? habitsData : [])
+      setActivity(Array.isArray(activityData) ? activityData : [])
+      setWeeklySummary(weeklyData)
       setError(null)
     } catch (err) {
       setError(err.message)
@@ -77,6 +85,8 @@ export function useGameData() {
     state,
     progress,
     todayHabits,
+    activity,
+    weeklySummary,
     loading,
     error,
     today,
@@ -89,10 +99,10 @@ export function useGameData() {
 
 export function useMonthData() {
   const [completedTaskIds, setCompletedTaskIds] = useState([])
-  const [completedCpIds,   setCompletedCpIds]   = useState([])
+  const [completedCpIds, setCompletedCpIds] = useState([])
   const [recentCompletions, setRecentCompletions] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(null)
+  const [error, setError] = useState(null)
 
   const fetchAll = useCallback(async () => {
     setLoading(true)

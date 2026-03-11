@@ -1,9 +1,11 @@
 import { useGameData } from '../hooks/useApi'
-import HeaderBar      from '../components/HeaderBar'
-import BossBanner     from '../components/BossBanner'
-import StatPanel      from '../components/StatPanel'
-import QuestChapters  from '../components/QuestChapters'
-import WeeklyHabits   from '../components/WeeklyHabits'
+import HeaderBar from '../components/HeaderBar'
+import BossBanner from '../components/BossBanner'
+import StatPanel from '../components/StatPanel'
+import QuestChapters from '../components/QuestChapters'
+import WeeklyHabits from '../components/WeeklyHabits'
+import ActivityHeatmap from '../components/ActivityHeatmap'
+import WeeklySummary from '../components/WeeklySummary'
 
 function LoadingScreen() {
   return (
@@ -39,6 +41,8 @@ export default function Dashboard() {
     state,
     progress,
     todayHabits,
+    activity,
+    weeklySummary,
     loading,
     error,
     today,
@@ -48,7 +52,7 @@ export default function Dashboard() {
   } = useGameData()
 
   if (loading) return <LoadingScreen />
-  if (error)   return <ErrorScreen message={error} />
+  if (error) return <ErrorScreen message={error} />
 
   return (
     <div className="min-h-screen bg-game-bg">
@@ -77,6 +81,12 @@ export default function Dashboard() {
           onLogHabit={logHabit}
           today={today}
         />
+
+        {/* 5 — Activity heatmap */}
+        <ActivityHeatmap activity={activity} />
+
+        {/* 6 — Weekly summary */}
+        <WeeklySummary summary={weeklySummary} />
       </main>
 
       {/* Footer spacer */}
@@ -84,3 +94,4 @@ export default function Dashboard() {
     </div>
   )
 }
+

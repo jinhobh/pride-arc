@@ -8,10 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import crud
 from database import AsyncSessionLocal, Base, engine, get_db
-from models import CheckpointCompletion, TaskCompletion  # noqa: F401 — ensure models are imported so Base sees them
+from models import CheckpointCompletion, HabitLog, TaskCompletion  # noqa: F401 — ensure models are imported so Base sees them
 from sqlalchemy import select
 from plan_data import CHECKPOINTS, HABITS, TASKS
 from schemas import (
+    ActivityDay,
     CheckinResponse,
     CheckpointCompleteRequest,
     CheckpointCompleteResponse,
@@ -24,6 +25,8 @@ from schemas import (
     TaskCompleteRequest,
     TaskCompleteResponse,
     TaskUncompleteResponse,
+    WeeklySkillXP,
+    WeeklySummaryResponse,
 )
 
 
@@ -291,3 +294,175 @@ async def recent_completions(days: int = 7, db: AsyncSession = Depends(get_db)):
 async def get_progress(db: AsyncSession = Depends(get_db)):
     data = await crud.get_progress(db)
     return ProgressResponse(**data)
+
+
+# ── Activity heatmap ──────────────────────────────────────────────────────────
+
+@app.get("/activity", response_model=list[ActivityDay])
+async def get_activity(days: int = 180, db: AsyncSession = Depends(get_db)):
+    since = datetime.date.today() - datetime.timedelta(days=days)
+
+    # Fetch task completions in range
+    tc_result = await db.execute(
+        select(TaskCompletion).where(
+            TaskCompletion.completed_at >= datetime.datetime.combine(
+                since, datetime.time.min, tzinfo=datetime.timezone.utc
+            )
+        )
+    )
+    task_rows = tc_result.scalars().all()
+
+    # Fetch habit logs in range (only completed)
+    hl_result = await db.execute(
+        select(HabitLog).where(
+            HabitLog.logged_date >= since,
+            HabitLog.completed == True,  # noqa: E712
+        )
+    )
+    habit_rows = hl_result.scalars().all()
+
+    # Fetch checkpoint completions in range
+    cc_result = await db.execute(
+        select(CheckpointCompletion).where(
+            CheckpointCompletion.completed_at >= datetime.datetime.combine(
+                since, datetime.time.min, tzinfo=datetime.timezone.utc
+            )
+        )
+    )
+    cp_rows = cc_result.scalars().all()
+
+    # Aggregate by date
+    from collections import defaultdict
+    day_map: dict[str, dict] = defaultdict(lambda: {"total_xp": 0, "skills": defaultdict(int)})
+
+    for tc in task_rows:
+        task = TASKS.get(tc.task_id)
+        if not task:
+            continue
+        d = tc.completed_at.date().isoformat()
+        day_map[d]["total_xp"] += task["xp"]
+        day_map[d]["skills"][task["skill_type"]] += task["xp"]
+
+    for hl in habit_rows:
+        habit = HABITS.get(hl.habit_id)
+        if not habit:
+            continue
+        d = hl.logged_date.isoformat()
+        day_map[d]["total_xp"] += habit["xp_per_completion"]
+        day_map[d]["skills"][habit["skill_type"]] += habit["xp_per_completion"]
+
+    for cc in cp_rows:
+        cp = CHECKPOINTS.get(cc.checkpoint_id)
+        if not cp:
+            continue
+        d = cc.completed_at.date().isoformat()
+        day_map[d]["total_xp"] += cp["xp_reward"]
+        day_map[d]["skills"][cp["skill_type"]] += cp["xp_reward"]
+
+    # Build result for every day in range
+    result = []
+    current = since
+    today = datetime.date.today()
+    while current <= today:
+        d = current.isoformat()
+        info = day_map.get(d)
+        if info and info["total_xp"] > 0:
+            dominant = max(info["skills"], key=info["skills"].get) if info["skills"] else None
+            result.append(ActivityDay(date=d, total_xp=info["total_xp"], dominant_skill=dominant))
+        else:
+            result.append(ActivityDay(date=d, total_xp=0, dominant_skill=None))
+        current += datetime.timedelta(days=1)
+
+    return result
+
+
+# ── Weekly summary ────────────────────────────────────────────────────────────
+
+@app.get("/weekly-summary", response_model=WeeklySummaryResponse)
+async def get_weekly_summary(db: AsyncSession = Depends(get_db)):
+    today = datetime.date.today()
+    # Monday of current week
+    monday = today - datetime.timedelta(days=today.weekday())
+    sunday = monday + datetime.timedelta(days=6)
+
+    monday_dt = datetime.datetime.combine(monday, datetime.time.min, tzinfo=datetime.timezone.utc)
+    sunday_dt = datetime.datetime.combine(sunday, datetime.time.max, tzinfo=datetime.timezone.utc)
+
+    # Task completions this week
+    tc_result = await db.execute(
+        select(TaskCompletion).where(
+            TaskCompletion.completed_at >= monday_dt,
+            TaskCompletion.completed_at <= sunday_dt,
+        )
+    )
+    task_rows = tc_result.scalars().all()
+
+    # Habit logs this week (completed only)
+    hl_result = await db.execute(
+        select(HabitLog).where(
+            HabitLog.logged_date >= monday,
+            HabitLog.logged_date <= sunday,
+            HabitLog.completed == True,  # noqa: E712
+        )
+    )
+    habit_rows = hl_result.scalars().all()
+
+    # Checkpoint completions this week
+    cc_result = await db.execute(
+        select(CheckpointCompletion).where(
+            CheckpointCompletion.completed_at >= monday_dt,
+            CheckpointCompletion.completed_at <= sunday_dt,
+        )
+    )
+    cp_rows = cc_result.scalars().all()
+
+    from collections import defaultdict
+    total_xp = 0
+    problems_solved = 0
+    active_dates: set[str] = set()
+    skill_xp: dict[str, int] = defaultdict(int)
+
+    for tc in task_rows:
+        task = TASKS.get(tc.task_id)
+        if not task:
+            continue
+        total_xp += task["xp"]
+        skill_xp[task["skill_type"]] += task["xp"]
+        active_dates.add(tc.completed_at.date().isoformat())
+        if task["skill_type"] == "dsa":
+            problems_solved += 1
+
+    for hl in habit_rows:
+        habit = HABITS.get(hl.habit_id)
+        if not habit:
+            continue
+        total_xp += habit["xp_per_completion"]
+        skill_xp[habit["skill_type"]] += habit["xp_per_completion"]
+        active_dates.add(hl.logged_date.isoformat())
+
+    for cc in cp_rows:
+        cp = CHECKPOINTS.get(cc.checkpoint_id)
+        if not cp:
+            continue
+        total_xp += cp["xp_reward"]
+        skill_xp[cp["skill_type"]] += cp["xp_reward"]
+        active_dates.add(cc.completed_at.date().isoformat())
+
+    from plan_data import INITIAL_STATS
+    skill_breakdown = [
+        WeeklySkillXP(
+            skill_type=sk,
+            label=INITIAL_STATS[sk]["label"],
+            icon=INITIAL_STATS[sk]["icon"],
+            xp=xp,
+        )
+        for sk, xp in sorted(skill_xp.items(), key=lambda x: -x[1])
+        if xp > 0
+    ]
+
+    return WeeklySummaryResponse(
+        total_xp=total_xp,
+        problems_solved=problems_solved,
+        days_active=len(active_dates),
+        skill_breakdown=skill_breakdown,
+    )
