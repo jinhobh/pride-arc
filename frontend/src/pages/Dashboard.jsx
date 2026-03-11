@@ -1,16 +1,16 @@
 import { useGameData } from '../hooks/useApi'
 import HeaderBar from '../components/HeaderBar'
+import CharacterHero from '../components/CharacterHero'
+import WeeklyHabits from '../components/WeeklyHabits'
 import BossBanner from '../components/BossBanner'
 import StatPanel from '../components/StatPanel'
 import QuestChapters from '../components/QuestChapters'
-import WeeklyHabits from '../components/WeeklyHabits'
 import ActivityHeatmap from '../components/ActivityHeatmap'
 import WeeklySummary from '../components/WeeklySummary'
 
 function LoadingScreen() {
   return (
     <div className="min-h-screen bg-game-bg flex flex-col items-center justify-center gap-4">
-      {/* Pixel spinner */}
       <div className="relative w-10 h-10">
         <div className="absolute inset-0 rounded-full border-2 border-green-400/20" />
         <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-green-400 animate-spin" />
@@ -66,34 +66,44 @@ export default function Dashboard() {
         onCheckin={checkin}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10">
-        {/* 1 — Boss banner */}
-        <BossBanner progress={progress} daysMissed={daysMissed} />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+        {/* ═══ ABOVE THE FOLD: Today's focus ═══ */}
 
-        {/* 2 — Character stats */}
-        <StatPanel stats={state?.stats} daysMissed={daysMissed} />
-
-        {/* 3 — Monthly quest chapters */}
-        <QuestChapters
-          progress={progress}
-          currentMonth={state?.current_month ?? 1}
+        {/* 1 — Character avatar + level + XP */}
+        <CharacterHero
+          state={state}
+          streakStatus={streakStatus}
+          daysMissed={daysMissed}
         />
 
-        {/* 4 — Weekly habits */}
+        {/* 2 — Today's habits (daily tasks) */}
         <WeeklyHabits
           habits={todayHabits}
           onLogHabit={logHabit}
           today={today}
         />
 
+        {/* 3 — Boss banner (total progress overview) */}
+        <BossBanner progress={progress} daysMissed={daysMissed} />
+
+        {/* ═══ BELOW THE FOLD: Detailed views ═══ */}
+
+        {/* 4 — Weekly summary */}
+        <WeeklySummary summary={weeklySummary} />
+
         {/* 5 — Activity heatmap */}
         <ActivityHeatmap activity={activity} />
 
-        {/* 6 — Weekly summary */}
-        <WeeklySummary summary={weeklySummary} />
+        {/* 6 — Character stats */}
+        <StatPanel stats={state?.stats} daysMissed={daysMissed} />
+
+        {/* 7 — Monthly quest chapters */}
+        <QuestChapters
+          progress={progress}
+          currentMonth={state?.current_month ?? 1}
+        />
       </main>
 
-      {/* Footer spacer */}
       <div className="h-16" />
     </div>
   )
