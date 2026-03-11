@@ -43,6 +43,7 @@ export default function Dashboard() {
     todayHabits,
     activity,
     weeklySummary,
+    streakStatus,
     loading,
     error,
     today,
@@ -54,20 +55,23 @@ export default function Dashboard() {
   if (loading) return <LoadingScreen />
   if (error) return <ErrorScreen message={error} />
 
+  const daysMissed = streakStatus?.days_missed ?? 0
+
   return (
     <div className="min-h-screen bg-game-bg">
       <HeaderBar
         state={state}
+        streakStatus={streakStatus}
         hasCheckedIn={hasCheckedInToday}
         onCheckin={checkin}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10">
         {/* 1 — Boss banner */}
-        <BossBanner progress={progress} />
+        <BossBanner progress={progress} daysMissed={daysMissed} />
 
         {/* 2 — Character stats */}
-        <StatPanel stats={state?.stats} />
+        <StatPanel stats={state?.stats} daysMissed={daysMissed} />
 
         {/* 3 — Monthly quest chapters */}
         <QuestChapters
@@ -94,4 +98,3 @@ export default function Dashboard() {
     </div>
   )
 }
-

@@ -12,6 +12,7 @@ export function useGameData() {
   const [todayHabits, setTodayHabits] = useState([])
   const [activity, setActivity] = useState([])
   const [weeklySummary, setWeeklySummary] = useState(null)
+  const [streakStatus, setStreakStatus] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -20,22 +21,24 @@ export function useGameData() {
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [stateRes, progressRes, habitsRes, activityRes, weeklyRes] = await Promise.all([
+      const [stateRes, progressRes, habitsRes, activityRes, weeklyRes, streakRes] = await Promise.all([
         fetch(`${BASE}/state`),
         fetch(`${BASE}/progress`),
         fetch(`${BASE}/habits/${today}`),
         fetch(`${BASE}/activity?days=180`),
         fetch(`${BASE}/weekly-summary`),
+        fetch(`${BASE}/streak-status`),
       ])
       if (!stateRes.ok) throw new Error(`State fetch failed: ${stateRes.status}`)
       if (!progressRes.ok) throw new Error(`Progress fetch failed: ${progressRes.status}`)
 
-      const [stateData, progressData, habitsData, activityData, weeklyData] = await Promise.all([
+      const [stateData, progressData, habitsData, activityData, weeklyData, streakData] = await Promise.all([
         stateRes.json(),
         progressRes.json(),
         habitsRes.ok ? habitsRes.json() : Promise.resolve([]),
         activityRes.ok ? activityRes.json() : Promise.resolve([]),
         weeklyRes.ok ? weeklyRes.json() : Promise.resolve(null),
+        streakRes.ok ? streakRes.json() : Promise.resolve(null),
       ])
 
       setState(stateData)
@@ -43,6 +46,7 @@ export function useGameData() {
       setTodayHabits(Array.isArray(habitsData) ? habitsData : [])
       setActivity(Array.isArray(activityData) ? activityData : [])
       setWeeklySummary(weeklyData)
+      setStreakStatus(streakData)
       setError(null)
     } catch (err) {
       setError(err.message)
@@ -79,7 +83,7 @@ export function useGameData() {
     }
   }, [today, fetchAll])
 
-  const hasCheckedInToday = state?.last_checkin_date === today
+  const hasCheckedInToday = streakStatus?.checked_in_today ?? (state?.last_checkin_date === today)
 
   return {
     state,
@@ -87,6 +91,7 @@ export function useGameData() {
     todayHabits,
     activity,
     weeklySummary,
+    streakStatus,
     loading,
     error,
     today,

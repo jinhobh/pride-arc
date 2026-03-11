@@ -22,6 +22,7 @@ from schemas import (
     ProgressResponse,
     StateResponse,
     StatLevelOut,
+    StreakStatusResponse,
     TaskCompleteRequest,
     TaskCompleteResponse,
     TaskUncompleteResponse,
@@ -268,6 +269,29 @@ async def checkin(db: AsyncSession = Depends(get_db)):
         streak_longest=streak_longest,
         last_checkin_date=today,
         was_no_op=was_no_op,
+    )
+
+
+@app.get("/streak-status", response_model=StreakStatusResponse)
+async def get_streak_status(db: AsyncSession = Depends(get_db)):
+    state = await crud.get_user_state(db)
+    if not state:
+        raise HTTPException(status_code=500, detail="User state not initialized")
+
+    today = datetime.date.today()
+    checked_in_today = state.last_checkin_date == today
+
+    if state.last_checkin_date is None:
+        days_missed = 0  # brand new user
+    else:
+        delta = (today - state.last_checkin_date).days
+        days_missed = max(0, delta - 1) if not checked_in_today else 0
+
+    return StreakStatusResponse(
+        streak=state.streak_current,
+        longest=state.streak_longest,
+        checked_in_today=checked_in_today,
+        days_missed=days_missed,
     )
 
 

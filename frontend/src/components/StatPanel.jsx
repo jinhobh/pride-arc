@@ -59,7 +59,46 @@ function StatCard({ stat }) {
   )
 }
 
-export default function StatPanel({ stats }) {
+function DecayBanner({ daysMissed }) {
+  if (daysMissed === 0) return null
+
+  let bg, border, textColor, icon, message
+  if (daysMissed === 1) {
+    bg = 'bg-amber-500/10'
+    border = 'border-amber-500/30'
+    textColor = 'text-amber-400'
+    icon = '⚠️'
+    message = 'Your character is getting rusty...'
+  } else if (daysMissed === 2) {
+    bg = 'bg-orange-500/10'
+    border = 'border-orange-500/30'
+    textColor = 'text-orange-400'
+    icon = '🔶'
+    message = `You haven't checked in for 2 days. XP decay incoming.`
+  } else {
+    bg = 'bg-red-500/10'
+    border = 'border-red-500/40'
+    textColor = 'text-red-400'
+    icon = '💀'
+    message = 'STREAK BROKEN. Check in to recover.'
+  }
+
+  return (
+    <div className={`rounded-lg ${bg} border ${border} px-4 py-2.5 flex items-center gap-2.5 mb-4 transition-all duration-300`}>
+      <span className="text-base leading-none flex-shrink-0">{icon}</span>
+      <span className={`font-display text-[8px] sm:text-[9px] uppercase tracking-wider ${textColor}`}>
+        {message}
+      </span>
+      {daysMissed >= 3 && (
+        <span className={`ml-auto font-vt text-base leading-none ${textColor} tabular-nums`}>
+          {daysMissed}d
+        </span>
+      )}
+    </div>
+  )
+}
+
+export default function StatPanel({ stats, daysMissed = 0 }) {
   if (!stats?.length) return null
 
   // Render in canonical skill order
@@ -67,10 +106,24 @@ export default function StatPanel({ stats }) {
     .map(sk => stats.find(s => s.skill_type === sk))
     .filter(Boolean)
 
+  // Decay filter based on missed days
+  let filterStyle = {}
+  if (daysMissed === 1) {
+    filterStyle = { filter: 'saturate(0.7)' }
+  } else if (daysMissed === 2) {
+    filterStyle = { filter: 'saturate(0.4)' }
+  } else if (daysMissed >= 3) {
+    filterStyle = { filter: 'grayscale(1) brightness(0.7)' }
+  }
+
   return (
     <section>
       <SectionHeader title="Character Stats" />
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <DecayBanner daysMissed={daysMissed} />
+      <div
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 transition-all duration-500"
+        style={filterStyle}
+      >
         {ordered.map(stat => (
           <StatCard key={stat.skill_type} stat={stat} />
         ))}
