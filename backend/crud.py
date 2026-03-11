@@ -1,0 +1,381 @@
+import datetime
+from sqlalchemy import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+from models import Badge, CheckpointCompletion, HabitLog, StatLevel, TaskCompletion, UserState
+from plan_data import (
+    CHAPTER_REWARDS,
+    CHECKPOINTS,
+    CHECKPOINTS_BY_MONTH,
+    HABITS,
+    INITIAL_STATS,
+    TASKS,
+    calc_char_level,
+    calc_skill_level,
+)
+from schemas import BadgeOut, StatLevelOut
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _enrich_stat(row: StatLevel) -> StatLevelOut:
+    info = INITIAL_STATS[row.skill_type]
+    return StatLevelOut(
+        skill_type=row.skill_type,
+        xp=row.xp,
+        level=row.level,
+        icon=info["icon"],
+        label=info["label"],
+    )
+
+
+def _badge_out(row: Badge) -> BadgeOut:
+    return BadgeOut(
+        badge_id=row.badge_id,
+        earned_at=row.earned_at,
+        icon=row.icon,
+        title=row.title,
+        description=row.description,
+    )
+
+
+async def _update_xp(
+    db: AsyncSession,
+    skill_type: str,
+    xp_delta: int,
+) -> StatLevel:
+    """Add xp_delta to a StatLevel row, recalculate level, return updated row."""
+    result = await db.execute(select(StatLevel).where(StatLevel.skill_type == skill_type))
+    stat = result.scalar_one()
+    stat.xp = max(0, stat.xp + xp_delta)
+    stat.level = calc_skill_level(stat.xp)
+    return stat
+
+
+async def _update_total_xp(db: AsyncSession, xp_delta: int) -> UserState:
+    """Add xp_delta to user_state.total_xp, recalculate character_level, return row."""
+    state = await get_user_state(db)
+    assert state is not None
+    state.total_xp = max(0, state.total_xp + xp_delta)
+    state.character_level = calc_char_level(state.total_xp)
+    return state
+
+
+async def _check_chapter_unlock(
+    db: AsyncSession,
+    month_number: int,
+) -> tuple[bool, Badge | None]:
+    """
+    Check if all checkpoints in month_number are complete and the chapter badge
+    hasn't been awarded yet. If so, award it and return (True, badge_row).
+    Otherwise return (False, None).
+    """
+    reward = CHAPTER_REWARDS[month_number]
+    badge_id = reward["badge_id"]
+
+    # Already earned?
+    existing = await db.execute(select(Badge).where(Badge.badge_id == badge_id))
+    if existing.scalar_one_or_none():
+        return False, None
+
+    # All checkpoints done?
+    cp_ids = CHECKPOINTS_BY_MONTH[month_number]
+    result = await db.execute(
+        select(CheckpointCompletion.checkpoint_id).where(
+            CheckpointCompletion.checkpoint_id.in_(cp_ids)
+        )
+    )
+    done_ids = {row[0] for row in result.fetchall()}
+    if set(cp_ids) != done_ids:
+        return False, None
+
+    # Award chapter badge + bonus XP
+    badge = Badge(
+        badge_id=badge_id,
+        icon=reward["icon"],
+        title=reward["title"],
+        description=reward["description"],
+    )
+    db.add(badge)
+    await db.flush()  # populate badge.id / earned_at via server defaults
+    await db.refresh(badge)
+
+    await _update_xp(db, CHECKPOINTS[cp_ids[0]]["skill_type"], 0)  # no-op to keep flush chain
+    await _update_total_xp(db, reward["xp_bonus"])
+
+    return True, badge
+
+
+# ── Reads ─────────────────────────────────────────────────────────────────────
+
+async def get_user_state(db: AsyncSession) -> UserState | None:
+    result = await db.execute(select(UserState))
+    return result.scalar_one_or_none()
+
+
+async def get_stat_levels(db: AsyncSession) -> list[StatLevel]:
+    result = await db.execute(select(StatLevel))
+    return list(result.scalars().all())
+
+
+async def get_completed_task_ids(db: AsyncSession) -> list[str]:
+    result = await db.execute(select(TaskCompletion.task_id))
+    return [row[0] for row in result.fetchall()]
+
+
+async def get_completed_checkpoint_ids(db: AsyncSession) -> list[str]:
+    result = await db.execute(select(CheckpointCompletion.checkpoint_id))
+    return [row[0] for row in result.fetchall()]
+
+
+async def get_badges(db: AsyncSession) -> list[Badge]:
+    result = await db.execute(select(Badge))
+    return list(result.scalars().all())
+
+
+async def get_habit_logs_for_date(db: AsyncSession, target_date: datetime.date) -> list[HabitLog]:
+    result = await db.execute(
+        select(HabitLog).where(HabitLog.logged_date == target_date)
+    )
+    return list(result.scalars().all())
+
+
+async def get_habit_log(
+    db: AsyncSession, habit_id: str, target_date: datetime.date
+) -> HabitLog | None:
+    result = await db.execute(
+        select(HabitLog).where(
+            HabitLog.habit_id == habit_id,
+            HabitLog.logged_date == target_date,
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+# ── Seed / init ───────────────────────────────────────────────────────────────
+
+async def create_initial_state(db: AsyncSession) -> UserState:
+    state = UserState(
+        current_month=1,
+        total_xp=0,
+        streak_current=0,
+        streak_longest=0,
+        last_checkin_date=None,
+        character_level=1,
+    )
+    db.add(state)
+    return state
+
+
+async def seed_stat_levels(db: AsyncSession) -> list[StatLevel]:
+    rows = []
+    for skill_type, info in INITIAL_STATS.items():
+        row = StatLevel(skill_type=skill_type, xp=info["xp"], level=info["level"])
+        db.add(row)
+        rows.append(row)
+    return rows
+
+
+# ── Task operations ───────────────────────────────────────────────────────────
+
+async def complete_task(
+    db: AsyncSession, task_id: str
+) -> tuple[int, StatLevelOut, int, int, bool, BadgeOut | None]:
+    """
+    Returns: (xp_awarded, stat_out, new_total_xp, new_char_level, chapter_unlocked, chapter_badge)
+    """
+    task = TASKS[task_id]
+    xp = task["xp"]
+
+    db.add(TaskCompletion(task_id=task_id))
+    stat = await _update_xp(db, task["skill_type"], xp)
+    state = await _update_total_xp(db, xp)
+    await db.flush()
+
+    chapter_unlocked, chapter_badge = await _check_chapter_unlock(db, task["month_number"])
+    await db.commit()
+
+    # Re-fetch state after potential chapter XP bonus
+    await db.refresh(state)
+    await db.refresh(stat)
+
+    badge_out = _badge_out(chapter_badge) if chapter_badge else None
+    return xp, _enrich_stat(stat), state.total_xp, state.character_level, chapter_unlocked, badge_out
+
+
+async def uncomplete_task(
+    db: AsyncSession, task_id: str
+) -> tuple[int, StatLevelOut, int, int]:
+    """
+    Deletes the most recent TaskCompletion for task_id, reverses XP.
+    Returns: (xp_revoked, stat_out, new_total_xp, new_char_level)
+    """
+    task = TASKS[task_id]
+    xp = task["xp"]
+
+    # Delete most recent completion
+    result = await db.execute(
+        select(TaskCompletion)
+        .where(TaskCompletion.task_id == task_id)
+        .order_by(TaskCompletion.id.desc())
+        .limit(1)
+    )
+    row = result.scalar_one()
+    await db.delete(row)
+
+    stat = await _update_xp(db, task["skill_type"], -xp)
+    state = await _update_total_xp(db, -xp)
+    await db.commit()
+    await db.refresh(stat)
+    await db.refresh(state)
+
+    return xp, _enrich_stat(stat), state.total_xp, state.character_level
+
+
+# ── Checkpoint operations ─────────────────────────────────────────────────────
+
+async def complete_checkpoint(
+    db: AsyncSession, checkpoint_id: str
+) -> tuple[int, StatLevelOut, int, int, bool, BadgeOut | None]:
+    """
+    Returns: (xp_awarded, stat_out, new_total_xp, new_char_level, chapter_unlocked, chapter_badge)
+    """
+    cp = CHECKPOINTS[checkpoint_id]
+    xp = cp["xp_reward"]
+
+    db.add(CheckpointCompletion(checkpoint_id=checkpoint_id))
+    stat = await _update_xp(db, cp["skill_type"], xp)
+    state = await _update_total_xp(db, xp)
+    await db.flush()
+
+    chapter_unlocked, chapter_badge = await _check_chapter_unlock(db, cp["month_number"])
+    await db.commit()
+
+    await db.refresh(state)
+    await db.refresh(stat)
+
+    badge_out = _badge_out(chapter_badge) if chapter_badge else None
+    return xp, _enrich_stat(stat), state.total_xp, state.character_level, chapter_unlocked, badge_out
+
+
+# ── Habit operations ──────────────────────────────────────────────────────────
+
+async def upsert_habit_log(
+    db: AsyncSession, habit_id: str, log_date: datetime.date, completed: bool
+) -> tuple[bool, int]:
+    """
+    Upsert a HabitLog row. Returns (new_completed_state, xp_delta).
+    xp_delta can be positive (earned), negative (revoked), or 0 (no change).
+    """
+    habit = HABITS[habit_id]
+    xp_per = habit["xp_per_completion"]
+
+    existing = await get_habit_log(db, habit_id, log_date)
+
+    if existing is None:
+        xp_delta = xp_per if completed else 0
+    elif existing.completed == completed:
+        xp_delta = 0  # no change
+    elif completed:
+        xp_delta = xp_per   # toggled on
+    else:
+        xp_delta = -xp_per  # toggled off
+
+    # Upsert via PostgreSQL INSERT ... ON CONFLICT DO UPDATE
+    stmt = (
+        pg_insert(HabitLog)
+        .values(habit_id=habit_id, logged_date=log_date, completed=completed)
+        .on_conflict_do_update(
+            constraint="uq_habit_date",
+            set_={"completed": completed},
+        )
+    )
+    await db.execute(stmt)
+
+    if xp_delta != 0:
+        await _update_xp(db, habit["skill_type"], xp_delta)
+        await _update_total_xp(db, xp_delta)
+
+    await db.commit()
+    return completed, xp_delta
+
+
+# ── Check-in ──────────────────────────────────────────────────────────────────
+
+async def record_checkin(db: AsyncSession) -> tuple[int, int, datetime.date, bool]:
+    """
+    Records today's check-in (UTC). Updates streak.
+    Returns: (streak_current, streak_longest, today, was_no_op)
+    """
+    today = datetime.date.today()
+    state = await get_user_state(db)
+    assert state is not None
+
+    if state.last_checkin_date == today:
+        return state.streak_current, state.streak_longest, today, True
+
+    yesterday = today - datetime.timedelta(days=1)
+    if state.last_checkin_date == yesterday:
+        state.streak_current += 1
+    else:
+        state.streak_current = 1
+
+    state.streak_longest = max(state.streak_longest, state.streak_current)
+    state.last_checkin_date = today
+
+    await db.commit()
+    await db.refresh(state)
+    return state.streak_current, state.streak_longest, today, False
+
+
+# ── Progress ──────────────────────────────────────────────────────────────────
+
+async def get_progress(db: AsyncSession) -> dict:
+    state = await get_user_state(db)
+    assert state is not None
+
+    completed_task_ids = set(await get_completed_task_ids(db))
+    completed_cp_ids = set(await get_completed_checkpoint_ids(db))
+    stats = await get_stat_levels(db)
+
+    months = []
+    for m in range(1, 7):
+        from plan_data import TASKS_BY_MONTH
+        month_task_ids = TASKS_BY_MONTH.get(m, [])
+        month_cp_ids = CHECKPOINTS_BY_MONTH.get(m, [])
+
+        tasks_done = sum(1 for tid in month_task_ids if tid in completed_task_ids)
+        cps_done = sum(1 for cid in month_cp_ids if cid in completed_cp_ids)
+        total_items = len(month_task_ids) + len(month_cp_ids)
+        done_items = tasks_done + cps_done
+        pct = round(done_items / total_items * 100, 1) if total_items else 0.0
+
+        months.append({
+            "month_number": m,
+            "tasks_completed": tasks_done,
+            "tasks_total": len(month_task_ids),
+            "checkpoints_completed": cps_done,
+            "checkpoints_total": len(month_cp_ids),
+            "completion_pct": pct,
+        })
+
+    skills = [
+        {
+            "skill_type": s.skill_type,
+            "label": INITIAL_STATS[s.skill_type]["label"],
+            "icon": INITIAL_STATS[s.skill_type]["icon"],
+            "xp": s.xp,
+            "level": s.level,
+        }
+        for s in stats
+    ]
+
+    return {
+        "total_xp": state.total_xp,
+        "character_level": state.character_level,
+        "tasks_completed": len(completed_task_ids),
+        "tasks_total": len(TASKS),
+        "months": months,
+        "skills": skills,
+    }
