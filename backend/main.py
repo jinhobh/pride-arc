@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import crud
 from database import AsyncSessionLocal, Base, engine, get_db
 from models import CheckpointCompletion, TaskCompletion  # noqa: F401 — ensure models are imported so Base sees them
+from sqlalchemy import select
 from plan_data import CHECKPOINTS, HABITS, TASKS
 from schemas import (
     CheckinResponse,
@@ -265,6 +266,23 @@ async def checkin(db: AsyncSession = Depends(get_db)):
         last_checkin_date=today,
         was_no_op=was_no_op,
     )
+
+
+# ── Recent completions (for 7-day streak view) ────────────────────────────────
+
+@app.get("/completions/recent")
+async def recent_completions(days: int = 7, db: AsyncSession = Depends(get_db)):
+    since = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
+    result = await db.execute(
+        select(TaskCompletion)
+        .where(TaskCompletion.completed_at >= since)
+        .order_by(TaskCompletion.completed_at.desc())
+    )
+    rows = result.scalars().all()
+    return [
+        {"task_id": r.task_id, "completed_at": r.completed_at.isoformat()}
+        for r in rows
+    ]
 
 
 # ── Progress ──────────────────────────────────────────────────────────────────
