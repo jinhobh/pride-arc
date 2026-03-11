@@ -86,3 +86,86 @@ export function useGameData() {
     refetch: fetchAll,
   }
 }
+
+export function useMonthData() {
+  const [completedTaskIds, setCompletedTaskIds] = useState([])
+  const [completedCpIds,   setCompletedCpIds]   = useState([])
+  const [recentCompletions, setRecentCompletions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error,   setError]   = useState(null)
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [stateRes, recentRes] = await Promise.all([
+        fetch(`${BASE}/state`),
+        fetch(`${BASE}/completions/recent?days=7`),
+      ])
+      if (!stateRes.ok) throw new Error(`State fetch failed: ${stateRes.status}`)
+
+      const [stateData, recentData] = await Promise.all([
+        stateRes.json(),
+        recentRes.ok ? recentRes.json() : Promise.resolve([]),
+      ])
+
+      setCompletedTaskIds(stateData.completed_task_ids ?? [])
+      setCompletedCpIds(stateData.completed_checkpoint_ids ?? [])
+      setRecentCompletions(Array.isArray(recentData) ? recentData : [])
+      setError(null)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
+
+  const completeTask = useCallback(async (taskId) => {
+    try {
+      const res = await fetch(`${BASE}/task/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task_id: taskId }),
+      })
+      if (res.ok) await fetchAll()
+      return res.ok
+    } catch { return false }
+  }, [fetchAll])
+
+  const uncompleteTask = useCallback(async (taskId) => {
+    try {
+      const res = await fetch(`${BASE}/task/uncomplete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task_id: taskId }),
+      })
+      if (res.ok) await fetchAll()
+      return res.ok
+    } catch { return false }
+  }, [fetchAll])
+
+  const completeCheckpoint = useCallback(async (checkpointId) => {
+    try {
+      const res = await fetch(`${BASE}/checkpoint/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ checkpoint_id: checkpointId }),
+      })
+      if (res.ok) await fetchAll()
+      return res.ok
+    } catch { return false }
+  }, [fetchAll])
+
+  return {
+    completedTaskIds,
+    completedCpIds,
+    recentCompletions,
+    loading,
+    error,
+    completeTask,
+    uncompleteTask,
+    completeCheckpoint,
+    refetch: fetchAll,
+  }
+}
