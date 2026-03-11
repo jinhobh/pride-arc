@@ -4,8 +4,57 @@
 
 @layer base {
   body {
-    background-color: #020617;
-    color: #F8FAFC;
+    background-color: #0F0F23;
+    color: #E2E8F0;
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
+}
+
+/* CRT scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+}
+
+/* Hide scrollbar while preserving scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Neon text glow helper */
+.neon-text-green {
+  text-shadow: 0 0 10px rgba(34, 197, 94, 0.8), 0 0 20px rgba(34, 197, 94, 0.4);
+}
+.neon-text-red {
+  text-shadow: 0 0 10px rgba(248, 113, 113, 0.8), 0 0 20px rgba(248, 113, 113, 0.3);
+}
+
+/* Pixel border utility */
+.pixel-border {
+  image-rendering: pixelated;
+  border-style: solid;
+  border-width: 2px;
+}
+
+/* HP bar flash on low HP */
+@keyframes hp-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.hp-critical {
+  animation: hp-flash 0.8s ease-in-out infinite;
 }
