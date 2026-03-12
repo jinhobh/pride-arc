@@ -4,26 +4,21 @@
 
 @layer base {
   body {
-    background-color: #0F0F23;
+    background-color: #0a0e1a;
     color: #E2E8F0;
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
 }
 
-/* CRT scanline overlay */
+/* Subtle pixel-grain overlay (Ghibli dithered atmosphere) */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  background-image: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.08) 2px,
-    rgba(0, 0, 0, 0.08) 4px
-  );
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' x='0' y='0' fill='rgba(255,255,255,0.015)'/%3E%3Crect width='1' height='1' x='2' y='2' fill='rgba(255,255,255,0.015)'/%3E%3C/svg%3E");
+  opacity: 0.7;
 }
 
 /* Hide scrollbar while preserving scroll */
@@ -35,12 +30,16 @@ body::after {
   display: none;
 }
 
-/* Neon text glow helper */
+/* Soft sage glow — replaces harsh neon green */
 .neon-text-green {
-  text-shadow: 0 0 10px rgba(34, 197, 94, 0.8), 0 0 20px rgba(34, 197, 94, 0.4);
+  text-shadow: 0 0 12px rgba(138,173,110,0.7), 0 0 28px rgba(138,173,110,0.3);
+}
+/* Warm amber glow */
+.neon-text-amber {
+  text-shadow: 0 0 12px rgba(251,191,36,0.75), 0 0 28px rgba(251,191,36,0.3);
 }
 .neon-text-red {
-  text-shadow: 0 0 10px rgba(248, 113, 113, 0.8), 0 0 20px rgba(248, 113, 113, 0.3);
+  text-shadow: 0 0 10px rgba(248, 113, 113, 0.7), 0 0 20px rgba(248, 113, 113, 0.3);
 }
 
 /* Pixel border utility */
@@ -62,7 +61,7 @@ body::after {
 /* Streak counter bounce animation */
 @keyframes streakBounce {
   0%   { transform: scale(1); }
-  30%  { transform: scale(1.5); color: #4ade80; }
+  30%  { transform: scale(1.5); color: #fbbf24; }
   60%  { transform: scale(0.9); }
   100% { transform: scale(1); }
 }
@@ -70,26 +69,37 @@ body::after {
   animation: streakBounce 0.6s ease-out;
 }
 
-/* Character floating animation */
-@keyframes float {
+/* Character subtle hover */
+@keyframes heroFloat {
   0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-10px); }
+  50%       { transform: translateY(-8px); }
 }
-.character-float {
-  animation: float 4s ease-in-out infinite;
+.hero-float {
+  animation: heroFloat 5s ease-in-out infinite;
 }
 
-/* XP bar shimmer */
+/* XP bar shimmer sweep */
 @keyframes shimmer {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(500%); }
+  0%   { transform: translateX(-200%); }
+  100% { transform: translateX(600%); }
 }
 
-/* Hero grid pulse */
-@keyframes gridPulse {
-  0%, 100% { opacity: 0.07; }
-  50%       { opacity: 0.13; }
+/* Platform glow pulse — warm amber */
+@keyframes platformPulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
 }
-.grid-pulse {
-  animation: gridPulse 4s ease-in-out infinite;
+
+/* Particles floating up */
+@keyframes particleRise {
+  0%   { transform: translateY(0) scale(1);   opacity: 0; }
+  10%  { opacity: 1; }
+  80%  { opacity: 0.4; }
+  100% { transform: translateY(-180px) scale(0.3); opacity: 0; }
+}
+
+/* Mist drift */
+@keyframes mistDrift {
+  0%, 100% { transform: translateX(0) scaleX(1); opacity: 0.4; }
+  50%       { transform: translateX(30px) scaleX(1.1); opacity: 0.6; }
 }

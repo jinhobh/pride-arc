@@ -46,12 +46,12 @@ export default function HeaderBar({ state, streakStatus, hasCheckedIn, onCheckin
   return (
     <header className="sticky top-0 z-50 bg-game-bg/95 backdrop-blur border-b border-white/5">
       {/* Subtle top accent line */}
-      <div className={`h-px bg-gradient-to-r from-transparent ${isStreakBroken ? 'via-red-500/40' : 'via-green-500/40'} to-transparent`} />
+      <div className={`h-px bg-gradient-to-r from-transparent ${isStreakBroken ? 'via-red-500/40' : 'via-amber-500/30'} to-transparent`} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
         {/* Logo */}
         <span className="font-display text-[11px] sm:text-sm text-white tracking-widest select-none">
-          LEVEL<span className="neon-text-green text-green-400">UP</span>
+          LEVEL<span className="neon-text-amber text-amber-400">UP</span>
         </span>
 
         {/* Right cluster */}
@@ -76,11 +76,11 @@ export default function HeaderBar({ state, streakStatus, hasCheckedIn, onCheckin
 
           {/* XP */}
           {state && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-green-500/30 bg-green-500/10">
-              <span className="font-vt text-lg leading-none text-green-400 tabular-nums">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-amber-500/30 bg-amber-500/10">
+              <span className="font-vt text-lg leading-none text-amber-400 tabular-nums">
                 {state.total_xp.toLocaleString()}
               </span>
-              <span className="font-display text-[8px] text-green-400/60 uppercase hidden sm:block">XP</span>
+              <span className="font-display text-[8px] text-amber-400/60 uppercase hidden sm:block">XP</span>
             </div>
           )}
 
@@ -97,13 +97,13 @@ export default function HeaderBar({ state, streakStatus, hasCheckedIn, onCheckin
             <button
               onClick={handleCheckin}
               disabled={busy}
-              className="relative px-3 py-1.5 font-display text-[8px] uppercase tracking-widest text-black bg-green-400 rounded cursor-pointer hover:bg-green-300 active:scale-95 transition-all disabled:opacity-50 animate-pulse shadow-neon-green"
+              className="relative px-3 py-1.5 font-display text-[8px] uppercase tracking-widest text-black bg-amber-400 rounded cursor-pointer hover:bg-amber-300 active:scale-95 transition-all disabled:opacity-50 animate-pulse shadow-neon-amber"
             >
               {busy ? '...' : 'Check In'}
             </button>
           ) : (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-700 bg-slate-800/50">
-              <svg className="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <svg className="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
               <span className="font-display text-[8px] text-slate-500 uppercase">Done</span>

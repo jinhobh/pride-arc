@@ -11,8 +11,8 @@ function LoadingScreen() {
   return (
     <div className="min-h-screen bg-game-bg flex flex-col items-center justify-center gap-4">
       <div className="relative w-10 h-10">
-        <div className="absolute inset-0 rounded-full border-2 border-green-400/20" />
-        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-green-400 animate-spin" />
+        <div className="absolute inset-0 rounded-full border-2 border-amber-400/20" />
+        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-amber-400 animate-spin" />
       </div>
       <span className="font-display text-[9px] uppercase tracking-[0.3em] text-slate-600 animate-pulse">
         Loading...
@@ -66,7 +66,7 @@ function MonthlyNudge({ currentMonth, currentTasks }) {
       </div>
 
       {allDone ? (
-        <span className="font-display text-[8px] uppercase tracking-widest text-green-400 whitespace-nowrap flex-shrink-0">
+        <span className="font-display text-[8px] uppercase tracking-widest text-amber-400 whitespace-nowrap flex-shrink-0">
           ✅ Month complete!
         </span>
       ) : (
@@ -133,10 +133,10 @@ export default function Dashboard() {
       {/* Content panel — slides up over the sticky hero */}
       <div
         className="relative z-10 -mt-24 rounded-t-3xl overflow-hidden"
-        style={{ background: '#0F0F23' }}
+        style={{ background: '#0a0e1a' }}
       >
         {/* Top edge accent line */}
-        <div className="h-px bg-gradient-to-r from-transparent via-green-500/20 to-transparent" />
+        <div className="h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
         {/* Drag handle hint */}
         <div className="flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 rounded-full bg-white/10" />
