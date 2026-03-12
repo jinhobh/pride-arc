@@ -1,26 +1,40 @@
 import { SectionHeader } from './StatPanel'
 
 /**
- * Computes how "on track" the user is based on task completions vs time elapsed.
- * Expected pace is linear: if 50% of the month has passed, you should have ~50% done.
+ * Computes how "on track" the user is based on their total XP vs elapsed month time.
+ * Calculates total available XP for the month (Tasks + Daily Habits) and tracks current accumulated XP.
  */
-export default function OnTrackMeter({ currentTasks, progress }) {
-    if (!currentTasks || !progress) return null
+export default function OnTrackMeter({ currentTasks, todayHabits, totalXp }) {
+    if (!currentTasks || typeof totalXp !== 'number') return null
 
-    const all = [
-        ...(currentTasks.monthly || []),
-        ...(currentTasks.checkpoints || []),
-    ]
-    if (all.length === 0) return null
-
-    const done = all.filter(t => t.completed).length
-    const total = all.length
-    const actualPct = (done / total) * 100
-
-    // Calculate expected pace based on day of month
     const now = new Date()
-    const dayOfMonth = now.getDate()
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const startDate = new Date(2026, 2, 11) // March 11, 2026
+
+    const diffDays = Math.max(0, Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)))
+    const dayOfMonth = (diffDays % 30) + 1
+    const daysInMonth = 30 // Standardize plan months to 30 days
+
+    let totalMonthXp = 0
+
+    // 1. Monthly goals & checkpoints (done once per month)
+    totalMonthXp += (currentTasks.monthly || []).reduce((sum, t) => sum + t.xp, 0)
+    totalMonthXp += (currentTasks.checkpoints || []).reduce((sum, c) => sum + c.xp, 0)
+
+    // 2. Daily quests × days in month
+    totalMonthXp += (currentTasks.daily || []).reduce((sum, t) => sum + t.xp, 0) * daysInMonth
+
+    // 3. Weekly quests × 4 weeks roughly
+    totalMonthXp += (currentTasks.weekly || []).reduce((sum, t) => sum + t.xp, 0) * 4
+
+    // 4. Daily habits × days in month
+    if (todayHabits) {
+        totalMonthXp += todayHabits.reduce((sum, h) => sum + h.xp_per_completion, 0) * daysInMonth
+    }
+
+    if (totalMonthXp === 0) return null
+
+    const actualPct = (totalXp / totalMonthXp) * 100
     const expectedPct = (dayOfMonth / daysInMonth) * 100
 
     const diff = actualPct - expectedPct
@@ -62,7 +76,7 @@ export default function OnTrackMeter({ currentTasks, progress }) {
                     <div className="h-3 rounded-full bg-black/40 overflow-hidden">
                         <div
                             className={`h-full rounded-full transition-all duration-700 ease-out ${status === 'on-track' ? 'bg-green-500' :
-                                    status === 'slightly-behind' ? 'bg-yellow-500' : 'bg-red-500'
+                                status === 'slightly-behind' ? 'bg-yellow-500' : 'bg-red-500'
                                 }`}
                             style={{ width: `${Math.min(100, actualPct)}%` }}
                         />
@@ -78,7 +92,7 @@ export default function OnTrackMeter({ currentTasks, progress }) {
                 {/* Legend */}
                 <div className="flex items-center justify-between mt-2">
                     <span className="font-vt text-base leading-none text-slate-500 tabular-nums">
-                        {done}/{total} goals done
+                        {totalXp.toLocaleString()} / {totalMonthXp.toLocaleString()} XP
                     </span>
                     <span className="font-display text-[7px] text-slate-600 uppercase">
                         Day {dayOfMonth}/{daysInMonth} • Expected {Math.round(expectedPct)}%

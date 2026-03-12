@@ -134,7 +134,11 @@ export default function Dashboard() {
         )}
 
         {/* 6 — On-Track Meter */}
-        <OnTrackMeter currentTasks={currentTasks} progress={progress} />
+        <OnTrackMeter
+          currentTasks={currentTasks}
+          todayHabits={todayHabits}
+          totalXp={state?.total_xp ?? 0}
+        />
 
         {/* 7 — Boss Banner (total progress) */}
         <BossBanner progress={progress} daysMissed={daysMissed} />

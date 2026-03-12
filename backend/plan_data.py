@@ -60,7 +60,7 @@ TASKS: dict[str, dict] = {
     "m1_backend_3":   {"id": "m1_backend_3",   "skill_type": "backend", "frequency": "once",   "xp": 50, "month_number": 1, "title": "Connect PostgreSQL to your FastAPI app"},
     "m1_project_1":   {"id": "m1_project_1",   "skill_type": "project", "frequency": "once",   "xp": 10, "month_number": 1, "title": "Create GitHub repo and push initial project scaffold"},
     "m1_project_2":   {"id": "m1_project_2",   "skill_type": "project", "frequency": "once",   "xp": 25, "month_number": 1, "title": "Connect PostgreSQL to project and run first DB query"},
-    "m1_paper":       {"id": "m1_paper",       "skill_type": "ml",      "frequency": "weekly", "xp":  10, "month_number": 1, "title": "Read 1 ML paper weekly"},
+    "m1_paper":       {"id": "m1_paper",       "skill_type": "ml",      "frequency": "weekly", "xp":  25, "month_number": 1, "title": "Read 1 ML paper weekly"},
 
 
     # ── Month 2 ──────────────────────────────────────────────────────────────
@@ -217,14 +217,14 @@ CHECKPOINTS_BY_MONTH: dict[int, list[str]] = {
 # ── Habits ────────────────────────────────────────────────────────────────────
 
 HABITS: dict[str, dict] = {
-    "habit_leetcode":  {"id": "habit_leetcode",  "skill_type": "dsa",          "xp_per_completion": 15, "title": "LeetCode problems",                       "starts_at_month": None},
+    "habit_leetcode":  {"id": "habit_leetcode",  "skill_type": "dsa",          "xp_per_completion": 10, "title": "LeetCode problems",                       "starts_at_month": None},
     "habit_ml_project":   {"id": "habit_ml_project",   "skill_type": "ml","xp_per_completion": 5, "title": "Push at least 1 commit a day on ML project",   "starts_at_month": None},
-    "habit_project":   {"id": "habit_project",   "skill_type": "project",      "xp_per_completion": 25, "title": "Work on personal portfolio",              "starts_at_month": 3},
+    "habit_project":   {"id": "habit_project",   "skill_type": "project",      "xp_per_completion": 10, "title": "Work on personal portfolio",              "starts_at_month": 3},
     "habit_reading":   {"id": "habit_reading",   "skill_type": "system_design","xp_per_completion": 10, "title": "Read one tech article on Systems design", "starts_at_month": None},
     "habit_ml_paper":   {"id": "habit_ml_paper",   "skill_type": "ml","xp_per_completion": 10, "title": "Read at least 2 pages of ML paper",                            "starts_at_month": None},
     "habit_posting":   {"id": "habit_posting",   "skill_type": "project",      "xp_per_completion": 10, "title": "Post an Article on Personal Website",     "starts_at_month": 3},
     "habit_networking":{"id": "habit_networking","skill_type": "networking",   "xp_per_completion": 15, "title": "Network — LinkedIn DM or coffee chat",    "starts_at_month": 5},
-    "habit_mock":      {"id": "habit_mock",      "skill_type": "interviewing", "xp_per_completion": 50, "title": "Mock interview",                          "starts_at_month": 5},
+    "habit_mock":      {"id": "habit_mock",      "skill_type": "interviewing", "xp_per_completion": 20, "title": "Mock interview",                          "starts_at_month": 5},
 }
 
 # ── Chapter rewards ───────────────────────────────────────────────────────────
