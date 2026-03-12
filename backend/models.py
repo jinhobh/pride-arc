@@ -50,6 +50,7 @@ class HabitLog(Base):
     habit_id: Mapped[str] = mapped_column(String, nullable=False)
     logged_date: Mapped[date] = mapped_column(Date, nullable=False)
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    count: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class Badge(Base):

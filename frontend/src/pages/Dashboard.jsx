@@ -1,7 +1,10 @@
+import { useCallback } from 'react'
 import { useGameData } from '../hooks/useApi'
 import HeaderBar from '../components/HeaderBar'
 import CharacterHero from '../components/CharacterHero'
 import WeeklyHabits from '../components/WeeklyHabits'
+import TaskSection from '../components/TaskSection'
+import OnTrackMeter from '../components/OnTrackMeter'
 import BossBanner from '../components/BossBanner'
 import StatPanel from '../components/StatPanel'
 import QuestChapters from '../components/QuestChapters'
@@ -36,6 +39,8 @@ function ErrorScreen({ message }) {
   )
 }
 
+const BASE = '/api'
+
 export default function Dashboard() {
   const {
     state,
@@ -44,13 +49,28 @@ export default function Dashboard() {
     activity,
     weeklySummary,
     streakStatus,
+    currentTasks,
     loading,
     error,
     today,
     hasCheckedInToday,
     checkin,
     logHabit,
+    refetch,
   } = useGameData()
+
+  // ── Task toggle handler (must be before any early return — React Rules of Hooks)
+  const toggleTask = useCallback(async (taskId, completed) => {
+    const endpoint = completed ? '/task/complete' : '/task/uncomplete'
+    try {
+      const res = await fetch(`${BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task_id: taskId }),
+      })
+      if (res.ok) await refetch()
+    } catch { /* swallow */ }
+  }, [refetch])
 
   if (loading) return <LoadingScreen />
   if (error) return <ErrorScreen message={error} />
@@ -67,37 +87,70 @@ export default function Dashboard() {
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-        {/* ═══ ABOVE THE FOLD: Today's focus ═══ */}
+        {/* ═══ ABOVE THE FOLD: Character + Today's Focus ═══ */}
 
-        {/* 1 — Character avatar + level + XP */}
+        {/* 1 — Character avatar centered + level + XP */}
         <CharacterHero
           state={state}
           streakStatus={streakStatus}
           daysMissed={daysMissed}
         />
 
-        {/* 2 — Today's habits (daily tasks) */}
+        {/* 2 — Daily habits (LeetCode counter + checkboxes) */}
         <WeeklyHabits
           habits={todayHabits}
           onLogHabit={logHabit}
           today={today}
         />
 
-        {/* 3 — Boss banner (total progress overview) */}
+        {/* 3 — Daily tasks from current month plan */}
+        {currentTasks?.daily?.length > 0 && (
+          <TaskSection
+            title="Daily Quests"
+            icon="⚡"
+            tasks={currentTasks.daily}
+            onToggle={toggleTask}
+          />
+        )}
+
+        {/* 4 — Weekly tasks */}
+        {currentTasks?.weekly?.length > 0 && (
+          <TaskSection
+            title="Weekly Quests"
+            icon="📅"
+            tasks={currentTasks.weekly}
+            onToggle={toggleTask}
+          />
+        )}
+
+        {/* 5 — Monthly goals (one-time tasks) */}
+        {currentTasks?.monthly?.length > 0 && (
+          <TaskSection
+            title="Monthly Goals"
+            icon="🎯"
+            tasks={currentTasks.monthly}
+            onToggle={toggleTask}
+          />
+        )}
+
+        {/* 6 — On-Track Meter */}
+        <OnTrackMeter currentTasks={currentTasks} progress={progress} />
+
+        {/* 7 — Boss Banner (total progress) */}
         <BossBanner progress={progress} daysMissed={daysMissed} />
 
         {/* ═══ BELOW THE FOLD: Detailed views ═══ */}
 
-        {/* 4 — Weekly summary */}
+        {/* Weekly summary */}
         <WeeklySummary summary={weeklySummary} />
 
-        {/* 5 — Activity heatmap */}
+        {/* Activity heatmap */}
         <ActivityHeatmap activity={activity} />
 
-        {/* 6 — Character stats */}
+        {/* Character stats */}
         <StatPanel stats={state?.stats} daysMissed={daysMissed} />
 
-        {/* 7 — Monthly quest chapters */}
+        {/* Monthly quest chapters */}
         <QuestChapters
           progress={progress}
           currentMonth={state?.current_month ?? 1}

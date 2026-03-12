@@ -37,6 +37,15 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+    # Migrate: add 'count' column to habit_logs if not present
+    async with engine.begin() as conn:
+        try:
+            await conn.execute(text(
+                "ALTER TABLE habit_logs ADD COLUMN IF NOT EXISTS count INTEGER DEFAULT 0"
+            ))
+        except Exception:
+            pass  # column already exists or no table yet
+
     # Seed initial data if the DB is empty
     async with AsyncSessionLocal() as db:
         if not await crud.get_user_state(db):
@@ -217,11 +226,14 @@ async def log_habit(body: HabitLogRequest, db: AsyncSession = Depends(get_db)):
                 detail=f"Habit '{body.habit_id}' is not available until month {habit['starts_at_month']}",
             )
 
-    completed, xp_delta = await crud.upsert_habit_log(db, body.habit_id, body.date, body.completed)
+    completed, count, xp_delta = await crud.upsert_habit_log(
+        db, body.habit_id, body.date, body.completed, body.count
+    )
     return HabitLogResponse(
         habit_id=body.habit_id,
         date=body.date,
         completed=completed,
+        count=count,
         xp_delta=xp_delta,
     )
 
@@ -252,11 +264,67 @@ async def get_habits_for_date(date: str, db: AsyncSession = Depends(get_db)):
                 skill_type=habit["skill_type"],
                 xp_per_completion=habit["xp_per_completion"],
                 completed=log.completed if log else False,
+                count=log.count if log else 0,
                 logged=log is not None,
             )
         )
 
     return result
+
+
+# ── Current tasks (grouped by frequency) ─────────────────────────────────────
+
+@app.get("/current-tasks")
+async def get_current_tasks(db: AsyncSession = Depends(get_db)):
+    """Return tasks for the current month grouped by frequency, with completion status."""
+    state = await crud.get_user_state(db)
+    current_month = state.current_month if state else 1
+    completed_ids = set(await crud.get_completed_task_ids(db))
+
+    daily = []
+    weekly = []
+    monthly = []  # one-time tasks
+
+    for task in TASKS.values():
+        if task["month_number"] != current_month:
+            continue
+        entry = {
+            "id": task["id"],
+            "title": task["title"],
+            "skill_type": task["skill_type"],
+            "xp": task["xp"],
+            "frequency": task["frequency"],
+            "completed": task["id"] in completed_ids,
+        }
+        if task["frequency"] == "daily":
+            daily.append(entry)
+        elif task["frequency"] == "weekly":
+            weekly.append(entry)
+        else:
+            monthly.append(entry)
+
+    # Also include checkpoints for the current month as milestone tasks
+    completed_cps = set(await crud.get_completed_checkpoint_ids(db))
+    checkpoints = []
+    from plan_data import CHECKPOINTS
+    for cp in CHECKPOINTS.values():
+        if cp["month_number"] != current_month:
+            continue
+        checkpoints.append({
+            "id": cp["id"],
+            "title": cp["title"],
+            "skill_type": cp["skill_type"],
+            "xp": cp["xp_reward"],
+            "completed": cp["id"] in completed_cps,
+        })
+
+    return {
+        "current_month": current_month,
+        "daily": daily,
+        "weekly": weekly,
+        "monthly": monthly,
+        "checkpoints": checkpoints,
+    }
 
 
 # ── Check-in ──────────────────────────────────────────────────────────────────

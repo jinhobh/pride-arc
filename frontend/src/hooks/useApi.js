@@ -13,6 +13,7 @@ export function useGameData() {
   const [activity, setActivity] = useState([])
   const [weeklySummary, setWeeklySummary] = useState(null)
   const [streakStatus, setStreakStatus] = useState(null)
+  const [currentTasks, setCurrentTasks] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -21,24 +22,26 @@ export function useGameData() {
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [stateRes, progressRes, habitsRes, activityRes, weeklyRes, streakRes] = await Promise.all([
+      const [stateRes, progressRes, habitsRes, activityRes, weeklyRes, streakRes, tasksRes] = await Promise.all([
         fetch(`${BASE}/state`),
         fetch(`${BASE}/progress`),
         fetch(`${BASE}/habits/${today}`),
         fetch(`${BASE}/activity?days=180`),
         fetch(`${BASE}/weekly-summary`),
         fetch(`${BASE}/streak-status`),
+        fetch(`${BASE}/current-tasks`),
       ])
       if (!stateRes.ok) throw new Error(`State fetch failed: ${stateRes.status}`)
       if (!progressRes.ok) throw new Error(`Progress fetch failed: ${progressRes.status}`)
 
-      const [stateData, progressData, habitsData, activityData, weeklyData, streakData] = await Promise.all([
+      const [stateData, progressData, habitsData, activityData, weeklyData, streakData, tasksData] = await Promise.all([
         stateRes.json(),
         progressRes.json(),
         habitsRes.ok ? habitsRes.json() : Promise.resolve([]),
         activityRes.ok ? activityRes.json() : Promise.resolve([]),
         weeklyRes.ok ? weeklyRes.json() : Promise.resolve(null),
         streakRes.ok ? streakRes.json() : Promise.resolve(null),
+        tasksRes.ok ? tasksRes.json() : Promise.resolve(null),
       ])
 
       setState(stateData)
@@ -47,6 +50,7 @@ export function useGameData() {
       setActivity(Array.isArray(activityData) ? activityData : [])
       setWeeklySummary(weeklyData)
       setStreakStatus(streakData)
+      setCurrentTasks(tasksData)
       setError(null)
     } catch (err) {
       setError(err.message)
@@ -69,12 +73,12 @@ export function useGameData() {
     }
   }, [fetchAll])
 
-  const logHabit = useCallback(async (habitId, completed) => {
+  const logHabit = useCallback(async (habitId, completed, count = 1) => {
     try {
       const res = await fetch(`${BASE}/habit/log`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ habit_id: habitId, date: today, completed }),
+        body: JSON.stringify({ habit_id: habitId, date: today, completed, count }),
       })
       if (res.ok) await fetchAll()
       return res.ok
@@ -92,6 +96,7 @@ export function useGameData() {
     activity,
     weeklySummary,
     streakStatus,
+    currentTasks,
     loading,
     error,
     today,

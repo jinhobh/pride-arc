@@ -43,16 +43,16 @@ export const XP_VALUES = {
 // Each skill has a level (1–10) driven by XP accumulated
 // ============================================================
 export const INITIAL_STATS = {
-  dsa:           { label: "DSA",           level: 1, xp: 0, icon: "⚔️" },
-  ml:            { label: "ML / AI",       level: 2, xp: 0, icon: "🧠" }, // pre-leveled (you already know ML)
-  backend:       { label: "Backend",       level: 1, xp: 0, icon: "🔧" },
-  devops:        { label: "DevOps",        level: 1, xp: 0, icon: "🐳" },
-  cloud:         { label: "Cloud",         level: 1, xp: 0, icon: "☁️" },
-  system_design: { label: "Sys Design",    level: 1, xp: 0, icon: "🏗️" },
-  project:       { label: "Project",       level: 1, xp: 0, icon: "🚀" },
-  networking:    { label: "Networking",    level: 1, xp: 0, icon: "🤝" },
-  interviewing:  { label: "Interviewing",  level: 1, xp: 0, icon: "🎯" },
-  career:        { label: "Career",        level: 1, xp: 0, icon: "💼" },
+  dsa: { label: "DSA", level: 1, xp: 0, icon: "⚔️" },
+  ml: { label: "ML / AI", level: 2, xp: 0, icon: "🧠" }, // pre-leveled (you already know ML)
+  backend: { label: "Backend", level: 1, xp: 0, icon: "🔧" },
+  devops: { label: "DevOps", level: 1, xp: 0, icon: "🐳" },
+  cloud: { label: "Cloud", level: 1, xp: 0, icon: "☁️" },
+  system_design: { label: "Sys Design", level: 1, xp: 0, icon: "🏗️" },
+  project: { label: "Project", level: 1, xp: 0, icon: "🚀" },
+  networking: { label: "Networking", level: 1, xp: 0, icon: "🤝" },
+  interviewing: { label: "Interviewing", level: 1, xp: 0, icon: "🎯" },
+  career: { label: "Career", level: 1, xp: 0, icon: "💼" },
 };
 
 // ============================================================
@@ -135,8 +135,8 @@ export const PLAN = {
             },
             {
               id: "m1_dsa_daily",
-              title: "Solve 2 LeetCode problems (Easy)",
-              description: "Daily habit — 2 Easy problems per day. Build pattern recognition.",
+              title: "Solve 4 LeetCode problems (Easy)",
+              description: "Daily habit — 4 Easy problems per day. Build pattern recognition.",
               skillType: SKILL_TYPES.DSA,
               frequency: TASK_FREQUENCY.DAILY,
               difficulty: DIFFICULTY.EASY,
@@ -1510,19 +1510,19 @@ export const PLAN = {
   // RESOURCES
   // ─────────────────────────────────────────────────────────
   resources: [
-    { id: "neetcode",      category: "DSA",           name: "Neetcode.io",          url: "https://neetcode.io",                          description: "Structured 150-problem roadmap" },
-    { id: "leetcode",      category: "DSA",           name: "LeetCode",             url: "https://leetcode.com",                         description: "Daily problems + weekly contests" },
-    { id: "ctci",          category: "DSA",           name: "Cracking the Coding Interview", url: null,                                  description: "Interview patterns & mindset" },
-    { id: "fastai",        category: "ML",            name: "fast.ai",              url: "https://fast.ai",                              description: "Free PyTorch deep learning course" },
-    { id: "huggingface",   category: "ML",            name: "HuggingFace Docs",     url: "https://huggingface.co/docs",                  description: "Transformers, fine-tuning, datasets" },
-    { id: "fastapi",       category: "Backend",       name: "FastAPI Docs",         url: "https://fastapi.tiangolo.com",                 description: "Building APIs with Python" },
-    { id: "sqlzoo",        category: "Backend",       name: "SQLZoo",               url: "https://sqlzoo.net",                           description: "Learn SQL interactively" },
-    { id: "aws",           category: "Cloud",         name: "AWS Free Tier",        url: "https://aws.amazon.com/free",                  description: "EC2, S3, Lambda hands-on" },
-    { id: "bytebytego",    category: "System Design", name: "ByteByteGo",           url: "https://www.youtube.com/@ByteByteGo",          description: "Weekly system design concepts" },
-    { id: "pramp",         category: "Interviewing",  name: "Pramp.com",            url: "https://pramp.com",                            description: "Free peer coding interviews" },
-    { id: "interviewing",  category: "Interviewing",  name: "interviewing.io",      url: "https://interviewing.io",                      description: "Anonymous mock interviews" },
-    { id: "simplify",      category: "Career",        name: "Simplify.jobs",        url: "https://simplify.jobs",                        description: "Track and auto-fill applications" },
-    { id: "reddit",        category: "Career",        name: "r/cscareerquestions",  url: "https://reddit.com/r/cscareerquestions",        description: "Resume reviews from community" },
+    { id: "neetcode", category: "DSA", name: "Neetcode.io", url: "https://neetcode.io", description: "Structured 150-problem roadmap" },
+    { id: "leetcode", category: "DSA", name: "LeetCode", url: "https://leetcode.com", description: "Daily problems + weekly contests" },
+    { id: "ctci", category: "DSA", name: "Cracking the Coding Interview", url: null, description: "Interview patterns & mindset" },
+    { id: "fastai", category: "ML", name: "fast.ai", url: "https://fast.ai", description: "Free PyTorch deep learning course" },
+    { id: "huggingface", category: "ML", name: "HuggingFace Docs", url: "https://huggingface.co/docs", description: "Transformers, fine-tuning, datasets" },
+    { id: "fastapi", category: "Backend", name: "FastAPI Docs", url: "https://fastapi.tiangolo.com", description: "Building APIs with Python" },
+    { id: "sqlzoo", category: "Backend", name: "SQLZoo", url: "https://sqlzoo.net", description: "Learn SQL interactively" },
+    { id: "aws", category: "Cloud", name: "AWS Free Tier", url: "https://aws.amazon.com/free", description: "EC2, S3, Lambda hands-on" },
+    { id: "bytebytego", category: "System Design", name: "ByteByteGo", url: "https://www.youtube.com/@ByteByteGo", description: "Weekly system design concepts" },
+    { id: "pramp", category: "Interviewing", name: "Pramp.com", url: "https://pramp.com", description: "Free peer coding interviews" },
+    { id: "interviewing", category: "Interviewing", name: "interviewing.io", url: "https://interviewing.io", description: "Anonymous mock interviews" },
+    { id: "simplify", category: "Career", name: "Simplify.jobs", url: "https://simplify.jobs", description: "Track and auto-fill applications" },
+    { id: "reddit", category: "Career", name: "r/cscareerquestions", url: "https://reddit.com/r/cscareerquestions", description: "Resume reviews from community" },
   ],
 };
 

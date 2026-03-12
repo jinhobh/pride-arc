@@ -157,30 +157,28 @@ TASKS: dict[str, dict] = {
 
 CHECKPOINTS: dict[str, dict] = {
     # Month 1
-    "m1_cp_1": {"id": "m1_cp_1", "skill_type": "dsa",     "xp_reward":  50, "month_number": 1, "title": "Arrays, HashMaps, Two Pointers, Stacks complete"},
-    "m1_cp_2": {"id": "m1_cp_2", "skill_type": "backend", "xp_reward":  50, "month_number": 1, "title": "FastAPI — build and run a REST API locally"},
-    "m1_cp_3": {"id": "m1_cp_3", "skill_type": "backend", "xp_reward":  50, "month_number": 1, "title": "PostgreSQL — basic CRUD queries working"},
-    "m1_cp_4": {"id": "m1_cp_4", "skill_type": "project", "xp_reward":  25, "month_number": 1, "title": "GitHub — public repo with daily commits and README"},
-    "m1_cp_5": {"id": "m1_cp_5", "skill_type": "dsa",     "xp_reward":  75, "month_number": 1, "title": "Neetcode 150 — Arrays section complete"},
+    "m1_cp_1": {"id": "m1_cp_1", "skill_type": "dsa",     "xp_reward":  500, "month_number": 1, "title": "Arrays, HashMaps, Two Pointers, Stacks complete"},
+    "m1_cp_2": {"id": "m1_cp_2", "skill_type": "backend", "xp_reward":  750, "month_number": 1, "title": "FastAPI — build and run a REST API locally"},
+    "m1_cp_3": {"id": "m1_cp_3", "skill_type": "backend", "xp_reward":  750, "month_number": 1, "title": "PostgreSQL — basic CRUD queries working"},
+    "m1_cp_4": {"id": "m1_cp_4", "skill_type": "project", "xp_reward":  250, "month_number": 1, "title": "GitHub — 15+ commit days"},
 
     # Month 2
-    "m2_cp_1": {"id": "m2_cp_1", "skill_type": "devops",  "xp_reward":  50, "month_number": 2, "title": "Docker — app containerized with docker-compose"},
-    "m2_cp_2": {"id": "m2_cp_2", "skill_type": "devops",  "xp_reward":  25, "month_number": 2, "title": "Linux CLI — comfortable with basic commands"},
-    "m2_cp_3": {"id": "m2_cp_3", "skill_type": "dsa",     "xp_reward":  50, "month_number": 2, "title": "Trees BFS/DFS — 10+ problems solved"},
-    "m2_cp_4": {"id": "m2_cp_4", "skill_type": "ml",      "xp_reward":  75, "month_number": 2, "title": "PyTorch — trained a basic neural network"},
-    "m2_cp_5": {"id": "m2_cp_5", "skill_type": "project", "xp_reward":  75, "month_number": 2, "title": "Project — /predict endpoint live and tested"},
-    "m2_cp_6": {"id": "m2_cp_6", "skill_type": "dsa",     "xp_reward":  50, "month_number": 2, "title": "Neetcode 150 — 60+ problems total"},
+    "m2_cp_1": {"id": "m2_cp_1", "skill_type": "devops",  "xp_reward":  500, "month_number": 2, "title": "Docker — app containerized with docker-compose"},
+    "m2_cp_2": {"id": "m2_cp_2", "skill_type": "devops",  "xp_reward":  250, "month_number": 2, "title": "Linux CLI — comfortable with basic commands"},
+    "m2_cp_3": {"id": "m2_cp_3", "skill_type": "dsa",     "xp_reward":  500, "month_number": 2, "title": "Trees BFS/DFS — 10+ problems solved"},
+    "m2_cp_4": {"id": "m2_cp_4", "skill_type": "ml",      "xp_reward":  1000, "month_number": 2, "title": "Reproduced Generative Models via Drifting"},
+    "m2_cp_6": {"id": "m2_cp_6", "skill_type": "dsa",     "xp_reward":  500, "month_number": 2, "title": "Neetcode 150 — 75+ problems total"}
 
     # Month 3
-    "m3_cp_1": {"id": "m3_cp_1", "skill_type": "project", "xp_reward": 150, "month_number": 3, "title": "Project deployed — live URL accessible to anyone"},
-    "m3_cp_2": {"id": "m3_cp_2", "skill_type": "cloud",   "xp_reward":  75, "month_number": 3, "title": "AWS EC2 + S3 — hands-on done"},
-    "m3_cp_3": {"id": "m3_cp_3", "skill_type": "dsa",     "xp_reward":  75, "month_number": 3, "title": "Graph traversal — 15+ graph problems solved"},
-    "m3_cp_4": {"id": "m3_cp_4", "skill_type": "ml",      "xp_reward": 100, "month_number": 3, "title": "HuggingFace — fine-tuned a transformer model"},
-    "m3_cp_5": {"id": "m3_cp_5", "skill_type": "dsa",     "xp_reward":  75, "month_number": 3, "title": "LeetCode Weekly Contest — attempted 2+ contests"},
-    "m3_cp_6": {"id": "m3_cp_6", "skill_type": "dsa",     "xp_reward":  75, "month_number": 3, "title": "Neetcode 150 — 90+ problems total"},
+    "m3_cp_1": {"id": "m3_cp_1", "skill_type": "project", "xp_reward": 1500, "month_number": 3, "title": "Project deployed — live URL accessible to anyone"},
+    "m3_cp_2": {"id": "m3_cp_2", "skill_type": "cloud",   "xp_reward":  750, "month_number": 3, "title": "AWS EC2 + S3 — hands-on done"},
+    "m3_cp_3": {"id": "m3_cp_3", "skill_type": "dsa",     "xp_reward":  750, "month_number": 3, "title": "Graph traversal — 15+ graph problems solved"},
+    "m3_cp_4": {"id": "m3_cp_4", "skill_type": "ml",      "xp_reward": 1000, "month_number": 3, "title": "HuggingFace — fine-tuned a transformer model"},
+    "m3_cp_5": {"id": "m3_cp_5", "skill_type": "dsa",     "xp_reward":  750, "month_number": 3, "title": "LeetCode Weekly Contest — attempted 2+ contests"},
+    "m3_cp_6": {"id": "m3_cp_6", "skill_type": "dsa",     "xp_reward":  750, "month_number": 3, "title": "Neetcode 150 — 120+ problems total"},
 
     # Month 4
-    "m4_cp_1": {"id": "m4_cp_1", "skill_type": "dsa",           "xp_reward": 100, "month_number": 4, "title": "DP — 15+ problems solved (1D and 2D)"},
+    "m4_cp_1": {"id": "m4_cp_1", "skill_type": "dsa",           "xp_reward": 750, "month_number": 4, "title": "DP — 15+ problems solved (1D and 2D)"},
     "m4_cp_2": {"id": "m4_cp_2", "skill_type": "system_design", "xp_reward":  75, "month_number": 4, "title": "System design vocab — explain 5 core concepts fluently"},
     "m4_cp_3": {"id": "m4_cp_3", "skill_type": "career",        "xp_reward": 100, "month_number": 4, "title": "Resume — 1-page, reviewed, polished"},
     "m4_cp_4": {"id": "m4_cp_4", "skill_type": "career",        "xp_reward": 100, "month_number": 4, "title": "Applied to all 4 freshman programs"},
