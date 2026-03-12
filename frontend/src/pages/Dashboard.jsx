@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameData } from '../hooks/useApi'
 import { MONTH_META } from '../constants/planData'
@@ -81,7 +81,6 @@ function MonthlyNudge({ currentMonth, currentTasks }) {
 export default function Dashboard() {
   const {
     state,
-    progress,
     todayHabits,
     streakStatus,
     currentTasks,
@@ -93,14 +92,27 @@ export default function Dashboard() {
     logHabit,
   } = useGameData()
 
+  const [scrollY, setScrollY] = useState(0)
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   if (loading) return <LoadingScreen />
   if (error)   return <ErrorScreen message={error} />
+
+  // 0 = hero fully visible, 1 = character fully shrunk
+  // character shrinks as you scroll through the first 55% of the viewport height
+  const scrollProgress = Math.min(1, scrollY / (window.innerHeight * 0.55))
 
   const daysMissed   = streakStatus?.days_missed ?? 0
   const currentMonth = state?.current_month ?? 1
 
   return (
-    <div className="min-h-screen bg-game-bg">
+    <div className="bg-game-bg">
+      {/* Header — always on top */}
       <HeaderBar
         state={state}
         streakStatus={streakStatus}
@@ -108,32 +120,49 @@ export default function Dashboard() {
         onCheckin={checkin}
       />
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      {/* Hero — sticky below header, stays behind content as it scrolls over */}
+      <div className="sticky top-14 z-0">
         <CharacterHero
           state={state}
           streakStatus={streakStatus}
           daysMissed={daysMissed}
+          scrollProgress={scrollProgress}
         />
+      </div>
 
-        <WeeklyHabits
-          habits={todayHabits}
-          onLogHabit={logHabit}
-          today={today}
-        />
+      {/* Content panel — slides up over the sticky hero */}
+      <div
+        className="relative z-10 -mt-24 rounded-t-3xl overflow-hidden"
+        style={{ background: '#0F0F23' }}
+      >
+        {/* Top edge accent line */}
+        <div className="h-px bg-gradient-to-r from-transparent via-green-500/20 to-transparent" />
+        {/* Drag handle hint */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-white/10" />
+        </div>
 
-        <OnTrackMeter
-          currentTasks={currentTasks}
-          todayHabits={todayHabits}
-          totalXp={state?.total_xp ?? 0}
-        />
+        <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-8">
+          <WeeklyHabits
+            habits={todayHabits}
+            onLogHabit={logHabit}
+            today={today}
+          />
 
-        <MonthlyNudge
-          currentMonth={currentMonth}
-          currentTasks={currentTasks}
-        />
-      </main>
+          <OnTrackMeter
+            currentTasks={currentTasks}
+            todayHabits={todayHabits}
+            totalXp={state?.total_xp ?? 0}
+          />
 
-      <div className="h-20" />
+          <MonthlyNudge
+            currentMonth={currentMonth}
+            currentTasks={currentTasks}
+          />
+        </main>
+
+        <div className="h-20" />
+      </div>
     </div>
   )
 }
