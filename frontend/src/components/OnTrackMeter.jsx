@@ -9,7 +9,7 @@ export default function OnTrackMeter({ currentTasks, todayHabits, totalXp }) {
 
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const startDate = new Date(2026, 2, 11) // March 11, 2026
+    const startDate = new Date(2026, 2, 12) // March 12, 2026
 
     const diffDays = Math.max(0, Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)))
     const dayOfMonth = (diffDays % 30) + 1

@@ -9,7 +9,7 @@ SKILL_LEVEL_THRESHOLDS: list[int] = [0, 25, 75, 150, 250, 375, 525, 700, 900, 11
 # Cumulative XP required to reach each character level (index 0 = level 1)
 CHAR_LEVEL_THRESHOLDS: list[int] = [
     0, 100, 250, 500, 800, 1200, 1700, 2300, 3000,
-    3800, 4700, 5700, 6800, 8000, 9300, 10700, 12200, 
+    3800, 4700, 5700, 6800, 8000, 9300, 10700, 12200,
     13800, 15500, 17300, 19200, 21200, 23300, 25500, 27800
 ]
 
@@ -47,110 +47,243 @@ INITIAL_STATS: dict[str, dict] = {
 
 # ── Tasks ─────────────────────────────────────────────────────────────────────
 # Fields: id, skill_type, frequency ("once"|"daily"|"weekly"), xp, month_number, title
+# Tasks prefixed with "Wk N" indicate which week of the month to tackle them.
 
 TASKS: dict[str, dict] = {
-    # ── Month 1 ──────────────────────────────────────────────────────────────
-    "m1_dsa_1":       {"id": "m1_dsa_1",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 1, "title": "Complete Arrays & Strings on Neetcode 150"},
-    "m1_dsa_2":       {"id": "m1_dsa_2",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 1, "title": "Complete HashMaps & Sets section"},
-    "m1_dsa_3":       {"id": "m1_dsa_3",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 1, "title": "Complete Two Pointers section"},
-    "m1_dsa_4":       {"id": "m1_dsa_4",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 1, "title": "Complete Sliding Window section"},
-    "m1_dsa_5":       {"id": "m1_dsa_5",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 1, "title": "Complete Stacks & Queues section"},
-    "m1_backend_1":   {"id": "m1_backend_1",   "skill_type": "backend", "frequency": "once",   "xp": 50, "month_number": 1, "title": "Build a FastAPI app with GET and POST endpoints"},
-    "m1_backend_2":   {"id": "m1_backend_2",   "skill_type": "backend", "frequency": "once",   "xp": 50, "month_number": 1, "title": "Learn SQL fundamentals"},
-    "m1_backend_3":   {"id": "m1_backend_3",   "skill_type": "backend", "frequency": "once",   "xp": 50, "month_number": 1, "title": "Connect PostgreSQL to your FastAPI app"},
-    "m1_project_1":   {"id": "m1_project_1",   "skill_type": "project", "frequency": "once",   "xp": 10, "month_number": 1, "title": "Create GitHub repo and push initial project scaffold"},
-    "m1_project_2":   {"id": "m1_project_2",   "skill_type": "project", "frequency": "once",   "xp": 25, "month_number": 1, "title": "Connect PostgreSQL to project and run first DB query"},
-    "m1_paper":       {"id": "m1_paper",       "skill_type": "ml",      "frequency": "weekly", "xp":  25, "month_number": 1, "title": "Read 1 ML paper weekly"},
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ── Month 1 — Foundations & Gaps ──────────────────────────────────────────
+    # ═══════════════════════════════════════════════════════════════════════════
 
-    # ── Month 2 ──────────────────────────────────────────────────────────────
-    "m2_dsa_1":       {"id": "m2_dsa_1",       "skill_type": "dsa",     "frequency": "once",   "xp": 25, "month_number": 2, "title": "Complete Linked Lists section on Neetcode 150"},
-    "m2_dsa_2":       {"id": "m2_dsa_2",       "skill_type": "dsa",     "frequency": "once",   "xp": 25, "month_number": 2, "title": "Complete Binary Search section"},
-    "m2_dsa_3":       {"id": "m2_dsa_3",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 2, "title": "Complete Trees (BFS + DFS) section"},
-    "m2_dsa_4":       {"id": "m2_dsa_4",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 2, "title": "Complete Basic Recursion & Backtracking section"},
-    "m2_dsa_daily":   {"id": "m2_dsa_daily",   "skill_type": "dsa",     "frequency": "daily",  "xp": 15, "month_number": 2, "title": "Solve 3 LeetCode problems (Easy/Medium mix)"},
-    "m2_devops_1":    {"id": "m2_devops_1",    "skill_type": "devops",  "frequency": "once",   "xp": 25, "month_number": 2, "title": "Write a Dockerfile for your FastAPI app"},
-    "m2_devops_2":    {"id": "m2_devops_2",    "skill_type": "devops",  "frequency": "once",   "xp": 25, "month_number": 2, "title": "Set up docker-compose with app + PostgreSQL"},
-    "m2_devops_3":    {"id": "m2_devops_3",    "skill_type": "devops",  "frequency": "once",   "xp": 10, "month_number": 2, "title": "Learn Linux CLI fundamentals"},
-    "m2_devops_4":    {"id": "m2_devops_4",    "skill_type": "devops",  "frequency": "once",   "xp": 10, "month_number": 2, "title": "Practice Git branching and pull request workflow"},
-    "m2_ml_1":        {"id": "m2_ml_1",        "skill_type": "ml",      "frequency": "once",   "xp": 25, "month_number": 2, "title": "Complete PyTorch fundamentals (tensors, autograd)"},
-    "m2_ml_2":        {"id": "m2_ml_2",        "skill_type": "ml",      "frequency": "once",   "xp": 50, "month_number": 2, "title": "Build a neural network from scratch in PyTorch"},
-    "m2_ml_3":        {"id": "m2_ml_3",        "skill_type": "ml",      "frequency": "once",   "xp": 50, "month_number": 2, "title": "Build a simple image or text classifier with PyTorch"},
-    "m2_project_1":   {"id": "m2_project_1",   "skill_type": "project", "frequency": "once",   "xp": 50, "month_number": 2, "title": "Integrate PyTorch model into FastAPI backend"},
-    "m2_project_2":   {"id": "m2_project_2",   "skill_type": "project", "frequency": "once",   "xp": 25, "month_number": 2, "title": "Add /predict endpoint that returns model output"},
-    "m2_project_3":   {"id": "m2_project_3",   "skill_type": "project", "frequency": "once",   "xp": 25, "month_number": 2, "title": "Write basic pytest tests for your API"},
+    # ── DSA — Daily Grind ──────────────────────────────────────────────────
+    "m1_dsa_daily":  {"id": "m1_dsa_daily",  "skill_type": "dsa", "frequency": "daily", "xp": 5,  "month_number": 1, "title": "Solve 2 LeetCode Easy problems"},
+    "m1_dsa_w1_1":   {"id": "m1_dsa_w1_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 1, "title": "Wk 1 · Complete Arrays & Strings section (NeetCode 150)"},
+    "m1_dsa_w1_2":   {"id": "m1_dsa_w1_2",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 1, "title": "Wk 1 · Complete HashMaps & Sets section"},
+    "m1_dsa_w2_1":   {"id": "m1_dsa_w2_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 1, "title": "Wk 2 · Complete Two Pointers section"},
+    "m1_dsa_w2_2":   {"id": "m1_dsa_w2_2",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 1, "title": "Wk 2 · Complete Sliding Window section"},
+    "m1_dsa_w3_1":   {"id": "m1_dsa_w3_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 1, "title": "Wk 3 · Complete Stacks & Queues section"},
+    "m1_dsa_w4_1":   {"id": "m1_dsa_w4_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 1, "title": "Wk 4 · Review all 5 patterns — redo any problem you got wrong"},
 
-    # ── Month 3 ──────────────────────────────────────────────────────────────
-    "m3_dsa_1":       {"id": "m3_dsa_1",       "skill_type": "dsa",     "frequency": "once",   "xp":  50, "month_number": 3, "title": "Complete Graphs section"},
-    "m3_dsa_2":       {"id": "m3_dsa_2",       "skill_type": "dsa",     "frequency": "once",   "xp":  50, "month_number": 3, "title": "Complete Backtracking section"},
-    "m3_dsa_3":       {"id": "m3_dsa_3",       "skill_type": "dsa",     "frequency": "once",   "xp":  50, "month_number": 3, "title": "Complete Heaps / Priority Queues section"},
-    "m3_dsa_4":       {"id": "m3_dsa_4",       "skill_type": "dsa",     "frequency": "once",   "xp":  50, "month_number": 3, "title": "Participate in first LeetCode Weekly Contest"},
-    "m3_dsa_daily":   {"id": "m3_dsa_daily",   "skill_type": "dsa",     "frequency": "daily",  "xp":  20, "month_number": 3, "title": "Solve 4 LeetCode problems (mostly Mediums)"},
-    "m3_cloud_1":     {"id": "m3_cloud_1",     "skill_type": "cloud",   "frequency": "once",   "xp":  10, "month_number": 3, "title": "Create AWS Free Tier account"},
-    "m3_cloud_2":     {"id": "m3_cloud_2",     "skill_type": "cloud",   "frequency": "once",   "xp":  25, "month_number": 3, "title": "Spin up an EC2 instance and SSH into it"},
-    "m3_cloud_3":     {"id": "m3_cloud_3",     "skill_type": "cloud",   "frequency": "once",   "xp":  25, "month_number": 3, "title": "Store and retrieve files with S3"},
-    "m3_cloud_4":     {"id": "m3_cloud_4",     "skill_type": "cloud",   "frequency": "once",   "xp":  25, "month_number": 3, "title": "Learn AWS Lambda basics — deploy a serverless function"},
-    "m3_ml_1":        {"id": "m3_ml_1",        "skill_type": "ml",      "frequency": "once",   "xp":  25, "month_number": 3, "title": "Learn HuggingFace ecosystem"},
-    "m3_ml_2":        {"id": "m3_ml_2",        "skill_type": "ml",      "frequency": "once",   "xp": 100, "month_number": 3, "title": "Fine-tune a pre-trained model (BERT or DistilBERT)"},
-    "m3_ml_3":        {"id": "m3_ml_3",        "skill_type": "ml",      "frequency": "once",   "xp":  25, "month_number": 3, "title": "Explain: embeddings, attention, tokenization"},
-    "m3_project_1":   {"id": "m3_project_1",   "skill_type": "project", "frequency": "once",   "xp": 100, "month_number": 3, "title": "Deploy FastAPI + ML app on AWS EC2 or Railway"},
-    "m3_project_2":   {"id": "m3_project_2",   "skill_type": "project", "frequency": "once",   "xp":  10, "month_number": 3, "title": "Write a proper README"},
-    "m3_project_3":   {"id": "m3_project_3",   "skill_type": "project", "frequency": "once",   "xp":  10, "month_number": 3, "title": "Add live URL to GitHub profile and LinkedIn"},
+    # ── Tech Stack — FastAPI & PostgreSQL ──────────────────────────────────
+    "m1_be_w1_1":    {"id": "m1_be_w1_1",   "skill_type": "backend", "frequency": "once", "xp": 10, "month_number": 1, "title": "Wk 1 · Install Python 3.11+, create venv, install FastAPI + uvicorn"},
+    "m1_be_w1_2":    {"id": "m1_be_w1_2",   "skill_type": "backend", "frequency": "once", "xp": 15, "month_number": 1, "title": "Wk 1 · Build a GET endpoint that returns JSON"},
+    "m1_be_w2_1":    {"id": "m1_be_w2_1",   "skill_type": "backend", "frequency": "once", "xp": 15, "month_number": 1, "title": "Wk 2 · Add a POST endpoint with Pydantic request validation"},
+    "m1_be_w2_2":    {"id": "m1_be_w2_2",   "skill_type": "backend", "frequency": "once", "xp": 15, "month_number": 1, "title": "Wk 2 · Add error handling and proper HTTP status codes"},
+    "m1_be_w3_1":    {"id": "m1_be_w3_1",   "skill_type": "backend", "frequency": "once", "xp": 15, "month_number": 1, "title": "Wk 3 · Complete SQLBolt tutorial (SELECT, WHERE, JOINs)"},
+    "m1_be_w3_2":    {"id": "m1_be_w3_2",   "skill_type": "backend", "frequency": "once", "xp": 15, "month_number": 1, "title": "Wk 3 · Practice INSERT, UPDATE, DELETE on a local database"},
+    "m1_be_w4_1":    {"id": "m1_be_w4_1",   "skill_type": "backend", "frequency": "once", "xp": 10, "month_number": 1, "title": "Wk 4 · Install PostgreSQL locally or via Docker"},
+    "m1_be_w4_2":    {"id": "m1_be_w4_2",   "skill_type": "backend", "frequency": "once", "xp": 20, "month_number": 1, "title": "Wk 4 · Connect PostgreSQL to FastAPI with SQLAlchemy"},
+    "m1_be_w4_3":    {"id": "m1_be_w4_3",   "skill_type": "backend", "frequency": "once", "xp": 20, "month_number": 1, "title": "Wk 4 · Build full CRUD endpoints (create, read, update, delete)"},
 
-    # ── Month 4 ──────────────────────────────────────────────────────────────
-    "m4_dsa_1":       {"id": "m4_dsa_1",       "skill_type": "dsa",           "frequency": "once",   "xp":  50, "month_number": 4, "title": "Complete Dynamic Programming section (1D DP)"},
-    "m4_dsa_2":       {"id": "m4_dsa_2",       "skill_type": "dsa",           "frequency": "once",   "xp":  50, "month_number": 4, "title": "Complete Dynamic Programming section (2D DP)"},
-    "m4_dsa_3":       {"id": "m4_dsa_3",       "skill_type": "dsa",           "frequency": "once",   "xp":  25, "month_number": 4, "title": "Complete Tries section"},
-    "m4_dsa_4":       {"id": "m4_dsa_4",       "skill_type": "dsa",           "frequency": "once",   "xp":  50, "month_number": 4, "title": "Complete Advanced Graphs (Dijkstra, Topological Sort)"},
-    "m4_dsa_5":       {"id": "m4_dsa_5",       "skill_type": "dsa",           "frequency": "once",   "xp":  10, "month_number": 4, "title": "Start keeping an error log"},
-    "m4_dsa_daily":   {"id": "m4_dsa_daily",   "skill_type": "dsa",           "frequency": "daily",  "xp":  25, "month_number": 4, "title": "Solve 4–5 LeetCode problems (Mediums + some Hards)"},
-    "m4_sd_1":        {"id": "m4_sd_1",        "skill_type": "system_design", "frequency": "weekly", "xp":  10, "month_number": 4, "title": "Watch 4 ByteByteGo videos (1/week)"},
-    "m4_sd_2":        {"id": "m4_sd_2",        "skill_type": "system_design", "frequency": "once",   "xp":  10, "month_number": 4, "title": "Study load balancers"},
-    "m4_sd_3":        {"id": "m4_sd_3",        "skill_type": "system_design", "frequency": "once",   "xp":  10, "month_number": 4, "title": "Study databases vs caches (Redis)"},
-    "m4_sd_4":        {"id": "m4_sd_4",        "skill_type": "system_design", "frequency": "once",   "xp":  10, "month_number": 4, "title": "Study REST APIs vs GraphQL"},
-    "m4_sd_5":        {"id": "m4_sd_5",        "skill_type": "system_design", "frequency": "once",   "xp":  25, "month_number": 4, "title": "Study CDNs, scaling, CAP theorem basics"},
-    "m4_career_1":    {"id": "m4_career_1",    "skill_type": "career",        "frequency": "once",   "xp":  25, "month_number": 4, "title": "Build your 1-page resume"},
-    "m4_career_2":    {"id": "m4_career_2",    "skill_type": "career",        "frequency": "once",   "xp":  10, "month_number": 4, "title": "Get resume reviewed"},
-    "m4_career_3":    {"id": "m4_career_3",    "skill_type": "career",        "frequency": "once",   "xp":  25, "month_number": 4, "title": "Apply to Google STEP Internship"},
-    "m4_career_4":    {"id": "m4_career_4",    "skill_type": "career",        "frequency": "once",   "xp":  25, "month_number": 4, "title": "Apply to Microsoft Explore"},
-    "m4_career_5":    {"id": "m4_career_5",    "skill_type": "career",        "frequency": "once",   "xp":  25, "month_number": 4, "title": "Apply to Meta University"},
-    "m4_career_6":    {"id": "m4_career_6",    "skill_type": "career",        "frequency": "once",   "xp":  25, "month_number": 4, "title": "Apply to Amazon Future Engineer"},
-    "m4_project_1":   {"id": "m4_project_1",   "skill_type": "project",       "frequency": "once",   "xp":  50, "month_number": 4, "title": "Add JWT authentication to your FastAPI app"},
-    "m4_project_2":   {"id": "m4_project_2",   "skill_type": "project",       "frequency": "once",   "xp":  25, "month_number": 4, "title": "Add Redis caching to the /predict endpoint"},
-    "m4_project_3":   {"id": "m4_project_3",   "skill_type": "networking",    "frequency": "once",   "xp":  25, "month_number": 4, "title": "Write a LinkedIn post or blog about what you built"},
+    # ── Project — Scaffold It ──────────────────────────────────────────────
+    "m1_proj_w1_1":  {"id": "m1_proj_w1_1", "skill_type": "project", "frequency": "once",  "xp": 5,  "month_number": 1, "title": "Wk 1 · Create GitHub repo with README and .gitignore"},
+    "m1_proj_w1_2":  {"id": "m1_proj_w1_2", "skill_type": "project", "frequency": "once",  "xp": 5,  "month_number": 1, "title": "Wk 1 · Set up folder structure (backend/, frontend/)"},
+    "m1_proj_w2_1":  {"id": "m1_proj_w2_1", "skill_type": "project", "frequency": "once",  "xp": 10, "month_number": 1, "title": "Wk 2 · Push initial scaffold with 3+ meaningful commits"},
+    "m1_proj_w3_1":  {"id": "m1_proj_w3_1", "skill_type": "project", "frequency": "once",  "xp": 10, "month_number": 1, "title": "Wk 3 · Set up PostgreSQL for your project"},
+    "m1_proj_w4_1":  {"id": "m1_proj_w4_1", "skill_type": "project", "frequency": "once",  "xp": 15, "month_number": 1, "title": "Wk 4 · Write and test your first database query in the project"},
 
-    # ── Month 5 ──────────────────────────────────────────────────────────────
-    "m5_dsa_1":       {"id": "m5_dsa_1",       "skill_type": "dsa",          "frequency": "once",   "xp": 100, "month_number": 5, "title": "Complete the Neetcode 150 (all remaining problems)"},
-    "m5_dsa_2":       {"id": "m5_dsa_2",       "skill_type": "dsa",          "frequency": "once",   "xp":  50, "month_number": 5, "title": "Do 4 full 90-minute timed simulation sessions"},
-    "m5_dsa_weekly":  {"id": "m5_dsa_weekly",  "skill_type": "dsa",          "frequency": "weekly", "xp":  50, "month_number": 5, "title": "LeetCode Weekly Contest every Sunday"},
-    "m5_mock_1":      {"id": "m5_mock_1",      "skill_type": "interviewing", "frequency": "once",   "xp":  50, "month_number": 5, "title": "Complete 4 mock interviews on Pramp"},
-    "m5_mock_2":      {"id": "m5_mock_2",      "skill_type": "interviewing", "frequency": "once",   "xp":  50, "month_number": 5, "title": "Complete 4 mock interviews on interviewing.io"},
-    "m5_mock_weekly": {"id": "m5_mock_weekly", "skill_type": "interviewing", "frequency": "weekly", "xp":  50, "month_number": 5, "title": "2 mock interviews per week"},
-    "m5_beh_1":       {"id": "m5_beh_1",       "skill_type": "interviewing", "frequency": "once",   "xp":  25, "month_number": 5, "title": "Write your 'Overcoming a challenge' STAR story"},
-    "m5_beh_2":       {"id": "m5_beh_2",       "skill_type": "interviewing", "frequency": "once",   "xp":  25, "month_number": 5, "title": "Write your 'Teamwork' STAR story"},
-    "m5_beh_3":       {"id": "m5_beh_3",       "skill_type": "interviewing", "frequency": "once",   "xp":  25, "month_number": 5, "title": "Write your 'Failure / learning' STAR story"},
-    "m5_beh_4":       {"id": "m5_beh_4",       "skill_type": "interviewing", "frequency": "once",   "xp":  25, "month_number": 5, "title": "Write your 'Technical decision I made' STAR story"},
-    "m5_beh_5":       {"id": "m5_beh_5",       "skill_type": "interviewing", "frequency": "once",   "xp":  25, "month_number": 5, "title": "Write your 'Impact I created' STAR story"},
-    "m5_beh_6":       {"id": "m5_beh_6",       "skill_type": "interviewing", "frequency": "once",   "xp":  25, "month_number": 5, "title": "Write your 'Why this company' answer for top 3 targets"},
-    "m5_beh_7":       {"id": "m5_beh_7",       "skill_type": "interviewing", "frequency": "once",   "xp":  25, "month_number": 5, "title": "Practice all 6 STAR stories out loud without notes"},
-    "m5_net_1":       {"id": "m5_net_1",       "skill_type": "networking",   "frequency": "once",   "xp":  25, "month_number": 5, "title": "Request 5+ referrals from LinkedIn connections"},
-    "m5_net_2":       {"id": "m5_net_2",       "skill_type": "career",       "frequency": "once",   "xp":  50, "month_number": 5, "title": "Apply to 30+ companies total"},
-    "m5_net_3":       {"id": "m5_net_3",       "skill_type": "career",       "frequency": "once",   "xp":  10, "month_number": 5, "title": "Set up Simplify.jobs to track all applications"},
+    # ── ML — Weekly Paper ──────────────────────────────────────────────────
+    "m1_paper":      {"id": "m1_paper",      "skill_type": "ml", "frequency": "weekly", "xp": 25, "month_number": 1, "title": "Read 1 ML paper"},
 
-    # ── Month 6 ──────────────────────────────────────────────────────────────
-    "m6_dsa_1":       {"id": "m6_dsa_1",       "skill_type": "dsa",          "frequency": "once",   "xp":  50, "month_number": 6, "title": "Review entire error log — redo every problem you got wrong"},
-    "m6_dsa_2":       {"id": "m6_dsa_2",       "skill_type": "dsa",          "frequency": "once",   "xp":  50, "month_number": 6, "title": "Complete 2 full LeetCode Virtual Contests (timed)"},
-    "m6_dsa_daily":   {"id": "m6_dsa_daily",   "skill_type": "dsa",          "frequency": "daily",  "xp":  15, "month_number": 6, "title": "Solve 2–3 LeetCode problems (review and reinforce)"},
-    "m6_dsa_weekly":  {"id": "m6_dsa_weekly",  "skill_type": "dsa",          "frequency": "weekly", "xp":  50, "month_number": 6, "title": "LeetCode Weekly Contest every Sunday"},
-    "m6_mock_weekly": {"id": "m6_mock_weekly", "skill_type": "interviewing", "frequency": "weekly", "xp":  75, "month_number": 6, "title": "3 mock interviews per week (coding + behavioral)"},
-    "m6_mock_1":      {"id": "m6_mock_1",      "skill_type": "interviewing", "frequency": "once",   "xp":  25, "month_number": 6, "title": "Record a mock interview on Zoom and watch it back"},
-    "m6_mock_2":      {"id": "m6_mock_2",      "skill_type": "interviewing", "frequency": "once",   "xp":  10, "month_number": 6, "title": "Practice with a timer visible on screen for every session"},
-    "m6_project_1":   {"id": "m6_project_1",   "skill_type": "project",       "frequency": "once",   "xp":  25, "month_number": 6, "title": "Clean up codebase — remove dead code, add comments"},
-    "m6_project_2":   {"id": "m6_project_2",   "skill_type": "project",       "frequency": "once",   "xp":  25, "month_number": 6, "title": "Record a 2-minute demo video of your project"},
-    "m6_project_3":   {"id": "m6_project_3",   "skill_type": "system_design", "frequency": "once",   "xp":  50, "month_number": 6, "title": "Prepare architecture explanation — what would you change at scale?"},
-    "m6_career_1":    {"id": "m6_career_1",    "skill_type": "career",        "frequency": "once",   "xp":  50, "month_number": 6, "title": "Apply to remaining targets — total 50+ companies"},
-    "m6_career_2":    {"id": "m6_career_2",    "skill_type": "career",        "frequency": "once",   "xp":  10, "month_number": 6, "title": "Follow up on all pending applications"},
-    "m6_career_3":    {"id": "m6_career_3",    "skill_type": "career",        "frequency": "once",   "xp":  25, "month_number": 6, "title": "Prepare company-specific notes for top 5 interview targets"},
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ── Month 2 — DevOps & ML Sharpening ──────────────────────────────────────
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # ── DSA — Ramp Up ──────────────────────────────────────────────────────
+    "m2_dsa_daily":  {"id": "m2_dsa_daily",  "skill_type": "dsa", "frequency": "daily", "xp": 15, "month_number": 2, "title": "Solve 3 LeetCode problems (Easy/Medium mix)"},
+    "m2_dsa_w1_1":   {"id": "m2_dsa_w1_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 2, "title": "Wk 1 · Complete Linked Lists section (NeetCode 150)"},
+    "m2_dsa_w2_1":   {"id": "m2_dsa_w2_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 2, "title": "Wk 2 · Complete Binary Search section"},
+    "m2_dsa_w3_1":   {"id": "m2_dsa_w3_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 2, "title": "Wk 3 · Complete Trees BFS section"},
+    "m2_dsa_w3_2":   {"id": "m2_dsa_w3_2",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 2, "title": "Wk 3 · Complete Trees DFS section"},
+    "m2_dsa_w4_1":   {"id": "m2_dsa_w4_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 2, "title": "Wk 4 · Complete Basic Recursion section"},
+    "m2_dsa_w4_2":   {"id": "m2_dsa_w4_2",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 2, "title": "Wk 4 · Complete Backtracking intro problems"},
+
+    # ── Tech Stack — Docker & Linux ────────────────────────────────────────
+    "m2_devops_w1_1": {"id": "m2_devops_w1_1", "skill_type": "devops", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 1 · Install Docker Desktop and run hello-world container"},
+    "m2_devops_w1_2": {"id": "m2_devops_w1_2", "skill_type": "devops", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 1 · Write a Dockerfile for your FastAPI app"},
+    "m2_devops_w2_1": {"id": "m2_devops_w2_1", "skill_type": "devops", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 2 · Write docker-compose.yml with app + PostgreSQL"},
+    "m2_devops_w2_2": {"id": "m2_devops_w2_2", "skill_type": "devops", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 2 · Verify your app runs end-to-end with docker-compose up"},
+    "m2_devops_w3_1": {"id": "m2_devops_w3_1", "skill_type": "devops", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 3 · Learn essential Linux commands (ls, cd, grep, chmod, ssh)"},
+    "m2_devops_w4_1": {"id": "m2_devops_w4_1", "skill_type": "devops", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 4 · Create a feature branch and open your first pull request"},
+
+    # ── ML Depth — PyTorch ─────────────────────────────────────────────────
+    "m2_ml_w1_1":    {"id": "m2_ml_w1_1",   "skill_type": "ml", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 1 · Install PyTorch and run basic tensor operations"},
+    "m2_ml_w1_2":    {"id": "m2_ml_w1_2",   "skill_type": "ml", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 1 · Learn autograd — build a computation graph and call .backward()"},
+    "m2_ml_w2_1":    {"id": "m2_ml_w2_1",   "skill_type": "ml", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 2 · Build a 2-layer neural network from scratch (no nn.Module)"},
+    "m2_ml_w2_2":    {"id": "m2_ml_w2_2",   "skill_type": "ml", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 2 · Rewrite using nn.Module, nn.Linear, and an optimizer"},
+    "m2_ml_w3_1":    {"id": "m2_ml_w3_1",   "skill_type": "ml", "frequency": "once", "xp": 20, "month_number": 2, "title": "Wk 3 · Train an image classifier on MNIST or CIFAR-10"},
+    "m2_ml_w3_2":    {"id": "m2_ml_w3_2",   "skill_type": "ml", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 3 · Evaluate with accuracy, confusion matrix, and loss curves"},
+    "m2_ml_w4_1":    {"id": "m2_ml_w4_1",   "skill_type": "ml", "frequency": "once", "xp": 20, "month_number": 2, "title": "Wk 4 · Build a text classifier with torchtext or custom dataset"},
+    "m2_ml_w4_2":    {"id": "m2_ml_w4_2",   "skill_type": "ml", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 4 · Save model with torch.save() and load it for inference"},
+
+    # ── Project — Add ML Endpoint ──────────────────────────────────────────
+    "m2_proj_w2_1":  {"id": "m2_proj_w2_1", "skill_type": "project", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 2 · Export your trained model and load it in FastAPI"},
+    "m2_proj_w2_2":  {"id": "m2_proj_w2_2", "skill_type": "project", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 2 · Create a /predict endpoint that returns model output"},
+    "m2_proj_w3_1":  {"id": "m2_proj_w3_1", "skill_type": "project", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 3 · Add input validation and error handling to /predict"},
+    "m2_proj_w3_2":  {"id": "m2_proj_w3_2", "skill_type": "project", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 3 · Test /predict manually with curl or Postman"},
+    "m2_proj_w4_1":  {"id": "m2_proj_w4_1", "skill_type": "project", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 4 · Write 5+ pytest tests for your API endpoints"},
+    "m2_proj_w4_2":  {"id": "m2_proj_w4_2", "skill_type": "project", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 4 · Set up pytest to run in CI or as a pre-commit check"},
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ── Month 3 — Cloud Deployment ────────────────────────────────────────────
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # ── DSA — Go Hard ──────────────────────────────────────────────────────
+    "m3_dsa_daily":  {"id": "m3_dsa_daily",  "skill_type": "dsa", "frequency": "daily", "xp": 20, "month_number": 3, "title": "Solve 4 LeetCode problems (mostly Mediums)"},
+    "m3_dsa_w1_1":   {"id": "m3_dsa_w1_1",  "skill_type": "dsa", "frequency": "once",  "xp": 15, "month_number": 3, "title": "Wk 1 · Learn BFS and DFS graph traversal patterns"},
+    "m3_dsa_w1_2":   {"id": "m3_dsa_w1_2",  "skill_type": "dsa", "frequency": "once",  "xp": 15, "month_number": 3, "title": "Wk 1 · Solve 5 graph problems (BFS focus)"},
+    "m3_dsa_w2_1":   {"id": "m3_dsa_w2_1",  "skill_type": "dsa", "frequency": "once",  "xp": 15, "month_number": 3, "title": "Wk 2 · Solve 5 graph problems (DFS + connected components)"},
+    "m3_dsa_w2_2":   {"id": "m3_dsa_w2_2",  "skill_type": "dsa", "frequency": "once",  "xp": 20, "month_number": 3, "title": "Wk 2 · Complete full Graphs section on NeetCode 150"},
+    "m3_dsa_w3_1":   {"id": "m3_dsa_w3_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 3, "title": "Wk 3 · Complete Backtracking section (permutations, subsets, combos)"},
+    "m3_dsa_w3_2":   {"id": "m3_dsa_w3_2",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 3, "title": "Wk 3 · Complete Heaps / Priority Queues section"},
+    "m3_dsa_w4_1":   {"id": "m3_dsa_w4_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 3, "title": "Wk 4 · Enter your first LeetCode Weekly Contest"},
+    "m3_dsa_w4_2":   {"id": "m3_dsa_w4_2",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 3, "title": "Wk 4 · Enter a second LeetCode Weekly Contest"},
+
+    # ── Tech Stack — AWS Cloud ─────────────────────────────────────────────
+    "m3_cloud_w1_1": {"id": "m3_cloud_w1_1", "skill_type": "cloud", "frequency": "once", "xp": 10, "month_number": 3, "title": "Wk 1 · Create AWS Free Tier account and set up IAM user"},
+    "m3_cloud_w1_2": {"id": "m3_cloud_w1_2", "skill_type": "cloud", "frequency": "once", "xp": 10, "month_number": 3, "title": "Wk 1 · Launch an EC2 instance and SSH into it"},
+    "m3_cloud_w2_1": {"id": "m3_cloud_w2_1", "skill_type": "cloud", "frequency": "once", "xp": 15, "month_number": 3, "title": "Wk 2 · Deploy a simple script on EC2 and keep it running"},
+    "m3_cloud_w2_2": {"id": "m3_cloud_w2_2", "skill_type": "cloud", "frequency": "once", "xp": 10, "month_number": 3, "title": "Wk 2 · Create an S3 bucket, upload and download files via CLI"},
+    "m3_cloud_w3_1": {"id": "m3_cloud_w3_1", "skill_type": "cloud", "frequency": "once", "xp": 15, "month_number": 3, "title": "Wk 3 · Write a Lambda function triggered by API Gateway"},
+    "m3_cloud_w3_2": {"id": "m3_cloud_w3_2", "skill_type": "cloud", "frequency": "once", "xp": 10, "month_number": 3, "title": "Wk 3 · Test your Lambda with a curl request end-to-end"},
+
+    # ── ML Depth — HuggingFace & Transformers ──────────────────────────────
+    "m3_ml_w1_1":    {"id": "m3_ml_w1_1",   "skill_type": "ml", "frequency": "once", "xp": 10, "month_number": 3, "title": "Wk 1 · Install HuggingFace transformers and run a pre-trained pipeline"},
+    "m3_ml_w1_2":    {"id": "m3_ml_w1_2",   "skill_type": "ml", "frequency": "once", "xp": 15, "month_number": 3, "title": "Wk 1 · Use a tokenizer — encode/decode text, inspect token IDs"},
+    "m3_ml_w2_1":    {"id": "m3_ml_w2_1",   "skill_type": "ml", "frequency": "once", "xp": 15, "month_number": 3, "title": "Wk 2 · Explain embeddings, attention, and tokenization in your own words"},
+    "m3_ml_w2_2":    {"id": "m3_ml_w2_2",   "skill_type": "ml", "frequency": "once", "xp": 25, "month_number": 3, "title": "Wk 2 · Prepare a dataset for fine-tuning (train/val split, tokenize)"},
+    "m3_ml_w3_1":    {"id": "m3_ml_w3_1",   "skill_type": "ml", "frequency": "once", "xp": 50, "month_number": 3, "title": "Wk 3 · Fine-tune DistilBERT or BERT on a text classification task"},
+    "m3_ml_w3_2":    {"id": "m3_ml_w3_2",   "skill_type": "ml", "frequency": "once", "xp": 25, "month_number": 3, "title": "Wk 3 · Evaluate fine-tuned model — report accuracy, F1, sample predictions"},
+
+    # ── Project — Deploy It Live ───────────────────────────────────────────
+    "m3_proj_w3_1":  {"id": "m3_proj_w3_1", "skill_type": "project", "frequency": "once", "xp": 25, "month_number": 3, "title": "Wk 3 · Choose deployment target (EC2, Railway, or Render)"},
+    "m3_proj_w3_2":  {"id": "m3_proj_w3_2", "skill_type": "project", "frequency": "once", "xp": 25, "month_number": 3, "title": "Wk 3 · Deploy your FastAPI + ML app to a live URL"},
+    "m3_proj_w4_1":  {"id": "m3_proj_w4_1", "skill_type": "project", "frequency": "once", "xp": 25, "month_number": 3, "title": "Wk 4 · Verify live app works — test all endpoints from your phone"},
+    "m3_proj_w4_2":  {"id": "m3_proj_w4_2", "skill_type": "project", "frequency": "once", "xp": 25, "month_number": 3, "title": "Wk 4 · Write a proper README with setup instructions and screenshots"},
+    "m3_proj_w4_3":  {"id": "m3_proj_w4_3", "skill_type": "project", "frequency": "once", "xp": 10, "month_number": 3, "title": "Wk 4 · Add live URL to your GitHub profile and LinkedIn"},
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ── Month 4 — System Design & Resume ──────────────────────────────────────
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # ── DSA — Hard Push ────────────────────────────────────────────────────
+    "m4_dsa_daily":  {"id": "m4_dsa_daily",  "skill_type": "dsa", "frequency": "daily", "xp": 25, "month_number": 4, "title": "Solve 4-5 LeetCode problems (Mediums + some Hards)"},
+    "m4_dsa_w1_1":   {"id": "m4_dsa_w1_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 4, "title": "Wk 1 · Learn 1D DP patterns (climbing stairs, house robber, coin change)"},
+    "m4_dsa_w1_2":   {"id": "m4_dsa_w1_2",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 4, "title": "Wk 1 · Complete 1D Dynamic Programming section (NeetCode 150)"},
+    "m4_dsa_w2_1":   {"id": "m4_dsa_w2_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 4, "title": "Wk 2 · Learn 2D DP patterns (grid paths, LCS, knapsack)"},
+    "m4_dsa_w2_2":   {"id": "m4_dsa_w2_2",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 4, "title": "Wk 2 · Complete 2D Dynamic Programming section (NeetCode 150)"},
+    "m4_dsa_w3_1":   {"id": "m4_dsa_w3_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 4, "title": "Wk 3 · Complete Tries section (NeetCode 150)"},
+    "m4_dsa_w3_2":   {"id": "m4_dsa_w3_2",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 4, "title": "Wk 3 · Learn Dijkstra's algorithm and topological sort"},
+    "m4_dsa_w4_1":   {"id": "m4_dsa_w4_1",  "skill_type": "dsa", "frequency": "once",  "xp": 25, "month_number": 4, "title": "Wk 4 · Complete Advanced Graphs section (NeetCode 150)"},
+    "m4_dsa_w4_2":   {"id": "m4_dsa_w4_2",  "skill_type": "dsa", "frequency": "once",  "xp": 10, "month_number": 4, "title": "Wk 4 · Start an error log — write down every problem you got wrong and why"},
+
+    # ── System Design — Intro Level ────────────────────────────────────────
+    "m4_sd_weekly":  {"id": "m4_sd_weekly",  "skill_type": "system_design", "frequency": "weekly", "xp": 10, "month_number": 4, "title": "Watch 1 ByteByteGo video and write a 3-sentence summary"},
+    "m4_sd_w1_1":    {"id": "m4_sd_w1_1",   "skill_type": "system_design", "frequency": "once",   "xp": 10, "month_number": 4, "title": "Wk 1 · Study load balancers — L4 vs L7, round robin, health checks"},
+    "m4_sd_w2_1":    {"id": "m4_sd_w2_1",   "skill_type": "system_design", "frequency": "once",   "xp": 10, "month_number": 4, "title": "Wk 2 · Study databases vs caches — when to use Redis, cache invalidation"},
+    "m4_sd_w3_1":    {"id": "m4_sd_w3_1",   "skill_type": "system_design", "frequency": "once",   "xp": 10, "month_number": 4, "title": "Wk 3 · Study REST vs GraphQL — when to use each, tradeoffs"},
+    "m4_sd_w4_1":    {"id": "m4_sd_w4_1",   "skill_type": "system_design", "frequency": "once",   "xp": 10, "month_number": 4, "title": "Wk 4 · Study CDNs, horizontal scaling, and CAP theorem"},
+    "m4_sd_w4_2":    {"id": "m4_sd_w4_2",   "skill_type": "system_design", "frequency": "once",   "xp": 15, "month_number": 4, "title": "Wk 4 · Write a 1-page cheat sheet of all 5 system design concepts"},
+
+    # ── Career — Resume & Applications ─────────────────────────────────────
+    "m4_career_w1_1": {"id": "m4_career_w1_1", "skill_type": "career", "frequency": "once", "xp": 10, "month_number": 4, "title": "Wk 1 · Gather all resume content — projects, skills, education"},
+    "m4_career_w1_2": {"id": "m4_career_w1_2", "skill_type": "career", "frequency": "once", "xp": 15, "month_number": 4, "title": "Wk 1 · Draft your 1-page resume using Jake's template"},
+    "m4_career_w2_1": {"id": "m4_career_w2_1", "skill_type": "career", "frequency": "once", "xp": 10, "month_number": 4, "title": "Wk 2 · Get resume reviewed by 2 people (peer, mentor, or online)"},
+    "m4_career_w2_2": {"id": "m4_career_w2_2", "skill_type": "career", "frequency": "once", "xp": 10, "month_number": 4, "title": "Wk 2 · Revise resume based on feedback"},
+    "m4_career_w3_1": {"id": "m4_career_w3_1", "skill_type": "career", "frequency": "once", "xp": 25, "month_number": 4, "title": "Wk 3 · Apply to Google STEP Internship"},
+    "m4_career_w3_2": {"id": "m4_career_w3_2", "skill_type": "career", "frequency": "once", "xp": 25, "month_number": 4, "title": "Wk 3 · Apply to Microsoft Explore"},
+    "m4_career_w4_1": {"id": "m4_career_w4_1", "skill_type": "career", "frequency": "once", "xp": 25, "month_number": 4, "title": "Wk 4 · Apply to Meta University"},
+    "m4_career_w4_2": {"id": "m4_career_w4_2", "skill_type": "career", "frequency": "once", "xp": 25, "month_number": 4, "title": "Wk 4 · Apply to Amazon Future Engineer"},
+
+    # ── Project — Add Depth ────────────────────────────────────────────────
+    "m4_proj_w1_1":  {"id": "m4_proj_w1_1", "skill_type": "project",    "frequency": "once", "xp": 15, "month_number": 4, "title": "Wk 1 · Research JWT auth — understand access tokens vs refresh tokens"},
+    "m4_proj_w1_2":  {"id": "m4_proj_w1_2", "skill_type": "project",    "frequency": "once", "xp": 20, "month_number": 4, "title": "Wk 1 · Implement JWT login/register endpoints in FastAPI"},
+    "m4_proj_w2_1":  {"id": "m4_proj_w2_1", "skill_type": "project",    "frequency": "once", "xp": 15, "month_number": 4, "title": "Wk 2 · Protect your /predict endpoint with JWT auth"},
+    "m4_proj_w3_1":  {"id": "m4_proj_w3_1", "skill_type": "project",    "frequency": "once", "xp": 10, "month_number": 4, "title": "Wk 3 · Install and configure Redis locally or in Docker"},
+    "m4_proj_w3_2":  {"id": "m4_proj_w3_2", "skill_type": "project",    "frequency": "once", "xp": 15, "month_number": 4, "title": "Wk 3 · Add Redis caching to the /predict endpoint"},
+    "m4_proj_w4_1":  {"id": "m4_proj_w4_1", "skill_type": "networking", "frequency": "once", "xp": 25, "month_number": 4, "title": "Wk 4 · Write a LinkedIn post or blog about what you built"},
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ── Month 5 — Mock Interviews & Apps ──────────────────────────────────────
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # ── DSA — Interview Simulation Mode ────────────────────────────────────
+    "m5_dsa_weekly": {"id": "m5_dsa_weekly", "skill_type": "dsa", "frequency": "weekly", "xp": 50, "month_number": 5, "title": "LeetCode Weekly Contest every Sunday"},
+    "m5_dsa_w1_1":   {"id": "m5_dsa_w1_1",  "skill_type": "dsa", "frequency": "once",   "xp": 25, "month_number": 5, "title": "Wk 1 · Identify remaining NeetCode 150 gaps and make a hit list"},
+    "m5_dsa_w1_2":   {"id": "m5_dsa_w1_2",  "skill_type": "dsa", "frequency": "once",   "xp": 25, "month_number": 5, "title": "Wk 1 · Complete all remaining Easy/Medium problems on the list"},
+    "m5_dsa_w2_1":   {"id": "m5_dsa_w2_1",  "skill_type": "dsa", "frequency": "once",   "xp": 25, "month_number": 5, "title": "Wk 2 · Complete all remaining Hard problems on the list"},
+    "m5_dsa_w2_2":   {"id": "m5_dsa_w2_2",  "skill_type": "dsa", "frequency": "once",   "xp": 25, "month_number": 5, "title": "Wk 2 · Verify NeetCode 150 is 100% complete"},
+    "m5_dsa_w3_1":   {"id": "m5_dsa_w3_1",  "skill_type": "dsa", "frequency": "once",   "xp": 15, "month_number": 5, "title": "Wk 3 · 90-min timed simulation #1 (2 Mediums + 1 Hard)"},
+    "m5_dsa_w3_2":   {"id": "m5_dsa_w3_2",  "skill_type": "dsa", "frequency": "once",   "xp": 15, "month_number": 5, "title": "Wk 3 · 90-min timed simulation #2"},
+    "m5_dsa_w4_1":   {"id": "m5_dsa_w4_1",  "skill_type": "dsa", "frequency": "once",   "xp": 10, "month_number": 5, "title": "Wk 4 · 90-min timed simulation #3"},
+    "m5_dsa_w4_2":   {"id": "m5_dsa_w4_2",  "skill_type": "dsa", "frequency": "once",   "xp": 10, "month_number": 5, "title": "Wk 4 · 90-min timed simulation #4"},
+
+    # ── Mock Interviews ────────────────────────────────────────────────────
+    "m5_mock_weekly": {"id": "m5_mock_weekly", "skill_type": "interviewing", "frequency": "weekly", "xp": 50, "month_number": 5, "title": "Complete 2 mock interviews this week"},
+    "m5_mock_w1_1":  {"id": "m5_mock_w1_1", "skill_type": "interviewing", "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 1 · Sign up for Pramp and complete your first mock"},
+    "m5_mock_w1_2":  {"id": "m5_mock_w1_2", "skill_type": "interviewing", "frequency": "once", "xp": 10, "month_number": 5, "title": "Wk 1 · Complete second Pramp mock interview"},
+    "m5_mock_w2_1":  {"id": "m5_mock_w2_1", "skill_type": "interviewing", "frequency": "once", "xp": 10, "month_number": 5, "title": "Wk 2 · Complete third Pramp mock interview"},
+    "m5_mock_w2_2":  {"id": "m5_mock_w2_2", "skill_type": "interviewing", "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 2 · Complete fourth Pramp mock interview"},
+    "m5_mock_w3_1":  {"id": "m5_mock_w3_1", "skill_type": "interviewing", "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 3 · Sign up for interviewing.io and complete first mock"},
+    "m5_mock_w3_2":  {"id": "m5_mock_w3_2", "skill_type": "interviewing", "frequency": "once", "xp": 10, "month_number": 5, "title": "Wk 3 · Complete second interviewing.io mock"},
+    "m5_mock_w4_1":  {"id": "m5_mock_w4_1", "skill_type": "interviewing", "frequency": "once", "xp": 10, "month_number": 5, "title": "Wk 4 · Complete third interviewing.io mock"},
+    "m5_mock_w4_2":  {"id": "m5_mock_w4_2", "skill_type": "interviewing", "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 4 · Complete fourth interviewing.io mock"},
+
+    # ── Behavioral Interview Prep ──────────────────────────────────────────
+    "m5_beh_w1_1":   {"id": "m5_beh_w1_1",  "skill_type": "interviewing", "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 1 · Write your 'Overcoming a challenge' STAR story"},
+    "m5_beh_w1_2":   {"id": "m5_beh_w1_2",  "skill_type": "interviewing", "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 1 · Write your 'Teamwork' STAR story"},
+    "m5_beh_w2_1":   {"id": "m5_beh_w2_1",  "skill_type": "interviewing", "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 2 · Write your 'Failure / learning' STAR story"},
+    "m5_beh_w2_2":   {"id": "m5_beh_w2_2",  "skill_type": "interviewing", "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 2 · Write your 'Technical decision I made' STAR story"},
+    "m5_beh_w3_1":   {"id": "m5_beh_w3_1",  "skill_type": "interviewing", "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 3 · Write your 'Impact I created' STAR story"},
+    "m5_beh_w3_2":   {"id": "m5_beh_w3_2",  "skill_type": "interviewing", "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 3 · Write 'Why this company' answer for top 3 targets"},
+    "m5_beh_w4_1":   {"id": "m5_beh_w4_1",  "skill_type": "interviewing", "frequency": "once", "xp": 25, "month_number": 5, "title": "Wk 4 · Practice all 6 STAR stories out loud without notes"},
+    "m5_beh_w4_2":   {"id": "m5_beh_w4_2",  "skill_type": "interviewing", "frequency": "once", "xp": 10, "month_number": 5, "title": "Wk 4 · Record yourself telling 2 stories and watch playback"},
+
+    # ── Networking & Applications ──────────────────────────────────────────
+    "m5_net_w1_1":   {"id": "m5_net_w1_1",  "skill_type": "career",     "frequency": "once", "xp": 10, "month_number": 5, "title": "Wk 1 · Set up Simplify.jobs to track all applications"},
+    "m5_net_w1_2":   {"id": "m5_net_w1_2",  "skill_type": "career",     "frequency": "once", "xp": 10, "month_number": 5, "title": "Wk 1 · Make a list of 30+ target companies to apply to"},
+    "m5_net_w2_1":   {"id": "m5_net_w2_1",  "skill_type": "career",     "frequency": "once", "xp": 10, "month_number": 5, "title": "Wk 2 · Apply to 10 companies"},
+    "m5_net_w2_2":   {"id": "m5_net_w2_2",  "skill_type": "networking", "frequency": "once", "xp": 10, "month_number": 5, "title": "Wk 2 · Identify 5 LinkedIn connections who could refer you"},
+    "m5_net_w3_1":   {"id": "m5_net_w3_1",  "skill_type": "career",     "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 3 · Apply to 10 more companies (20 total)"},
+    "m5_net_w3_2":   {"id": "m5_net_w3_2",  "skill_type": "networking", "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 3 · Send referral request messages to 3 connections"},
+    "m5_net_w4_1":   {"id": "m5_net_w4_1",  "skill_type": "career",     "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 4 · Apply to 10 more companies (30+ total)"},
+    "m5_net_w4_2":   {"id": "m5_net_w4_2",  "skill_type": "networking", "frequency": "once", "xp": 10, "month_number": 5, "title": "Wk 4 · Send referral request messages to 2 more connections"},
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ── Month 6 — Polish, Practice, Peak ──────────────────────────────────────
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # ── DSA — Maintain the Peak ────────────────────────────────────────────
+    "m6_dsa_daily":  {"id": "m6_dsa_daily",  "skill_type": "dsa", "frequency": "daily",  "xp": 15, "month_number": 6, "title": "Solve 2-3 LeetCode problems (review and reinforce)"},
+    "m6_dsa_weekly": {"id": "m6_dsa_weekly", "skill_type": "dsa", "frequency": "weekly", "xp": 50, "month_number": 6, "title": "LeetCode Weekly Contest every Sunday"},
+    "m6_dsa_w1_1":   {"id": "m6_dsa_w1_1",  "skill_type": "dsa", "frequency": "once",   "xp": 15, "month_number": 6, "title": "Wk 1 · Review error log — categorize mistakes by pattern"},
+    "m6_dsa_w1_2":   {"id": "m6_dsa_w1_2",  "skill_type": "dsa", "frequency": "once",   "xp": 15, "month_number": 6, "title": "Wk 1 · Redo the 10 hardest problems you previously got wrong"},
+    "m6_dsa_w2_1":   {"id": "m6_dsa_w2_1",  "skill_type": "dsa", "frequency": "once",   "xp": 20, "month_number": 6, "title": "Wk 2 · Redo all remaining error log problems"},
+    "m6_dsa_w3_1":   {"id": "m6_dsa_w3_1",  "skill_type": "dsa", "frequency": "once",   "xp": 25, "month_number": 6, "title": "Wk 3 · Complete a full LeetCode Virtual Contest (timed, 90 min)"},
+    "m6_dsa_w4_1":   {"id": "m6_dsa_w4_1",  "skill_type": "dsa", "frequency": "once",   "xp": 25, "month_number": 6, "title": "Wk 4 · Complete a second LeetCode Virtual Contest (timed)"},
+
+    # ── Interview Prep — Full Simulation ───────────────────────────────────
+    "m6_mock_weekly": {"id": "m6_mock_weekly", "skill_type": "interviewing", "frequency": "weekly", "xp": 75, "month_number": 6, "title": "3 mock interviews this week (coding + behavioral)"},
+    "m6_mock_w1_1":  {"id": "m6_mock_w1_1", "skill_type": "interviewing", "frequency": "once", "xp": 10, "month_number": 6, "title": "Wk 1 · Record a mock interview on Zoom and watch it back"},
+    "m6_mock_w1_2":  {"id": "m6_mock_w1_2", "skill_type": "interviewing", "frequency": "once", "xp": 5,  "month_number": 6, "title": "Wk 1 · Write down 3 things to improve from the recording"},
+    "m6_mock_w2_1":  {"id": "m6_mock_w2_1", "skill_type": "interviewing", "frequency": "once", "xp": 10, "month_number": 6, "title": "Wk 2 · Practice every session with a timer visible on screen"},
+    "m6_mock_w3_1":  {"id": "m6_mock_w3_1", "skill_type": "interviewing", "frequency": "once", "xp": 10, "month_number": 6, "title": "Wk 3 · Do a mock explaining your thought process out loud the entire time"},
+
+    # ── Project — Final Polish ─────────────────────────────────────────────
+    "m6_proj_w1_1":  {"id": "m6_proj_w1_1", "skill_type": "project",       "frequency": "once", "xp": 10, "month_number": 6, "title": "Wk 1 · Remove dead code, unused imports, and commented-out blocks"},
+    "m6_proj_w1_2":  {"id": "m6_proj_w1_2", "skill_type": "project",       "frequency": "once", "xp": 10, "month_number": 6, "title": "Wk 1 · Add clear comments to complex logic sections"},
+    "m6_proj_w2_1":  {"id": "m6_proj_w2_1", "skill_type": "project",       "frequency": "once", "xp": 5,  "month_number": 6, "title": "Wk 2 · Write a script outline for your 2-minute demo video"},
+    "m6_proj_w2_2":  {"id": "m6_proj_w2_2", "skill_type": "project",       "frequency": "once", "xp": 20, "month_number": 6, "title": "Wk 2 · Record and edit a 2-minute demo video of your project"},
+    "m6_proj_w3_1":  {"id": "m6_proj_w3_1", "skill_type": "system_design", "frequency": "once", "xp": 25, "month_number": 6, "title": "Wk 3 · Prepare architecture explanation — what would you change at scale?"},
+    "m6_proj_w3_2":  {"id": "m6_proj_w3_2", "skill_type": "system_design", "frequency": "once", "xp": 25, "month_number": 6, "title": "Wk 3 · Practice explaining your architecture to someone out loud"},
+
+    # ── Final Push — Applications & Prep ───────────────────────────────────
+    "m6_career_w1_1": {"id": "m6_career_w1_1", "skill_type": "career", "frequency": "once", "xp": 15, "month_number": 6, "title": "Wk 1 · Apply to 10 more companies (push toward 50+ total)"},
+    "m6_career_w2_1": {"id": "m6_career_w2_1", "skill_type": "career", "frequency": "once", "xp": 15, "month_number": 6, "title": "Wk 2 · Apply to 10 more companies (50+ total)"},
+    "m6_career_w2_2": {"id": "m6_career_w2_2", "skill_type": "career", "frequency": "once", "xp": 10, "month_number": 6, "title": "Wk 2 · Follow up on all pending applications via email"},
+    "m6_career_w3_1": {"id": "m6_career_w3_1", "skill_type": "career", "frequency": "once", "xp": 10, "month_number": 6, "title": "Wk 3 · Research your top 5 interview target companies"},
+    "m6_career_w3_2": {"id": "m6_career_w3_2", "skill_type": "career", "frequency": "once", "xp": 15, "month_number": 6, "title": "Wk 3 · Write company-specific notes for each of your top 5"},
+    "m6_career_w4_1": {"id": "m6_career_w4_1", "skill_type": "career", "frequency": "once", "xp": 10, "month_number": 6, "title": "Wk 4 · Post demo video on LinkedIn with a brief write-up"},
 }
 
 # ── Checkpoints ───────────────────────────────────────────────────────────────
@@ -265,38 +398,158 @@ MONTH_SUBTITLES: dict[int, str] = {
 
 MONTH_SECTIONS: dict[int, list[dict]] = {
     1: [
-        {"id": "m1_dsa",     "title": "DSA — Daily Grind",                   "skill_type": "dsa",     "task_ids": ["m1_dsa_1", "m1_dsa_2", "m1_dsa_3", "m1_dsa_4", "m1_dsa_5", "m1_dsa_daily"]},
-        {"id": "m1_backend", "title": "Tech Stack — FastAPI & PostgreSQL",    "skill_type": "backend", "task_ids": ["m1_backend_1", "m1_backend_2", "m1_backend_3"]},
-        {"id": "m1_project", "title": "Project — Scaffold It",               "skill_type": "project", "task_ids": ["m1_project_1", "m1_project_2", "m1_project_daily"]},
+        {"id": "m1_dsa", "title": "DSA — Daily Grind", "skill_type": "dsa", "task_ids": [
+            "m1_dsa_daily",
+            "m1_dsa_w1_1", "m1_dsa_w1_2",
+            "m1_dsa_w2_1", "m1_dsa_w2_2",
+            "m1_dsa_w3_1",
+            "m1_dsa_w4_1",
+        ]},
+        {"id": "m1_backend", "title": "Tech Stack — FastAPI & PostgreSQL", "skill_type": "backend", "task_ids": [
+            "m1_be_w1_1", "m1_be_w1_2",
+            "m1_be_w2_1", "m1_be_w2_2",
+            "m1_be_w3_1", "m1_be_w3_2",
+            "m1_be_w4_1", "m1_be_w4_2", "m1_be_w4_3",
+        ]},
+        {"id": "m1_project", "title": "Project — Scaffold It", "skill_type": "project", "task_ids": [
+            "m1_proj_w1_1", "m1_proj_w1_2",
+            "m1_proj_w2_1",
+            "m1_proj_w3_1",
+            "m1_proj_w4_1",
+        ]},
+        {"id": "m1_ml", "title": "ML — Weekly Paper", "skill_type": "ml", "task_ids": [
+            "m1_paper",
+        ]},
     ],
     2: [
-        {"id": "m2_dsa",     "title": "DSA — Ramp Up",                       "skill_type": "dsa",     "task_ids": ["m2_dsa_1", "m2_dsa_2", "m2_dsa_3", "m2_dsa_4", "m2_dsa_daily"]},
-        {"id": "m2_devops",  "title": "Tech Stack — Docker & Linux",         "skill_type": "devops",  "task_ids": ["m2_devops_1", "m2_devops_2", "m2_devops_3", "m2_devops_4"]},
-        {"id": "m2_ml",      "title": "ML Depth — PyTorch",                  "skill_type": "ml",      "task_ids": ["m2_ml_1", "m2_ml_2", "m2_ml_3"]},
-        {"id": "m2_project", "title": "Project — Add ML Endpoint",           "skill_type": "project", "task_ids": ["m2_project_1", "m2_project_2", "m2_project_3"]},
+        {"id": "m2_dsa", "title": "DSA — Ramp Up", "skill_type": "dsa", "task_ids": [
+            "m2_dsa_daily",
+            "m2_dsa_w1_1",
+            "m2_dsa_w2_1",
+            "m2_dsa_w3_1", "m2_dsa_w3_2",
+            "m2_dsa_w4_1", "m2_dsa_w4_2",
+        ]},
+        {"id": "m2_devops", "title": "Tech Stack — Docker & Linux", "skill_type": "devops", "task_ids": [
+            "m2_devops_w1_1", "m2_devops_w1_2",
+            "m2_devops_w2_1", "m2_devops_w2_2",
+            "m2_devops_w3_1",
+            "m2_devops_w4_1",
+        ]},
+        {"id": "m2_ml", "title": "ML Depth — PyTorch", "skill_type": "ml", "task_ids": [
+            "m2_ml_w1_1", "m2_ml_w1_2",
+            "m2_ml_w2_1", "m2_ml_w2_2",
+            "m2_ml_w3_1", "m2_ml_w3_2",
+            "m2_ml_w4_1", "m2_ml_w4_2",
+        ]},
+        {"id": "m2_project", "title": "Project — Add ML Endpoint", "skill_type": "project", "task_ids": [
+            "m2_proj_w2_1", "m2_proj_w2_2",
+            "m2_proj_w3_1", "m2_proj_w3_2",
+            "m2_proj_w4_1", "m2_proj_w4_2",
+        ]},
     ],
     3: [
-        {"id": "m3_dsa",     "title": "DSA — Go Hard",                       "skill_type": "dsa",     "task_ids": ["m3_dsa_1", "m3_dsa_2", "m3_dsa_3", "m3_dsa_4", "m3_dsa_daily"]},
-        {"id": "m3_cloud",   "title": "Tech Stack — AWS Cloud",              "skill_type": "cloud",   "task_ids": ["m3_cloud_1", "m3_cloud_2", "m3_cloud_3", "m3_cloud_4"]},
-        {"id": "m3_ml",      "title": "ML Depth — HuggingFace & Transformers", "skill_type": "ml",   "task_ids": ["m3_ml_1", "m3_ml_2", "m3_ml_3"]},
-        {"id": "m3_project", "title": "Project — Deploy It Live",            "skill_type": "project", "task_ids": ["m3_project_1", "m3_project_2", "m3_project_3"]},
+        {"id": "m3_dsa", "title": "DSA — Go Hard", "skill_type": "dsa", "task_ids": [
+            "m3_dsa_daily",
+            "m3_dsa_w1_1", "m3_dsa_w1_2",
+            "m3_dsa_w2_1", "m3_dsa_w2_2",
+            "m3_dsa_w3_1", "m3_dsa_w3_2",
+            "m3_dsa_w4_1", "m3_dsa_w4_2",
+        ]},
+        {"id": "m3_cloud", "title": "Tech Stack — AWS Cloud", "skill_type": "cloud", "task_ids": [
+            "m3_cloud_w1_1", "m3_cloud_w1_2",
+            "m3_cloud_w2_1", "m3_cloud_w2_2",
+            "m3_cloud_w3_1", "m3_cloud_w3_2",
+        ]},
+        {"id": "m3_ml", "title": "ML Depth — HuggingFace & Transformers", "skill_type": "ml", "task_ids": [
+            "m3_ml_w1_1", "m3_ml_w1_2",
+            "m3_ml_w2_1", "m3_ml_w2_2",
+            "m3_ml_w3_1", "m3_ml_w3_2",
+        ]},
+        {"id": "m3_project", "title": "Project — Deploy It Live", "skill_type": "project", "task_ids": [
+            "m3_proj_w3_1", "m3_proj_w3_2",
+            "m3_proj_w4_1", "m3_proj_w4_2", "m3_proj_w4_3",
+        ]},
     ],
     4: [
-        {"id": "m4_dsa",      "title": "DSA — Hard Push",                    "skill_type": "dsa",           "task_ids": ["m4_dsa_1", "m4_dsa_2", "m4_dsa_3", "m4_dsa_4", "m4_dsa_5", "m4_dsa_daily"]},
-        {"id": "m4_sysdesign", "title": "System Design — Intro Level",       "skill_type": "system_design", "task_ids": ["m4_sd_1", "m4_sd_2", "m4_sd_3", "m4_sd_4", "m4_sd_5"]},
-        {"id": "m4_career",   "title": "Career — Resume & Applications",    "skill_type": "career",        "task_ids": ["m4_career_1", "m4_career_2", "m4_career_3", "m4_career_4", "m4_career_5", "m4_career_6"]},
-        {"id": "m4_project",  "title": "Project — Add Depth",               "skill_type": "project",       "task_ids": ["m4_project_1", "m4_project_2", "m4_project_3"]},
+        {"id": "m4_dsa", "title": "DSA — Hard Push", "skill_type": "dsa", "task_ids": [
+            "m4_dsa_daily",
+            "m4_dsa_w1_1", "m4_dsa_w1_2",
+            "m4_dsa_w2_1", "m4_dsa_w2_2",
+            "m4_dsa_w3_1", "m4_dsa_w3_2",
+            "m4_dsa_w4_1", "m4_dsa_w4_2",
+        ]},
+        {"id": "m4_sysdesign", "title": "System Design — Intro Level", "skill_type": "system_design", "task_ids": [
+            "m4_sd_weekly",
+            "m4_sd_w1_1",
+            "m4_sd_w2_1",
+            "m4_sd_w3_1",
+            "m4_sd_w4_1", "m4_sd_w4_2",
+        ]},
+        {"id": "m4_career", "title": "Career — Resume & Applications", "skill_type": "career", "task_ids": [
+            "m4_career_w1_1", "m4_career_w1_2",
+            "m4_career_w2_1", "m4_career_w2_2",
+            "m4_career_w3_1", "m4_career_w3_2",
+            "m4_career_w4_1", "m4_career_w4_2",
+        ]},
+        {"id": "m4_project", "title": "Project — Add Depth", "skill_type": "project", "task_ids": [
+            "m4_proj_w1_1", "m4_proj_w1_2",
+            "m4_proj_w2_1",
+            "m4_proj_w3_1", "m4_proj_w3_2",
+            "m4_proj_w4_1",
+        ]},
     ],
     5: [
-        {"id": "m5_dsa",        "title": "DSA — Interview Simulation Mode", "skill_type": "dsa",          "task_ids": ["m5_dsa_1", "m5_dsa_2", "m5_dsa_weekly"]},
-        {"id": "m5_interview",  "title": "Mock Interviews",                 "skill_type": "interviewing", "task_ids": ["m5_mock_1", "m5_mock_2", "m5_mock_weekly"]},
-        {"id": "m5_behavioral", "title": "Behavioral Interview Prep",       "skill_type": "interviewing", "task_ids": ["m5_beh_1", "m5_beh_2", "m5_beh_3", "m5_beh_4", "m5_beh_5", "m5_beh_6", "m5_beh_7"]},
-        {"id": "m5_networking", "title": "Networking & Applications",       "skill_type": "networking",   "task_ids": ["m5_net_1", "m5_net_2", "m5_net_3"]},
+        {"id": "m5_dsa", "title": "DSA — Interview Simulation Mode", "skill_type": "dsa", "task_ids": [
+            "m5_dsa_weekly",
+            "m5_dsa_w1_1", "m5_dsa_w1_2",
+            "m5_dsa_w2_1", "m5_dsa_w2_2",
+            "m5_dsa_w3_1", "m5_dsa_w3_2",
+            "m5_dsa_w4_1", "m5_dsa_w4_2",
+        ]},
+        {"id": "m5_interview", "title": "Mock Interviews", "skill_type": "interviewing", "task_ids": [
+            "m5_mock_weekly",
+            "m5_mock_w1_1", "m5_mock_w1_2",
+            "m5_mock_w2_1", "m5_mock_w2_2",
+            "m5_mock_w3_1", "m5_mock_w3_2",
+            "m5_mock_w4_1", "m5_mock_w4_2",
+        ]},
+        {"id": "m5_behavioral", "title": "Behavioral Interview Prep", "skill_type": "interviewing", "task_ids": [
+            "m5_beh_w1_1", "m5_beh_w1_2",
+            "m5_beh_w2_1", "m5_beh_w2_2",
+            "m5_beh_w3_1", "m5_beh_w3_2",
+            "m5_beh_w4_1", "m5_beh_w4_2",
+        ]},
+        {"id": "m5_networking", "title": "Networking & Applications", "skill_type": "career", "task_ids": [
+            "m5_net_w1_1", "m5_net_w1_2",
+            "m5_net_w2_1", "m5_net_w2_2",
+            "m5_net_w3_1", "m5_net_w3_2",
+            "m5_net_w4_1", "m5_net_w4_2",
+        ]},
     ],
     6: [
-        {"id": "m6_dsa",       "title": "DSA — Maintain the Peak",          "skill_type": "dsa",          "task_ids": ["m6_dsa_1", "m6_dsa_2", "m6_dsa_daily", "m6_dsa_weekly"]},
-        {"id": "m6_interview", "title": "Interview Prep — Full Simulation", "skill_type": "interviewing", "task_ids": ["m6_mock_weekly", "m6_mock_1", "m6_mock_2"]},
-        {"id": "m6_project",   "title": "Project — Final Polish",           "skill_type": "project",      "task_ids": ["m6_project_1", "m6_project_2", "m6_project_3"]},
-        {"id": "m6_career",    "title": "Final Push — Applications & Prep", "skill_type": "career",        "task_ids": ["m6_career_1", "m6_career_2", "m6_career_3"]},
+        {"id": "m6_dsa", "title": "DSA — Maintain the Peak", "skill_type": "dsa", "task_ids": [
+            "m6_dsa_daily", "m6_dsa_weekly",
+            "m6_dsa_w1_1", "m6_dsa_w1_2",
+            "m6_dsa_w2_1",
+            "m6_dsa_w3_1",
+            "m6_dsa_w4_1",
+        ]},
+        {"id": "m6_interview", "title": "Interview Prep — Full Simulation", "skill_type": "interviewing", "task_ids": [
+            "m6_mock_weekly",
+            "m6_mock_w1_1", "m6_mock_w1_2",
+            "m6_mock_w2_1",
+            "m6_mock_w3_1",
+        ]},
+        {"id": "m6_project", "title": "Project — Final Polish", "skill_type": "project", "task_ids": [
+            "m6_proj_w1_1", "m6_proj_w1_2",
+            "m6_proj_w2_1", "m6_proj_w2_2",
+            "m6_proj_w3_1", "m6_proj_w3_2",
+        ]},
+        {"id": "m6_career", "title": "Final Push — Applications & Prep", "skill_type": "career", "task_ids": [
+            "m6_career_w1_1",
+            "m6_career_w2_1", "m6_career_w2_2",
+            "m6_career_w3_1", "m6_career_w3_2",
+            "m6_career_w4_1",
+        ]},
     ],
 }
