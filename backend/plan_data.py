@@ -9,7 +9,8 @@ SKILL_LEVEL_THRESHOLDS: list[int] = [0, 25, 75, 150, 250, 375, 525, 700, 900, 11
 # Cumulative XP required to reach each character level (index 0 = level 1)
 CHAR_LEVEL_THRESHOLDS: list[int] = [
     0, 100, 250, 500, 800, 1200, 1700, 2300, 3000,
-    3800, 4700, 5700, 6800, 8000, 9300, 10700,
+    3800, 4700, 5700, 6800, 8000, 9300, 10700, 12200, 
+    13800, 15500, 17300, 19200, 21200, 23300, 25500, 27800
 ]
 
 
@@ -49,18 +50,18 @@ INITIAL_STATS: dict[str, dict] = {
 
 TASKS: dict[str, dict] = {
     # ── Month 1 ──────────────────────────────────────────────────────────────
-    "m1_dsa_1":       {"id": "m1_dsa_1",       "skill_type": "dsa",     "frequency": "once",   "xp": 25, "month_number": 1, "title": "Complete Arrays & Strings on Neetcode 150"},
-    "m1_dsa_2":       {"id": "m1_dsa_2",       "skill_type": "dsa",     "frequency": "once",   "xp": 25, "month_number": 1, "title": "Complete HashMaps & Sets section"},
-    "m1_dsa_3":       {"id": "m1_dsa_3",       "skill_type": "dsa",     "frequency": "once",   "xp": 25, "month_number": 1, "title": "Complete Two Pointers section"},
-    "m1_dsa_4":       {"id": "m1_dsa_4",       "skill_type": "dsa",     "frequency": "once",   "xp": 25, "month_number": 1, "title": "Complete Sliding Window section"},
-    "m1_dsa_5":       {"id": "m1_dsa_5",       "skill_type": "dsa",     "frequency": "once",   "xp": 25, "month_number": 1, "title": "Complete Stacks & Queues section"},
-    "m1_dsa_daily":   {"id": "m1_dsa_daily",   "skill_type": "dsa",     "frequency": "daily",  "xp": 10, "month_number": 1, "title": "Solve 2 LeetCode problems (Easy)"},
-    "m1_backend_1":   {"id": "m1_backend_1",   "skill_type": "backend", "frequency": "once",   "xp": 25, "month_number": 1, "title": "Build a FastAPI app with GET and POST endpoints"},
-    "m1_backend_2":   {"id": "m1_backend_2",   "skill_type": "backend", "frequency": "once",   "xp": 25, "month_number": 1, "title": "Learn SQL fundamentals"},
-    "m1_backend_3":   {"id": "m1_backend_3",   "skill_type": "backend", "frequency": "once",   "xp": 25, "month_number": 1, "title": "Connect PostgreSQL to your FastAPI app"},
+    "m1_dsa_1":       {"id": "m1_dsa_1",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 1, "title": "Complete Arrays & Strings on Neetcode 150"},
+    "m1_dsa_2":       {"id": "m1_dsa_2",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 1, "title": "Complete HashMaps & Sets section"},
+    "m1_dsa_3":       {"id": "m1_dsa_3",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 1, "title": "Complete Two Pointers section"},
+    "m1_dsa_4":       {"id": "m1_dsa_4",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 1, "title": "Complete Sliding Window section"},
+    "m1_dsa_5":       {"id": "m1_dsa_5",       "skill_type": "dsa",     "frequency": "once",   "xp": 50, "month_number": 1, "title": "Complete Stacks & Queues section"},
+    "m1_backend_1":   {"id": "m1_backend_1",   "skill_type": "backend", "frequency": "once",   "xp": 50, "month_number": 1, "title": "Build a FastAPI app with GET and POST endpoints"},
+    "m1_backend_2":   {"id": "m1_backend_2",   "skill_type": "backend", "frequency": "once",   "xp": 50, "month_number": 1, "title": "Learn SQL fundamentals"},
+    "m1_backend_3":   {"id": "m1_backend_3",   "skill_type": "backend", "frequency": "once",   "xp": 50, "month_number": 1, "title": "Connect PostgreSQL to your FastAPI app"},
     "m1_project_1":   {"id": "m1_project_1",   "skill_type": "project", "frequency": "once",   "xp": 10, "month_number": 1, "title": "Create GitHub repo and push initial project scaffold"},
     "m1_project_2":   {"id": "m1_project_2",   "skill_type": "project", "frequency": "once",   "xp": 25, "month_number": 1, "title": "Connect PostgreSQL to project and run first DB query"},
-    "m1_project_daily":{"id": "m1_project_daily","skill_type": "project","frequency": "daily",  "xp":  5, "month_number": 1, "title": "Push at least one commit to GitHub"},
+    "m1_paper":       {"id": "m1_paper",       "skill_type": "ml",      "frequency": "weekly", "xp":  25, "month_number": 1, "title": "Read 1 ML paper weekly"},
+
 
     # ── Month 2 ──────────────────────────────────────────────────────────────
     "m2_dsa_1":       {"id": "m2_dsa_1",       "skill_type": "dsa",     "frequency": "once",   "xp": 25, "month_number": 2, "title": "Complete Linked Lists section on Neetcode 150"},
@@ -157,30 +158,28 @@ TASKS: dict[str, dict] = {
 
 CHECKPOINTS: dict[str, dict] = {
     # Month 1
-    "m1_cp_1": {"id": "m1_cp_1", "skill_type": "dsa",     "xp_reward":  50, "month_number": 1, "title": "Arrays, HashMaps, Two Pointers, Stacks complete"},
-    "m1_cp_2": {"id": "m1_cp_2", "skill_type": "backend", "xp_reward":  50, "month_number": 1, "title": "FastAPI — build and run a REST API locally"},
-    "m1_cp_3": {"id": "m1_cp_3", "skill_type": "backend", "xp_reward":  50, "month_number": 1, "title": "PostgreSQL — basic CRUD queries working"},
-    "m1_cp_4": {"id": "m1_cp_4", "skill_type": "project", "xp_reward":  25, "month_number": 1, "title": "GitHub — public repo with daily commits and README"},
-    "m1_cp_5": {"id": "m1_cp_5", "skill_type": "dsa",     "xp_reward":  75, "month_number": 1, "title": "Neetcode 150 — Arrays section complete"},
+    "m1_cp_1": {"id": "m1_cp_1", "skill_type": "dsa",     "xp_reward":  100, "month_number": 1, "title": "Arrays, HashMaps, Two Pointers, Stacks complete"},
+    "m1_cp_2": {"id": "m1_cp_2", "skill_type": "backend", "xp_reward":  100, "month_number": 1, "title": "FastAPI — build and run a REST API locally"},
+    "m1_cp_3": {"id": "m1_cp_3", "skill_type": "backend", "xp_reward":  100, "month_number": 1, "title": "PostgreSQL — basic CRUD queries working"},
+    "m1_cp_4": {"id": "m1_cp_4", "skill_type": "project", "xp_reward":  75, "month_number": 1, "title": "GitHub — 15+ commit days"},
 
     # Month 2
-    "m2_cp_1": {"id": "m2_cp_1", "skill_type": "devops",  "xp_reward":  50, "month_number": 2, "title": "Docker — app containerized with docker-compose"},
-    "m2_cp_2": {"id": "m2_cp_2", "skill_type": "devops",  "xp_reward":  25, "month_number": 2, "title": "Linux CLI — comfortable with basic commands"},
-    "m2_cp_3": {"id": "m2_cp_3", "skill_type": "dsa",     "xp_reward":  50, "month_number": 2, "title": "Trees BFS/DFS — 10+ problems solved"},
-    "m2_cp_4": {"id": "m2_cp_4", "skill_type": "ml",      "xp_reward":  75, "month_number": 2, "title": "PyTorch — trained a basic neural network"},
-    "m2_cp_5": {"id": "m2_cp_5", "skill_type": "project", "xp_reward":  75, "month_number": 2, "title": "Project — /predict endpoint live and tested"},
-    "m2_cp_6": {"id": "m2_cp_6", "skill_type": "dsa",     "xp_reward":  50, "month_number": 2, "title": "Neetcode 150 — 60+ problems total"},
+    "m2_cp_1": {"id": "m2_cp_1", "skill_type": "devops",  "xp_reward":  75, "month_number": 2, "title": "Docker — app containerized with docker-compose"},
+    "m2_cp_2": {"id": "m2_cp_2", "skill_type": "devops",  "xp_reward":  50, "month_number": 2, "title": "Linux CLI — comfortable with basic commands"},
+    "m2_cp_3": {"id": "m2_cp_3", "skill_type": "dsa",     "xp_reward":  100, "month_number": 2, "title": "Trees BFS/DFS — 10+ problems solved"},
+    "m2_cp_4": {"id": "m2_cp_4", "skill_type": "ml",      "xp_reward":  150, "month_number": 2, "title": "Reproduced Generative Models via Drifting"},
+    "m2_cp_6": {"id": "m2_cp_6", "skill_type": "dsa",     "xp_reward":  150, "month_number": 2, "title": "Neetcode 150 — 75+ problems total"},
 
     # Month 3
     "m3_cp_1": {"id": "m3_cp_1", "skill_type": "project", "xp_reward": 150, "month_number": 3, "title": "Project deployed — live URL accessible to anyone"},
     "m3_cp_2": {"id": "m3_cp_2", "skill_type": "cloud",   "xp_reward":  75, "month_number": 3, "title": "AWS EC2 + S3 — hands-on done"},
-    "m3_cp_3": {"id": "m3_cp_3", "skill_type": "dsa",     "xp_reward":  75, "month_number": 3, "title": "Graph traversal — 15+ graph problems solved"},
+    "m3_cp_3": {"id": "m3_cp_3", "skill_type": "dsa",     "xp_reward":  100, "month_number": 3, "title": "Graph traversal — 15+ graph problems solved"},
     "m3_cp_4": {"id": "m3_cp_4", "skill_type": "ml",      "xp_reward": 100, "month_number": 3, "title": "HuggingFace — fine-tuned a transformer model"},
     "m3_cp_5": {"id": "m3_cp_5", "skill_type": "dsa",     "xp_reward":  75, "month_number": 3, "title": "LeetCode Weekly Contest — attempted 2+ contests"},
-    "m3_cp_6": {"id": "m3_cp_6", "skill_type": "dsa",     "xp_reward":  75, "month_number": 3, "title": "Neetcode 150 — 90+ problems total"},
+    "m3_cp_6": {"id": "m3_cp_6", "skill_type": "dsa",     "xp_reward":  100, "month_number": 3, "title": "Neetcode 150 — 120+ problems total"},
 
     # Month 4
-    "m4_cp_1": {"id": "m4_cp_1", "skill_type": "dsa",           "xp_reward": 100, "month_number": 4, "title": "DP — 15+ problems solved (1D and 2D)"},
+    "m4_cp_1": {"id": "m4_cp_1", "skill_type": "dsa",           "xp_reward": 75, "month_number": 4, "title": "DP — 15+ problems solved (1D and 2D)"},
     "m4_cp_2": {"id": "m4_cp_2", "skill_type": "system_design", "xp_reward":  75, "month_number": 4, "title": "System design vocab — explain 5 core concepts fluently"},
     "m4_cp_3": {"id": "m4_cp_3", "skill_type": "career",        "xp_reward": 100, "month_number": 4, "title": "Resume — 1-page, reviewed, polished"},
     "m4_cp_4": {"id": "m4_cp_4", "skill_type": "career",        "xp_reward": 100, "month_number": 4, "title": "Applied to all 4 freshman programs"},
@@ -207,8 +206,8 @@ CHECKPOINTS: dict[str, dict] = {
 
 # Checkpoint IDs grouped by month (for chapter-unlock checks)
 CHECKPOINTS_BY_MONTH: dict[int, list[str]] = {
-    1: ["m1_cp_1", "m1_cp_2", "m1_cp_3", "m1_cp_4", "m1_cp_5"],
-    2: ["m2_cp_1", "m2_cp_2", "m2_cp_3", "m2_cp_4", "m2_cp_5", "m2_cp_6"],
+    1: ["m1_cp_1", "m1_cp_2", "m1_cp_3", "m1_cp_4"],
+    2: ["m2_cp_1", "m2_cp_2", "m2_cp_3", "m2_cp_4", "m2_cp_6"],
     3: ["m3_cp_1", "m3_cp_2", "m3_cp_3", "m3_cp_4", "m3_cp_5", "m3_cp_6"],
     4: ["m4_cp_1", "m4_cp_2", "m4_cp_3", "m4_cp_4", "m4_cp_5", "m4_cp_6"],
     5: ["m5_cp_1", "m5_cp_2", "m5_cp_3", "m5_cp_4", "m5_cp_5", "m5_cp_6"],
@@ -218,11 +217,14 @@ CHECKPOINTS_BY_MONTH: dict[int, list[str]] = {
 # ── Habits ────────────────────────────────────────────────────────────────────
 
 HABITS: dict[str, dict] = {
-    "habit_leetcode":  {"id": "habit_leetcode",  "skill_type": "dsa",          "xp_per_completion": 15, "title": "LeetCode problems",                      "starts_at_month": None},
-    "habit_project":   {"id": "habit_project",   "skill_type": "project",      "xp_per_completion": 25, "title": "Work on your project",                   "starts_at_month": None},
-    "habit_reading":   {"id": "habit_reading",   "skill_type": "system_design","xp_per_completion": 10, "title": "Read one tech article or blog",           "starts_at_month": None},
-    "habit_networking":{"id": "habit_networking","skill_type": "networking",   "xp_per_completion": 15, "title": "Network — LinkedIn DM or coffee chat",    "starts_at_month": None},
-    "habit_mock":      {"id": "habit_mock",      "skill_type": "interviewing", "xp_per_completion": 50, "title": "Mock interview",                          "starts_at_month": 5},
+    "habit_leetcode":  {"id": "habit_leetcode",  "skill_type": "dsa",          "xp_per_completion": 10, "title": "LeetCode problems",                       "starts_at_month": None},
+    "habit_ml_project":   {"id": "habit_ml_project",   "skill_type": "ml","xp_per_completion": 5, "title": "Push at least 1 commit a day on ML project",   "starts_at_month": None},
+    "habit_project":   {"id": "habit_project",   "skill_type": "project",      "xp_per_completion": 10, "title": "Work on personal portfolio",              "starts_at_month": 3},
+    "habit_reading":   {"id": "habit_reading",   "skill_type": "system_design","xp_per_completion": 10, "title": "Read one tech article on Systems design", "starts_at_month": None},
+    "habit_ml_paper":   {"id": "habit_ml_paper",   "skill_type": "ml","xp_per_completion": 10, "title": "Read at least 2 pages of ML paper",                            "starts_at_month": None},
+    "habit_posting":   {"id": "habit_posting",   "skill_type": "project",      "xp_per_completion": 10, "title": "Post an Article on Personal Website",     "starts_at_month": 3},
+    "habit_networking":{"id": "habit_networking","skill_type": "networking",   "xp_per_completion": 15, "title": "Network — LinkedIn DM or coffee chat",    "starts_at_month": 5},
+    "habit_mock":      {"id": "habit_mock",      "skill_type": "interviewing", "xp_per_completion": 20, "title": "Mock interview",                          "starts_at_month": 5},
 }
 
 # ── Chapter rewards ───────────────────────────────────────────────────────────
@@ -243,3 +245,58 @@ TASKS_BY_MONTH: dict[int, list[str]] = {}
 for _task in TASKS.values():
     _m = _task["month_number"]
     TASKS_BY_MONTH.setdefault(_m, []).append(_task["id"])
+
+
+# ── Month metadata (subtitles) ───────────────────────────────────────────────
+
+MONTH_SUBTITLES: dict[int, str] = {
+    1: "Build the missing web/backend fundamentals. Start the DSA grind.",
+    2: "Docker, cloud intro, and level up your ML depth with PyTorch.",
+    3: "Deploy your project live. HuggingFace transformers. Graphs and DP.",
+    4: "Intro system design, polish your project, build your resume.",
+    5: "Simulate real interviews. Expand applications. Behavioral prep.",
+    6: "Sharpen every edge. You are ready. Now perform.",
+}
+
+
+# ── Section groupings ────────────────────────────────────────────────────────
+# Each section maps task IDs to a named group within a month.
+# The MonthPage UI renders these as collapsible cards.
+
+MONTH_SECTIONS: dict[int, list[dict]] = {
+    1: [
+        {"id": "m1_dsa",     "title": "DSA — Daily Grind",                   "skill_type": "dsa",     "task_ids": ["m1_dsa_1", "m1_dsa_2", "m1_dsa_3", "m1_dsa_4", "m1_dsa_5", "m1_dsa_daily"]},
+        {"id": "m1_backend", "title": "Tech Stack — FastAPI & PostgreSQL",    "skill_type": "backend", "task_ids": ["m1_backend_1", "m1_backend_2", "m1_backend_3"]},
+        {"id": "m1_project", "title": "Project — Scaffold It",               "skill_type": "project", "task_ids": ["m1_project_1", "m1_project_2", "m1_project_daily"]},
+    ],
+    2: [
+        {"id": "m2_dsa",     "title": "DSA — Ramp Up",                       "skill_type": "dsa",     "task_ids": ["m2_dsa_1", "m2_dsa_2", "m2_dsa_3", "m2_dsa_4", "m2_dsa_daily"]},
+        {"id": "m2_devops",  "title": "Tech Stack — Docker & Linux",         "skill_type": "devops",  "task_ids": ["m2_devops_1", "m2_devops_2", "m2_devops_3", "m2_devops_4"]},
+        {"id": "m2_ml",      "title": "ML Depth — PyTorch",                  "skill_type": "ml",      "task_ids": ["m2_ml_1", "m2_ml_2", "m2_ml_3"]},
+        {"id": "m2_project", "title": "Project — Add ML Endpoint",           "skill_type": "project", "task_ids": ["m2_project_1", "m2_project_2", "m2_project_3"]},
+    ],
+    3: [
+        {"id": "m3_dsa",     "title": "DSA — Go Hard",                       "skill_type": "dsa",     "task_ids": ["m3_dsa_1", "m3_dsa_2", "m3_dsa_3", "m3_dsa_4", "m3_dsa_daily"]},
+        {"id": "m3_cloud",   "title": "Tech Stack — AWS Cloud",              "skill_type": "cloud",   "task_ids": ["m3_cloud_1", "m3_cloud_2", "m3_cloud_3", "m3_cloud_4"]},
+        {"id": "m3_ml",      "title": "ML Depth — HuggingFace & Transformers", "skill_type": "ml",   "task_ids": ["m3_ml_1", "m3_ml_2", "m3_ml_3"]},
+        {"id": "m3_project", "title": "Project — Deploy It Live",            "skill_type": "project", "task_ids": ["m3_project_1", "m3_project_2", "m3_project_3"]},
+    ],
+    4: [
+        {"id": "m4_dsa",      "title": "DSA — Hard Push",                    "skill_type": "dsa",           "task_ids": ["m4_dsa_1", "m4_dsa_2", "m4_dsa_3", "m4_dsa_4", "m4_dsa_5", "m4_dsa_daily"]},
+        {"id": "m4_sysdesign", "title": "System Design — Intro Level",       "skill_type": "system_design", "task_ids": ["m4_sd_1", "m4_sd_2", "m4_sd_3", "m4_sd_4", "m4_sd_5"]},
+        {"id": "m4_career",   "title": "Career — Resume & Applications",    "skill_type": "career",        "task_ids": ["m4_career_1", "m4_career_2", "m4_career_3", "m4_career_4", "m4_career_5", "m4_career_6"]},
+        {"id": "m4_project",  "title": "Project — Add Depth",               "skill_type": "project",       "task_ids": ["m4_project_1", "m4_project_2", "m4_project_3"]},
+    ],
+    5: [
+        {"id": "m5_dsa",        "title": "DSA — Interview Simulation Mode", "skill_type": "dsa",          "task_ids": ["m5_dsa_1", "m5_dsa_2", "m5_dsa_weekly"]},
+        {"id": "m5_interview",  "title": "Mock Interviews",                 "skill_type": "interviewing", "task_ids": ["m5_mock_1", "m5_mock_2", "m5_mock_weekly"]},
+        {"id": "m5_behavioral", "title": "Behavioral Interview Prep",       "skill_type": "interviewing", "task_ids": ["m5_beh_1", "m5_beh_2", "m5_beh_3", "m5_beh_4", "m5_beh_5", "m5_beh_6", "m5_beh_7"]},
+        {"id": "m5_networking", "title": "Networking & Applications",       "skill_type": "networking",   "task_ids": ["m5_net_1", "m5_net_2", "m5_net_3"]},
+    ],
+    6: [
+        {"id": "m6_dsa",       "title": "DSA — Maintain the Peak",          "skill_type": "dsa",          "task_ids": ["m6_dsa_1", "m6_dsa_2", "m6_dsa_daily", "m6_dsa_weekly"]},
+        {"id": "m6_interview", "title": "Interview Prep — Full Simulation", "skill_type": "interviewing", "task_ids": ["m6_mock_weekly", "m6_mock_1", "m6_mock_2"]},
+        {"id": "m6_project",   "title": "Project — Final Polish",           "skill_type": "project",      "task_ids": ["m6_project_1", "m6_project_2", "m6_project_3"]},
+        {"id": "m6_career",    "title": "Final Push — Applications & Prep", "skill_type": "career",        "task_ids": ["m6_career_1", "m6_career_2", "m6_career_3"]},
+    ],
+}

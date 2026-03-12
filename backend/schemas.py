@@ -16,6 +16,7 @@ class HabitLogRequest(BaseModel):
     habit_id: str
     date: date
     completed: bool
+    count: int = 1  # how many completions (e.g. 4 leetcode problems)
 
 
 # ── Response models ───────────────────────────────────────────────────────────
@@ -82,6 +83,7 @@ class HabitLogResponse(BaseModel):
     habit_id: str
     date: date
     completed: bool
+    count: int
     xp_delta: int
 
 
@@ -91,6 +93,7 @@ class HabitStatusItem(BaseModel):
     skill_type: str
     xp_per_completion: int
     completed: bool
+    count: int
     logged: bool
 
 
@@ -125,3 +128,32 @@ class ProgressResponse(BaseModel):
     tasks_total: int
     months: list[MonthProgress]
     skills: list[SkillProgress]
+
+
+# ── Activity & Weekly Summary ─────────────────────────────────────────────────
+
+class ActivityDay(BaseModel):
+    date: str
+    total_xp: int
+    dominant_skill: str | None
+
+
+class WeeklySkillXP(BaseModel):
+    skill_type: str
+    label: str
+    icon: str
+    xp: int
+
+
+class WeeklySummaryResponse(BaseModel):
+    total_xp: int
+    problems_solved: int
+    days_active: int
+    skill_breakdown: list[WeeklySkillXP]
+
+
+class StreakStatusResponse(BaseModel):
+    streak: int
+    longest: int
+    checked_in_today: bool
+    days_missed: int

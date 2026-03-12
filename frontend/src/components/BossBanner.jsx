@@ -14,7 +14,7 @@ function defaultRecruitingDate() {
   return d.toISOString().split('T')[0]
 }
 
-export default function BossBanner({ progress }) {
+export default function BossBanner({ progress, daysMissed = 0 }) {
   const [recruitingDate, setRecruitingDate] = useState(
     () => localStorage.getItem('prideArcRecruitingDate') || defaultRecruitingDate()
   )
@@ -30,7 +30,10 @@ export default function BossBanner({ progress }) {
   const overallPct = progress
     ? (progress.tasks_completed / Math.max(1, progress.tasks_total)) * 100
     : 0
-  const bossHpPct = Math.max(0, 100 - overallPct)
+
+  // Boss HP creep: +5% per missed day (3+ days), capped at +20%
+  const hpCreep = daysMissed >= 3 ? Math.min(20, (daysMissed - 2) * 5) : 0
+  const bossHpPct = Math.min(100, Math.max(0, 100 - overallPct) + hpCreep)
   const isCritical = bossHpPct <= 25
   const days = daysUntil(recruitingDate)
 
@@ -39,8 +42,8 @@ export default function BossBanner({ progress }) {
     bossHpPct > 50
       ? 'from-red-700 to-red-500'
       : bossHpPct > 25
-      ? 'from-orange-700 to-orange-400'
-      : 'from-yellow-600 to-yellow-400'
+        ? 'from-orange-700 to-orange-400'
+        : 'from-yellow-600 to-yellow-400'
 
   return (
     <div

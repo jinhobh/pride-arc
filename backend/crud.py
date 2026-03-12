@@ -262,33 +262,31 @@ async def complete_checkpoint(
 # ── Habit operations ──────────────────────────────────────────────────────────
 
 async def upsert_habit_log(
-    db: AsyncSession, habit_id: str, log_date: datetime.date, completed: bool
-) -> tuple[bool, int]:
+    db: AsyncSession, habit_id: str, log_date: datetime.date,
+    completed: bool, count: int = 1
+) -> tuple[bool, int, int]:
     """
-    Upsert a HabitLog row. Returns (new_completed_state, xp_delta).
-    xp_delta can be positive (earned), negative (revoked), or 0 (no change).
+    Upsert a HabitLog row. Returns (new_completed_state, new_count, xp_delta).
+    count = number of completions (e.g. 4 leetcode problems).
+    XP = xp_per_completion * count.
     """
     habit = HABITS[habit_id]
     xp_per = habit["xp_per_completion"]
 
     existing = await get_habit_log(db, habit_id, log_date)
 
-    if existing is None:
-        xp_delta = xp_per if completed else 0
-    elif existing.completed == completed:
-        xp_delta = 0  # no change
-    elif completed:
-        xp_delta = xp_per   # toggled on
-    else:
-        xp_delta = -xp_per  # toggled off
+    old_count = existing.count if existing else 0
+    new_count = count if completed else 0
+
+    xp_delta = (new_count - old_count) * xp_per
 
     # Upsert via PostgreSQL INSERT ... ON CONFLICT DO UPDATE
     stmt = (
         pg_insert(HabitLog)
-        .values(habit_id=habit_id, logged_date=log_date, completed=completed)
+        .values(habit_id=habit_id, logged_date=log_date, completed=completed, count=new_count)
         .on_conflict_do_update(
             constraint="uq_habit_date",
-            set_={"completed": completed},
+            set_={"completed": completed, "count": new_count},
         )
     )
     await db.execute(stmt)
@@ -298,7 +296,7 @@ async def upsert_habit_log(
         await _update_total_xp(db, xp_delta)
 
     await db.commit()
-    return completed, xp_delta
+    return completed, new_count, xp_delta
 
 
 # ── Check-in ──────────────────────────────────────────────────────────────────
