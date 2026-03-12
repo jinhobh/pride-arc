@@ -1,15 +1,11 @@
 import { useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useGameData } from '../hooks/useApi'
+import { MONTH_META } from '../constants/planData'
 import HeaderBar from '../components/HeaderBar'
 import CharacterHero from '../components/CharacterHero'
 import WeeklyHabits from '../components/WeeklyHabits'
-import TaskSection from '../components/TaskSection'
 import OnTrackMeter from '../components/OnTrackMeter'
-import BossBanner from '../components/BossBanner'
-import StatPanel from '../components/StatPanel'
-import QuestChapters from '../components/QuestChapters'
-import ActivityHeatmap from '../components/ActivityHeatmap'
-import WeeklySummary from '../components/WeeklySummary'
 
 function LoadingScreen() {
   return (
@@ -39,15 +35,54 @@ function ErrorScreen({ message }) {
   )
 }
 
-const BASE = '/api'
+function MonthlyNudge({ currentMonth, currentTasks }) {
+  const navigate = useNavigate()
+  const meta = MONTH_META[currentMonth]
+
+  const incomplete = [
+    ...(currentTasks?.weekly  ?? []),
+    ...(currentTasks?.monthly ?? []),
+  ].filter(t => !t.completed).length
+
+  const allDone = incomplete === 0
+
+  return (
+    <button
+      onClick={() => navigate('/plan')}
+      className="w-full text-left rounded-xl border border-slate-800/60 bg-game-surface/40
+        hover:border-slate-700/60 hover:bg-game-surface/70 transition-colors duration-150
+        px-4 py-3 flex items-center justify-between gap-4"
+    >
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-base leading-none flex-shrink-0">{meta?.icon ?? '📅'}</span>
+        <div className="min-w-0">
+          <p className="font-display text-[8px] uppercase tracking-widest text-slate-500 leading-none mb-1">
+            Month {currentMonth}
+          </p>
+          <p className="text-sm font-medium text-slate-300 truncate leading-none">
+            {meta?.title ?? 'Current Month'}
+          </p>
+        </div>
+      </div>
+
+      {allDone ? (
+        <span className="font-display text-[8px] uppercase tracking-widest text-green-400 whitespace-nowrap flex-shrink-0">
+          ✅ Month complete!
+        </span>
+      ) : (
+        <span className="font-display text-[8px] uppercase tracking-widest text-slate-500 whitespace-nowrap flex-shrink-0">
+          {incomplete} task{incomplete !== 1 ? 's' : ''} need attention →
+        </span>
+      )}
+    </button>
+  )
+}
 
 export default function Dashboard() {
   const {
     state,
     progress,
     todayHabits,
-    activity,
-    weeklySummary,
     streakStatus,
     currentTasks,
     loading,
@@ -56,26 +91,13 @@ export default function Dashboard() {
     hasCheckedInToday,
     checkin,
     logHabit,
-    refetch,
   } = useGameData()
 
-  // ── Task toggle handler (must be before any early return — React Rules of Hooks)
-  const toggleTask = useCallback(async (taskId, completed) => {
-    const endpoint = completed ? '/task/complete' : '/task/uncomplete'
-    try {
-      const res = await fetch(`${BASE}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ task_id: taskId }),
-      })
-      if (res.ok) await refetch()
-    } catch { /* swallow */ }
-  }, [refetch])
-
   if (loading) return <LoadingScreen />
-  if (error) return <ErrorScreen message={error} />
+  if (error)   return <ErrorScreen message={error} />
 
-  const daysMissed = streakStatus?.days_missed ?? 0
+  const daysMissed   = streakStatus?.days_missed ?? 0
+  const currentMonth = state?.current_month ?? 1
 
   return (
     <div className="min-h-screen bg-game-bg">
@@ -86,82 +108,32 @@ export default function Dashboard() {
         onCheckin={checkin}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-        {/* ═══ ABOVE THE FOLD: Character + Today's Focus ═══ */}
-
-        {/* 1 — Character avatar centered + level + XP */}
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         <CharacterHero
           state={state}
           streakStatus={streakStatus}
           daysMissed={daysMissed}
         />
 
-        {/* 2 — Daily habits (LeetCode counter + checkboxes) */}
         <WeeklyHabits
           habits={todayHabits}
           onLogHabit={logHabit}
           today={today}
         />
 
-        {/* 3 — Daily tasks from current month plan */}
-        {currentTasks?.daily?.length > 0 && (
-          <TaskSection
-            title="Daily Quests"
-            icon="⚡"
-            tasks={currentTasks.daily}
-            onToggle={toggleTask}
-          />
-        )}
-
-        {/* 4 — Weekly tasks */}
-        {currentTasks?.weekly?.length > 0 && (
-          <TaskSection
-            title="Weekly Quests"
-            icon="📅"
-            tasks={currentTasks.weekly}
-            onToggle={toggleTask}
-          />
-        )}
-
-        {/* 5 — Monthly goals (one-time tasks) */}
-        {currentTasks?.monthly?.length > 0 && (
-          <TaskSection
-            title="Monthly Goals"
-            icon="🎯"
-            tasks={currentTasks.monthly}
-            onToggle={toggleTask}
-          />
-        )}
-
-        {/* 6 — On-Track Meter */}
         <OnTrackMeter
           currentTasks={currentTasks}
           todayHabits={todayHabits}
           totalXp={state?.total_xp ?? 0}
         />
 
-        {/* 7 — Boss Banner (total progress) */}
-        <BossBanner progress={progress} daysMissed={daysMissed} />
-
-        {/* ═══ BELOW THE FOLD: Detailed views ═══ */}
-
-        {/* Weekly summary */}
-        <WeeklySummary summary={weeklySummary} />
-
-        {/* Activity heatmap */}
-        <ActivityHeatmap activity={activity} />
-
-        {/* Character stats */}
-        <StatPanel stats={state?.stats} daysMissed={daysMissed} />
-
-        {/* Monthly quest chapters */}
-        <QuestChapters
-          progress={progress}
-          currentMonth={state?.current_month ?? 1}
+        <MonthlyNudge
+          currentMonth={currentMonth}
+          currentTasks={currentTasks}
         />
       </main>
 
-      <div className="h-16" />
+      <div className="h-20" />
     </div>
   )
 }
