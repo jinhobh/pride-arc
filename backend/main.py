@@ -327,6 +327,74 @@ async def get_current_tasks(db: AsyncSession = Depends(get_db)):
     }
 
 
+# ── Plan data (single source of truth) ───────────────────────────────────────
+
+@app.get("/plan/month/{n}")
+async def get_month_plan(n: int, db: AsyncSession = Depends(get_db)):
+    """Return full month data for the MonthPage UI, directly from plan_data.py."""
+    from plan_data import MONTH_SECTIONS, MONTH_SUBTITLES, CHAPTER_REWARDS
+
+    if n < 1 or n > 6:
+        raise HTTPException(status_code=404, detail=f"Month {n} does not exist")
+
+    # Get completion state
+    completed_ids = set(await crud.get_completed_task_ids(db))
+    completed_cps = set(await crud.get_completed_checkpoint_ids(db))
+
+    # Build sections with full task objects
+    sections = []
+    for section_def in MONTH_SECTIONS.get(n, []):
+        tasks = []
+        for tid in section_def["task_ids"]:
+            task = TASKS.get(tid)
+            if task:
+                tasks.append({
+                    "id": task["id"],
+                    "title": task["title"],
+                    "skill_type": task["skill_type"],
+                    "frequency": task["frequency"],
+                    "xp": task["xp"],
+                    "completed": task["id"] in completed_ids,
+                })
+        sections.append({
+            "id": section_def["id"],
+            "title": section_def["title"],
+            "skillType": section_def["skill_type"],
+            "tasks": tasks,
+        })
+
+    # Build checkpoints
+    from plan_data import CHECKPOINTS_BY_MONTH
+    checkpoints = []
+    for cp_id in CHECKPOINTS_BY_MONTH.get(n, []):
+        cp = CHECKPOINTS.get(cp_id)
+        if cp:
+            checkpoints.append({
+                "id": cp["id"],
+                "title": cp["title"],
+                "skillType": cp["skill_type"],
+                "xpReward": cp["xp_reward"],
+                "completed": cp["id"] in completed_cps,
+            })
+
+    # Chapter reward
+    reward = CHAPTER_REWARDS.get(n, {})
+    chapter_reward = {
+        "title": reward.get("title", ""),
+        "description": reward.get("description", ""),
+        "badgeIcon": reward.get("icon", ""),
+        "xpBonus": reward.get("xp_bonus", 0),
+    }
+
+    return {
+        "monthNumber": n,
+        "subtitle": MONTH_SUBTITLES.get(n, ""),
+        "sections": sections,
+        "checkpoints": checkpoints,
+        "chapterReward": chapter_reward,
+    }
+
+
 # ── Check-in ──────────────────────────────────────────────────────────────────
 
 @app.post("/checkin", response_model=CheckinResponse)

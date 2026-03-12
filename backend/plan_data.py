@@ -167,7 +167,7 @@ CHECKPOINTS: dict[str, dict] = {
     "m2_cp_2": {"id": "m2_cp_2", "skill_type": "devops",  "xp_reward":  250, "month_number": 2, "title": "Linux CLI — comfortable with basic commands"},
     "m2_cp_3": {"id": "m2_cp_3", "skill_type": "dsa",     "xp_reward":  500, "month_number": 2, "title": "Trees BFS/DFS — 10+ problems solved"},
     "m2_cp_4": {"id": "m2_cp_4", "skill_type": "ml",      "xp_reward":  1000, "month_number": 2, "title": "Reproduced Generative Models via Drifting"},
-    "m2_cp_6": {"id": "m2_cp_6", "skill_type": "dsa",     "xp_reward":  500, "month_number": 2, "title": "Neetcode 150 — 75+ problems total"}
+    "m2_cp_6": {"id": "m2_cp_6", "skill_type": "dsa",     "xp_reward":  500, "month_number": 2, "title": "Neetcode 150 — 75+ problems total"},
 
     # Month 3
     "m3_cp_1": {"id": "m3_cp_1", "skill_type": "project", "xp_reward": 1500, "month_number": 3, "title": "Project deployed — live URL accessible to anyone"},
@@ -205,8 +205,8 @@ CHECKPOINTS: dict[str, dict] = {
 
 # Checkpoint IDs grouped by month (for chapter-unlock checks)
 CHECKPOINTS_BY_MONTH: dict[int, list[str]] = {
-    1: ["m1_cp_1", "m1_cp_2", "m1_cp_3", "m1_cp_4", "m1_cp_5"],
-    2: ["m2_cp_1", "m2_cp_2", "m2_cp_3", "m2_cp_4", "m2_cp_5", "m2_cp_6"],
+    1: ["m1_cp_1", "m1_cp_2", "m1_cp_3", "m1_cp_4"],
+    2: ["m2_cp_1", "m2_cp_2", "m2_cp_3", "m2_cp_4", "m2_cp_6"],
     3: ["m3_cp_1", "m3_cp_2", "m3_cp_3", "m3_cp_4", "m3_cp_5", "m3_cp_6"],
     4: ["m4_cp_1", "m4_cp_2", "m4_cp_3", "m4_cp_4", "m4_cp_5", "m4_cp_6"],
     5: ["m5_cp_1", "m5_cp_2", "m5_cp_3", "m5_cp_4", "m5_cp_5", "m5_cp_6"],
@@ -241,3 +241,58 @@ TASKS_BY_MONTH: dict[int, list[str]] = {}
 for _task in TASKS.values():
     _m = _task["month_number"]
     TASKS_BY_MONTH.setdefault(_m, []).append(_task["id"])
+
+
+# ── Month metadata (subtitles) ───────────────────────────────────────────────
+
+MONTH_SUBTITLES: dict[int, str] = {
+    1: "Build the missing web/backend fundamentals. Start the DSA grind.",
+    2: "Docker, cloud intro, and level up your ML depth with PyTorch.",
+    3: "Deploy your project live. HuggingFace transformers. Graphs and DP.",
+    4: "Intro system design, polish your project, build your resume.",
+    5: "Simulate real interviews. Expand applications. Behavioral prep.",
+    6: "Sharpen every edge. You are ready. Now perform.",
+}
+
+
+# ── Section groupings ────────────────────────────────────────────────────────
+# Each section maps task IDs to a named group within a month.
+# The MonthPage UI renders these as collapsible cards.
+
+MONTH_SECTIONS: dict[int, list[dict]] = {
+    1: [
+        {"id": "m1_dsa",     "title": "DSA — Daily Grind",                   "skill_type": "dsa",     "task_ids": ["m1_dsa_1", "m1_dsa_2", "m1_dsa_3", "m1_dsa_4", "m1_dsa_5", "m1_dsa_daily"]},
+        {"id": "m1_backend", "title": "Tech Stack — FastAPI & PostgreSQL",    "skill_type": "backend", "task_ids": ["m1_backend_1", "m1_backend_2", "m1_backend_3"]},
+        {"id": "m1_project", "title": "Project — Scaffold It",               "skill_type": "project", "task_ids": ["m1_project_1", "m1_project_2", "m1_project_daily"]},
+    ],
+    2: [
+        {"id": "m2_dsa",     "title": "DSA — Ramp Up",                       "skill_type": "dsa",     "task_ids": ["m2_dsa_1", "m2_dsa_2", "m2_dsa_3", "m2_dsa_4", "m2_dsa_daily"]},
+        {"id": "m2_devops",  "title": "Tech Stack — Docker & Linux",         "skill_type": "devops",  "task_ids": ["m2_devops_1", "m2_devops_2", "m2_devops_3", "m2_devops_4"]},
+        {"id": "m2_ml",      "title": "ML Depth — PyTorch",                  "skill_type": "ml",      "task_ids": ["m2_ml_1", "m2_ml_2", "m2_ml_3"]},
+        {"id": "m2_project", "title": "Project — Add ML Endpoint",           "skill_type": "project", "task_ids": ["m2_project_1", "m2_project_2", "m2_project_3"]},
+    ],
+    3: [
+        {"id": "m3_dsa",     "title": "DSA — Go Hard",                       "skill_type": "dsa",     "task_ids": ["m3_dsa_1", "m3_dsa_2", "m3_dsa_3", "m3_dsa_4", "m3_dsa_daily"]},
+        {"id": "m3_cloud",   "title": "Tech Stack — AWS Cloud",              "skill_type": "cloud",   "task_ids": ["m3_cloud_1", "m3_cloud_2", "m3_cloud_3", "m3_cloud_4"]},
+        {"id": "m3_ml",      "title": "ML Depth — HuggingFace & Transformers", "skill_type": "ml",   "task_ids": ["m3_ml_1", "m3_ml_2", "m3_ml_3"]},
+        {"id": "m3_project", "title": "Project — Deploy It Live",            "skill_type": "project", "task_ids": ["m3_project_1", "m3_project_2", "m3_project_3"]},
+    ],
+    4: [
+        {"id": "m4_dsa",      "title": "DSA — Hard Push",                    "skill_type": "dsa",           "task_ids": ["m4_dsa_1", "m4_dsa_2", "m4_dsa_3", "m4_dsa_4", "m4_dsa_5", "m4_dsa_daily"]},
+        {"id": "m4_sysdesign", "title": "System Design — Intro Level",       "skill_type": "system_design", "task_ids": ["m4_sd_1", "m4_sd_2", "m4_sd_3", "m4_sd_4", "m4_sd_5"]},
+        {"id": "m4_career",   "title": "Career — Resume & Applications",    "skill_type": "career",        "task_ids": ["m4_career_1", "m4_career_2", "m4_career_3", "m4_career_4", "m4_career_5", "m4_career_6"]},
+        {"id": "m4_project",  "title": "Project — Add Depth",               "skill_type": "project",       "task_ids": ["m4_project_1", "m4_project_2", "m4_project_3"]},
+    ],
+    5: [
+        {"id": "m5_dsa",        "title": "DSA — Interview Simulation Mode", "skill_type": "dsa",          "task_ids": ["m5_dsa_1", "m5_dsa_2", "m5_dsa_weekly"]},
+        {"id": "m5_interview",  "title": "Mock Interviews",                 "skill_type": "interviewing", "task_ids": ["m5_mock_1", "m5_mock_2", "m5_mock_weekly"]},
+        {"id": "m5_behavioral", "title": "Behavioral Interview Prep",       "skill_type": "interviewing", "task_ids": ["m5_beh_1", "m5_beh_2", "m5_beh_3", "m5_beh_4", "m5_beh_5", "m5_beh_6", "m5_beh_7"]},
+        {"id": "m5_networking", "title": "Networking & Applications",       "skill_type": "networking",   "task_ids": ["m5_net_1", "m5_net_2", "m5_net_3"]},
+    ],
+    6: [
+        {"id": "m6_dsa",       "title": "DSA — Maintain the Peak",          "skill_type": "dsa",          "task_ids": ["m6_dsa_1", "m6_dsa_2", "m6_dsa_daily", "m6_dsa_weekly"]},
+        {"id": "m6_interview", "title": "Interview Prep — Full Simulation", "skill_type": "interviewing", "task_ids": ["m6_mock_weekly", "m6_mock_1", "m6_mock_2"]},
+        {"id": "m6_project",   "title": "Project — Final Polish",           "skill_type": "project",      "task_ids": ["m6_project_1", "m6_project_2", "m6_project_3"]},
+        {"id": "m6_career",    "title": "Final Push — Applications & Prep", "skill_type": "career",        "task_ids": ["m6_career_1", "m6_career_2", "m6_career_3"]},
+    ],
+}
