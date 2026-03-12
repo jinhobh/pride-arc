@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
 import { MONTH_META, SKILL_INFO } from '../constants/planData'
 
 const BASE = '/api'
@@ -524,7 +525,16 @@ export default function PlanPage() {
     loading, error, toggleTask, completeCheckpoint,
   } = usePlanData()
 
+  const location = useLocation()
   const meta = MONTH_META[currentMonth]
+
+  // Scroll to hash anchor after data loads (e.g. navigated from /stats)
+  useEffect(() => {
+    if (loading || !location.hash) return
+    const id = location.hash.slice(1)
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [loading, location.hash])
 
   if (loading) {
     return (
