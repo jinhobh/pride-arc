@@ -105,8 +105,8 @@ function StreakDots({ taskId, recentCompletions }) {
     <div className="flex gap-1.5 mt-2">
       {dots.map(d => (
         <div key={d.dateStr} className="flex flex-col items-center gap-0.5">
-          <div className={`w-3 h-3 rounded-full border ${d.done ? 'bg-green-400 border-green-400' : 'bg-transparent border-slate-700'}`} />
-          <span className="font-display text-[7px] text-slate-600">{d.label}</span>
+          <div className={`w-3 h-3 rounded-full border ${d.done ? 'bg-ghibli-forest border-ghibli-forest' : 'bg-transparent border-ghibli-earth/40'}`} />
+          <span className="font-display text-[7px] text-ghibli-mist/60">{d.label}</span>
         </div>
       ))}
     </div>
@@ -140,26 +140,26 @@ function TaskCard({ task, recentCompletions, onToggle }) {
         onClick={handleToggle}
         disabled={pending}
         className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-all cursor-pointer ${
-          checked ? 'border-green-500 bg-green-500/20' : 'border-slate-600 hover:border-slate-400'
+          checked ? 'border-ghibli-forest bg-ghibli-forest/15' : 'border-ghibli-earth/40 hover:border-ghibli-earth/70'
         }`}
       >
         {pending ? (
-          <div className="w-2.5 h-2.5 rounded-full border border-slate-500 border-t-transparent animate-spin" />
+          <div className="w-2.5 h-2.5 rounded-full border border-ghibli-earth/50 border-t-transparent animate-spin" />
         ) : checked ? (
-          <svg className="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <svg className="w-3 h-3 text-ghibli-forest" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         ) : null}
       </button>
 
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium leading-snug ${checked ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+        <p className={`text-sm font-medium leading-snug ${checked ? 'line-through text-ghibli-mist/60' : 'text-ghibli-ink'}`}>
           {task.title}
         </p>
         <div className="flex flex-wrap items-center gap-2 mt-1.5">
-          <span className="font-vt text-sm text-yellow-400">+{task.xp} XP</span>
+          <span className="font-vt text-sm text-ghibli-gold">+{task.xp} XP</span>
           {isRecurring && (
-            <span className="font-display text-[8px] text-slate-600 uppercase tracking-wider">
+            <span className="font-display text-[8px] text-ghibli-mist/60 uppercase tracking-wider">
               {task.frequency}
             </span>
           )}
@@ -195,7 +195,7 @@ function SectionCard({ section, recentCompletions, onToggle }) {
           <span className={`font-vt text-base ${c.text}`}>{doneCount}/{onceTasks.length}</span>
         )}
         <svg
-          className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ml-1 ${open ? 'rotate-180' : ''}`}
+          className={`w-3.5 h-3.5 text-ghibli-mist transition-transform duration-200 ml-1 ${open ? 'rotate-180' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -203,7 +203,7 @@ function SectionCard({ section, recentCompletions, onToggle }) {
       </button>
 
       {open && (
-        <div className="divide-y divide-game-border/50 px-1">
+        <div className="divide-y divide-ghibli-earth/20 px-1">
           {section.tasks.map(task => (
             <TaskCard
               key={task.id}
@@ -238,25 +238,25 @@ function CheckpointRow({ checkpoint, onComplete }) {
         disabled={checkpoint.completed || pending}
         className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
           checkpoint.completed
-            ? 'border-yellow-500 bg-yellow-500/20'
-            : 'border-slate-600 hover:border-yellow-500/60 cursor-pointer'
+            ? 'border-ghibli-gold bg-ghibli-gold/15'
+            : 'border-ghibli-earth/40 hover:border-ghibli-gold/50 cursor-pointer'
         }`}
       >
         {pending ? (
-          <div className="w-2 h-2 rounded-full border border-slate-500 border-t-transparent animate-spin" />
+          <div className="w-2 h-2 rounded-full border border-ghibli-earth/50 border-t-transparent animate-spin" />
         ) : checkpoint.completed ? (
-          <svg className="w-2.5 h-2.5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <svg className="w-2.5 h-2.5 text-ghibli-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         ) : null}
       </button>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium leading-snug ${checkpoint.completed ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+        <p className={`text-sm font-medium leading-snug ${checkpoint.completed ? 'line-through text-ghibli-mist/60' : 'text-ghibli-ink'}`}>
           {checkpoint.title}
         </p>
         <div className="flex items-center gap-2 mt-1.5">
           <span className={`font-display text-[8px] ${skill.c.text}`}>{skill.label}</span>
-          <span className="font-vt text-sm text-yellow-400">+{checkpoint.xpReward} XP</span>
+          <span className="font-vt text-sm text-ghibli-gold">+{checkpoint.xpReward} XP</span>
         </div>
       </div>
     </div>
@@ -270,27 +270,27 @@ function CheckpointsPanel({ checkpoints, onComplete }) {
   const cpTotal = checkpoints.length
 
   return (
-    <div className="rounded-xl border border-game-border bg-game-surface overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-game-border bg-game-card/50">
+    <div className="rounded-xl border border-ghibli-earth/30 bg-ghibli-cream overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-ghibli-earth/25 bg-ghibli-sand/40">
         <div className="flex items-center gap-2">
-          <svg className="w-4 h-4 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-4 h-4 text-ghibli-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
           </svg>
-          <span className="font-display text-[9px] text-slate-300 uppercase tracking-wider">Chapter Checkpoints</span>
+          <span className="font-display text-[9px] text-ghibli-ink/80 uppercase tracking-wider">Chapter Checkpoints</span>
         </div>
-        <span className={`font-vt text-lg ${cpDone === cpTotal ? 'text-yellow-400' : 'text-slate-400'}`}>
+        <span className={`font-vt text-lg ${cpDone === cpTotal ? 'text-ghibli-gold' : 'text-ghibli-mist'}`}>
           {cpDone}/{cpTotal}
         </span>
       </div>
-      <div className="px-4 py-2 border-b border-game-border/50">
-        <div className="h-1.5 rounded-full bg-game-card overflow-hidden">
+      <div className="px-4 py-2 border-b border-ghibli-earth/20">
+        <div className="h-1.5 rounded-full bg-ghibli-sand overflow-hidden">
           <div
-            className="h-full rounded-full bg-yellow-400 transition-all duration-500"
+            className="h-full rounded-full bg-ghibli-gold transition-all duration-500"
             style={{ width: `${cpTotal > 0 ? (cpDone / cpTotal) * 100 : 0}%` }}
           />
         </div>
       </div>
-      <div className="divide-y divide-game-border/50 px-1">
+      <div className="divide-y divide-ghibli-earth/20 px-1">
         {checkpoints.map(cp => (
           <CheckpointRow key={cp.id} checkpoint={cp} onComplete={onComplete} />
         ))}
@@ -308,12 +308,12 @@ function ChapterRewardBanner({ reward, meta }) {
       style={{ borderColor: `${meta.hex}50`, background: `${meta.hex}0d` }}
     >
       <div className="text-5xl mb-3 select-none">{reward.badgeIcon}</div>
-      <div className="font-display text-[8px] text-slate-500 uppercase tracking-[0.3em] mb-1">Chapter Complete</div>
-      <h2 className="font-display text-[11px] sm:text-sm text-white uppercase tracking-widest mb-3">{reward.title}</h2>
-      <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto mb-5">{reward.description}</p>
-      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10">
-        <span className="font-display text-[8px] text-yellow-500 uppercase tracking-wider">Chapter Bonus</span>
-        <span className="font-vt text-lg text-yellow-400">+{reward.xpBonus} XP</span>
+      <div className="font-display text-xs italic text-ghibli-mist/70 uppercase tracking-[0.3em] mb-1">Chapter Complete</div>
+      <h2 className="font-display text-sm sm:text-base text-ghibli-ink italic font-semibold tracking-wide mb-3">{reward.title}</h2>
+      <p className="text-xs text-ghibli-mist leading-relaxed max-w-sm mx-auto mb-5">{reward.description}</p>
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ghibli-gold/30 bg-ghibli-gold/10">
+        <span className="font-display text-xs italic text-ghibli-gold uppercase tracking-wider">Chapter Bonus</span>
+        <span className="font-vt text-lg text-ghibli-gold">+{reward.xpBonus} XP</span>
       </div>
     </div>
   )
@@ -353,27 +353,27 @@ function MonthSection({ n, monthData, meta, monthProgress, isCurrent, recentComp
         onClick={() => setOpen(o => !o)}
         className={`w-full flex items-center gap-4 px-5 py-4 rounded-xl border transition-all duration-200 text-left ${
           isCurrent
-            ? 'border-green-500/40 bg-game-surface'
-            : 'border-slate-800/60 bg-game-surface/40 hover:border-slate-700/60'
+            ? 'border-ghibli-forest/40 bg-ghibli-cream'
+            : 'border-ghibli-earth/30 bg-ghibli-cream/60 hover:border-ghibli-earth/50'
         }`}
-        style={isCurrent ? { boxShadow: '0 0 18px rgba(34,197,94,0.08)' } : {}}
+        style={isCurrent ? { boxShadow: '0 0 18px rgba(74,124,89,0.08)' } : {}}
       >
         <span className="text-3xl leading-none select-none flex-shrink-0">{meta.icon}</span>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="font-display text-[8px] uppercase tracking-widest text-slate-500">Month {n}</span>
+            <span className="font-display text-xs italic text-ghibli-mist">Month {n}</span>
             {isCurrent && (
-              <span className="bg-green-400 text-black font-display text-[7px] uppercase tracking-widest px-1.5 py-0.5 rounded-full">
+              <span className="bg-ghibli-forest text-white font-display text-[7px] uppercase tracking-widest px-1.5 py-0.5 rounded-full">
                 Active
               </span>
             )}
           </div>
-          <p className="font-display text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-200 leading-snug">
+          <p className="font-display text-xs sm:text-sm italic font-semibold text-ghibli-ink leading-snug">
             {meta.title}
           </p>
           {/* Mini progress bar */}
-          <div className="mt-2 h-1 rounded-full bg-black/40 overflow-hidden w-32">
+          <div className="mt-2 h-1 rounded-full bg-ghibli-earth/15 overflow-hidden w-32">
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{ width: `${pct}%`, background: meta.hex }}
@@ -382,9 +382,9 @@ function MonthSection({ n, monthData, meta, monthProgress, isCurrent, recentComp
         </div>
 
         <div className="flex items-center gap-3 flex-shrink-0">
-          <span className="font-vt text-lg text-slate-500 tabular-nums hidden sm:block">{Math.round(pct)}%</span>
+          <span className="font-vt text-lg text-ghibli-mist tabular-nums hidden sm:block">{Math.round(pct)}%</span>
           <svg
-            className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-ghibli-mist transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
             fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -397,7 +397,7 @@ function MonthSection({ n, monthData, meta, monthProgress, isCurrent, recentComp
         <div className="mt-3 space-y-3 pl-0">
           {/* Month subtitle */}
           {monthData.subtitle && (
-            <p className="text-xs text-slate-500 leading-relaxed px-1">{monthData.subtitle}</p>
+            <p className="text-xs text-ghibli-mist leading-relaxed px-1">{monthData.subtitle}</p>
           )}
 
           {/* Task sections */}
@@ -450,13 +450,13 @@ function ChapterScrollRow({ currentMonth, progress }) {
           return (
             <div
               key={n}
-              className="flex-shrink-0 w-36 rounded-xl border border-slate-800/40 bg-slate-900/20 opacity-35 cursor-not-allowed select-none"
+              className="flex-shrink-0 w-36 rounded-xl border border-ghibli-earth/20 bg-ghibli-sand/30 opacity-35 cursor-not-allowed select-none"
             >
               <div className="flex flex-col items-center justify-center gap-2 p-4 min-h-[140px]">
-                <svg className="w-6 h-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-6 h-6 text-ghibli-earth/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                 </svg>
-                <span className="font-display text-[8px] uppercase tracking-widest text-slate-700">Month {n}</span>
+                <span className="font-display text-[8px] italic text-ghibli-mist/60">Month {n}</span>
               </div>
             </div>
           )
@@ -466,48 +466,48 @@ function ChapterScrollRow({ currentMonth, progress }) {
           <button
             key={n}
             onClick={() => scrollToMonth(n)}
-            className={`relative flex-shrink-0 w-36 rounded-xl border bg-game-surface cursor-pointer text-left
-              transition-all duration-200 hover:scale-[1.03] focus:outline-none focus:ring-1 focus:ring-green-500/50 ${
+            className={`relative flex-shrink-0 w-36 rounded-xl border bg-ghibli-cream cursor-pointer text-left
+              transition-all duration-200 hover:scale-[1.03] focus:outline-none focus:ring-1 focus:ring-ghibli-forest/40 ${
               isCurrent
-                ? 'border-green-500/50'
+                ? 'border-ghibli-forest/50'
                 : isComplete
-                ? 'border-slate-600/60'
-                : 'border-slate-700/40 hover:border-slate-600/60'
+                ? 'border-ghibli-earth/50'
+                : 'border-ghibli-earth/30 hover:border-ghibli-earth/50'
             }`}
-            style={isCurrent ? { boxShadow: '0 0 18px rgba(34,197,94,0.15)' } : {}}
+            style={isCurrent ? { boxShadow: '0 0 18px rgba(74,124,89,0.15)' } : {}}
           >
             {isCurrent && (
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-green-400 text-black
-                font-display text-[7px] uppercase tracking-widest px-2 py-0.5 rounded-full z-10 whitespace-nowrap">
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-ghibli-forest text-white
+                font-display text-[7px] italic px-2 py-0.5 rounded-full z-10 whitespace-nowrap">
                 Active
               </span>
             )}
 
             <div className="flex flex-col gap-2.5 p-3.5 min-h-[140px]">
               <div className="flex items-center justify-between">
-                <span className="font-display text-[8px] uppercase tracking-widest text-slate-500">M{n}</span>
+                <span className="font-display text-[8px] italic text-ghibli-mist">M{n}</span>
                 <span className="text-lg leading-none">{isComplete ? meta.badgeIcon : meta.icon}</span>
               </div>
 
               {isComplete && (
                 <div className="flex items-center gap-1">
-                  <svg className="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <svg className="w-3 h-3 text-ghibli-forest" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="font-display text-[7px] uppercase tracking-widest text-green-400">Done</span>
+                  <span className="font-display text-[7px] italic text-ghibli-forest">Done</span>
                 </div>
               )}
 
-              <p className="font-sans text-[11px] text-slate-300 font-medium leading-snug flex-1">{meta.title}</p>
+              <p className="font-sans text-[11px] text-ghibli-ink/80 font-medium leading-snug flex-1">{meta.title}</p>
 
               <div className="space-y-1">
-                <div className="h-1.5 rounded-full bg-black/60 overflow-hidden">
+                <div className="h-1.5 rounded-full bg-ghibli-earth/20 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{ width: `${pct}%`, background: meta.hex }}
                   />
                 </div>
-                <span className="font-vt text-sm leading-none text-slate-500 tabular-nums">{pct.toFixed(0)}%</span>
+                <span className="font-vt text-sm leading-none text-ghibli-mist tabular-nums">{pct.toFixed(0)}%</span>
               </div>
             </div>
           </button>
@@ -538,12 +538,12 @@ export default function PlanPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-game-bg flex flex-col items-center justify-center gap-4 pb-16">
+      <div className="min-h-screen bg-ghibli-sky flex flex-col items-center justify-center gap-4 pb-16">
         <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border-2 border-green-400/20" />
-          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-green-400 animate-spin" />
+          <div className="absolute inset-0 rounded-full border-2 border-ghibli-forest/20" />
+          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-ghibli-forest animate-spin" />
         </div>
-        <span className="font-display text-[9px] uppercase tracking-[0.3em] text-slate-600 animate-pulse">
+        <span className="font-display text-sm italic text-ghibli-mist animate-pulse">
           Loading plan...
         </span>
       </div>
@@ -552,24 +552,24 @@ export default function PlanPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-game-bg flex flex-col items-center justify-center gap-3 p-8 text-center pb-16">
-        <span className="font-display text-[10px] uppercase tracking-widest text-red-400">Error</span>
-        <p className="text-xs text-slate-600 font-mono max-w-sm">{error}</p>
+      <div className="min-h-screen bg-ghibli-sky flex flex-col items-center justify-center gap-3 p-8 text-center pb-16">
+        <span className="font-display text-sm italic text-red-400">Error</span>
+        <p className="text-xs text-ghibli-mist font-sans max-w-sm">{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-game-bg">
+    <div className="min-h-screen bg-ghibli-sky">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-8 space-y-8">
 
         {/* ── Page header ─────────────────────────────────────────────────── */}
         <div>
-          <h1 className="font-display text-sm uppercase tracking-[0.2em] text-white mb-1">
+          <h1 className="font-display text-2xl italic font-semibold text-ghibli-ink mb-1">
             Your Plan
           </h1>
           {meta && (
-            <p className="text-xs text-slate-500 font-sans">
+            <p className="text-xs text-ghibli-mist font-sans">
               Currently in Month {currentMonth} — {meta.title}
             </p>
           )}
@@ -577,7 +577,7 @@ export default function PlanPage() {
 
         {/* ── Chapter scroll row ───────────────────────────────────────────── */}
         <section>
-          <div className="font-display text-[8px] uppercase tracking-[0.25em] text-slate-600 mb-3">
+          <div className="font-display text-xs italic text-ghibli-mist/70 mb-3">
             Quest Chapters
           </div>
           <ChapterScrollRow currentMonth={currentMonth} progress={progress} />
@@ -619,14 +619,14 @@ export default function PlanPage() {
             return (
               <div
                 key={n}
-                className="flex items-center gap-4 px-5 py-4 rounded-xl border border-slate-800/40 bg-slate-900/20 opacity-35 select-none"
+                className="flex items-center gap-4 px-5 py-4 rounded-xl border border-ghibli-earth/20 bg-ghibli-sand/30 opacity-40 select-none"
               >
                 <span className="text-2xl leading-none">{lmeta.icon}</span>
                 <div>
-                  <span className="font-display text-[8px] uppercase tracking-widest text-slate-600">Month {n}</span>
-                  <p className="font-display text-[10px] uppercase tracking-wider text-slate-600 mt-0.5">{lmeta.title}</p>
+                  <span className="font-display text-xs italic text-ghibli-mist/60">Month {n}</span>
+                  <p className="font-display text-xs italic text-ghibli-mist/60 mt-0.5">{lmeta.title}</p>
                 </div>
-                <svg className="ml-auto w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="ml-auto w-4 h-4 text-ghibli-earth/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                 </svg>
               </div>

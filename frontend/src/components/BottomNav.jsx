@@ -8,17 +8,17 @@ const TABS = [
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 bg-game-surface border-t border-slate-800 flex">
+    <nav className="fixed bottom-0 inset-x-0 z-50 bg-ghibli-cream/95 backdrop-blur border-t border-ghibli-earth/25 flex shadow-ghibli-card">
       {TABS.map(({ to, icon, label }) => (
         <NavLink
           key={to}
           to={to}
           end
           className={({ isActive }) =>
-            `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[9px] font-display uppercase tracking-widest transition-colors ${
+            `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-display italic transition-colors ${
               isActive
-                ? 'text-green-400'
-                : 'text-slate-600 hover:text-slate-400'
+                ? 'text-ghibli-forest'
+                : 'text-ghibli-mist/70 hover:text-ghibli-mist'
             }`
           }
         >

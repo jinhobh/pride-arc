@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { SKILL_INFO } from '../constants/planData'
 import { SectionHeader } from './StatPanel'
 
-/** Habits that support counting (multiple completions per day) */
 const COUNTABLE_HABITS = new Set(['habit_leetcode'])
 
 function CounterInput({ count, onSet, busy }) {
@@ -11,22 +10,22 @@ function CounterInput({ count, onSet, busy }) {
       <button
         onClick={() => onSet(Math.max(0, count - 1))}
         disabled={busy || count <= 0}
-        className="w-6 h-6 rounded flex items-center justify-center
-          bg-slate-800 hover:bg-slate-700 border border-slate-700
-          text-slate-400 hover:text-white text-xs font-bold
+        className="w-6 h-6 rounded-lg flex items-center justify-center
+          bg-ghibli-sand hover:bg-ghibli-earth/20 border border-ghibli-earth/40
+          text-ghibli-mist hover:text-ghibli-ink text-xs font-bold
           disabled:opacity-30 disabled:cursor-not-allowed transition-all"
       >
         −
       </button>
-      <span className="font-vt text-lg leading-none text-green-400 tabular-nums w-6 text-center">
+      <span className="font-vt text-lg leading-none text-ghibli-forest tabular-nums w-6 text-center">
         {count}
       </span>
       <button
         onClick={() => onSet(count + 1)}
         disabled={busy}
-        className="w-6 h-6 rounded flex items-center justify-center
-          bg-slate-800 hover:bg-slate-700 border border-slate-700
-          text-slate-400 hover:text-white text-xs font-bold
+        className="w-6 h-6 rounded-lg flex items-center justify-center
+          bg-ghibli-sand hover:bg-ghibli-earth/20 border border-ghibli-earth/40
+          text-ghibli-mist hover:text-ghibli-ink text-xs font-bold
           disabled:opacity-30 disabled:cursor-not-allowed transition-all"
       >
         +
@@ -38,11 +37,11 @@ function CounterInput({ count, onSet, busy }) {
 function HabitRow({ habit, onToggle }) {
   const [busy, setBusy] = useState(false)
   const info = SKILL_INFO[habit.skill_type]
-  const { c } = info ?? { c: { text: 'text-slate-400', border: 'border-slate-700', bar: 'bg-slate-400' } }
+  const { c } = info ?? { c: { text: 'text-ghibli-mist', border: 'border-ghibli-earth/40', bar: 'bg-ghibli-mist' } }
   const isCountable = COUNTABLE_HABITS.has(habit.habit_id)
 
   const handleToggle = async () => {
-    if (isCountable) return // countable habits use the counter, not click
+    if (isCountable) return
     setBusy(true)
     await onToggle(habit.habit_id, !habit.completed, 1)
     setBusy(false)
@@ -62,10 +61,9 @@ function HabitRow({ habit, onToggle }) {
     <div
       onClick={isCountable ? undefined : handleToggle}
       className={`flex items-center gap-3 px-4 py-3 ${isCountable ? '' : 'cursor-pointer'}
-        hover:bg-white/[0.03] active:bg-white/[0.05]
+        hover:bg-ghibli-earth/5 active:bg-ghibli-earth/10
         transition-colors duration-150 ${busy ? 'opacity-60' : ''}`}
     >
-      {/* Checkbox or Counter */}
       {isCountable ? (
         <CounterInput count={habit.count || 0} onSet={handleSetCount} busy={busy} />
       ) : (
@@ -73,37 +71,34 @@ function HabitRow({ habit, onToggle }) {
           className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0
             transition-all duration-200
             ${habit.completed
-              ? 'bg-green-400 border-green-400'
-              : `border-slate-600 hover:${c.border}`
+              ? 'bg-ghibli-forest border-ghibli-forest'
+              : `border-ghibli-earth/50 hover:${c.border}`
             }`}
         >
           {habit.completed && (
-            <svg className="w-2.5 h-2.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
+            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           )}
         </div>
       )}
 
-      {/* Skill icon */}
-      <span className="text-base leading-none flex-shrink-0">
-        {info?.icon}
-      </span>
+      <span className="text-base leading-none flex-shrink-0">{info?.icon}</span>
 
-      {/* Title */}
       <span
-        className={`flex-1 text-sm font-medium transition-all duration-200 ${habit.completed ? 'line-through text-slate-600' : 'text-slate-200'
-          }`}
+        className={`flex-1 text-sm font-medium transition-all duration-200 ${
+          habit.completed ? 'line-through text-ghibli-mist/60' : 'text-ghibli-ink'
+        }`}
       >
         {habit.title}
       </span>
 
-      {/* XP reward */}
-      <span className={`font-vt text-xl leading-none flex-shrink-0 tabular-nums ${habit.completed ? 'text-green-400' : c.text
-        }`}>
+      <span className={`font-vt text-xl leading-none flex-shrink-0 tabular-nums ${
+        habit.completed ? 'text-ghibli-forest' : c.text
+      }`}>
         +{displayXp}
       </span>
-      <span className="font-display text-[7px] text-slate-600 flex-shrink-0 uppercase">xp</span>
+      <span className="font-sans text-[9px] text-ghibli-mist/70 flex-shrink-0">xp</span>
     </div>
   )
 }
@@ -121,24 +116,26 @@ export default function WeeklyHabits({ habits, onLogHabit, today }) {
         title="Daily Habits"
         right={
           <div className="flex items-center gap-2">
-            <span className="font-vt text-xl leading-none tabular-nums text-slate-400">
+            <span className="font-vt text-xl leading-none tabular-nums text-ghibli-mist">
               {done}/{total}
             </span>
-            <span className="font-display text-[8px] text-slate-600 uppercase">today</span>
+            <span className="font-sans text-[10px] text-ghibli-mist/70">today</span>
           </div>
         }
       />
 
       <div
-        className={`rounded-xl border overflow-hidden divide-y divide-white/[0.04]
-          ${allDone ? 'border-green-500/30 bg-green-500/[0.04]' : 'border-slate-800/60 bg-game-surface/40'}`}
+        className={`rounded-xl border overflow-hidden divide-y divide-ghibli-earth/15 shadow-ghibli-card
+          ${allDone
+            ? 'border-ghibli-forest/40 bg-ghibli-forest/5'
+            : 'border-ghibli-earth/30 bg-ghibli-cream'
+          }`}
       >
-        {/* Date header */}
-        <div className="flex items-center justify-between px-4 py-2 bg-black/20">
-          <span className="font-display text-[8px] uppercase tracking-widest text-slate-600">
-            {allDone ? '✓ All habits complete' : 'Today\'s habits'}
+        <div className="flex items-center justify-between px-4 py-2 bg-ghibli-earth/8">
+          <span className="font-display text-sm italic text-ghibli-mist">
+            {allDone ? '✓ All habits complete' : "Today's habits"}
           </span>
-          <span className="font-vt text-base leading-none text-slate-700">{today}</span>
+          <span className="font-vt text-base leading-none text-ghibli-earth/60">{today}</span>
         </div>
 
         {habits.map(habit => (
@@ -149,10 +146,9 @@ export default function WeeklyHabits({ habits, onLogHabit, today }) {
           />
         ))}
 
-        {/* Progress bar at bottom */}
-        <div className="h-1 bg-black/40">
+        <div className="h-1.5 bg-ghibli-earth/10">
           <div
-            className="h-full bg-green-400 transition-all duration-500"
+            className="h-full bg-ghibli-forest transition-all duration-500"
             style={{ width: `${(done / total) * 100}%` }}
           />
         </div>
