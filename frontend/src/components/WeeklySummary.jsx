@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { SKILL_INFO } from '../constants/planData'
 import { SectionHeader } from './StatPanel'
 
@@ -39,6 +40,8 @@ function SkillBar({ skill, maxXP }) {
 export default function WeeklySummary({ summary }) {
     if (!summary) return null
 
+    const [copied, setCopied] = useState(false)
+
     const maxXP = Math.max(1, ...summary.skill_breakdown.map(s => s.xp))
 
     const today = new Date()
@@ -49,12 +52,68 @@ export default function WeeklySummary({ summary }) {
     const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     const rangeLabel = `${fmt(monday)} – ${fmt(sunday)}`
 
+    const isSunday = today.getDay() === 0
+
+    function handleShare() {
+        const lines = [
+            `📊 Week of ${rangeLabel}`,
+            ``,
+            `⚡ ${summary.total_xp} XP earned`,
+            `🧩 ${summary.problems_solved} DSA problems solved`,
+            `📅 ${summary.days_active}/7 days active`,
+        ]
+        if (summary.skill_breakdown.length > 0) {
+            lines.push(``, `Skills:`)
+            summary.skill_breakdown.forEach(s => {
+                const info = SKILL_INFO[s.skill_type]
+                lines.push(`${info?.icon ?? '•'} ${s.label}: ${s.xp} XP`)
+            })
+        }
+        lines.push(``, `— PrideArc`)
+        navigator.clipboard.writeText(lines.join('\n')).then(() => {
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+        })
+    }
+
     return (
         <section>
             <SectionHeader
                 title="This Week"
                 right={
-                    <span className="font-sans text-[11px] text-ghibli-mist/70">{rangeLabel}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {isSunday && (
+                            <span
+                                style={{
+                                    fontFamily: '"Crimson Pro", serif',
+                                    fontSize: '11px',
+                                    fontStyle: 'italic',
+                                    color: '#C9A84C',
+                                }}
+                            >
+                                ✨ Weekly recap
+                            </span>
+                        )}
+                        <span className="font-sans text-[11px] text-ghibli-mist/70">{rangeLabel}</span>
+                        <button
+                            onClick={handleShare}
+                            style={{
+                                fontFamily: '"Crimson Pro", serif',
+                                fontSize: '11px',
+                                fontStyle: 'italic',
+                                color: copied ? '#4A7C59' : '#6B7F6E',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: '2px 6px',
+                                borderRadius: '6px',
+                                border: `1px solid ${copied ? 'rgba(74,124,89,0.3)' : 'rgba(139,111,71,0.2)'}`,
+                                transition: 'all 0.2s',
+                            }}
+                        >
+                            {copied ? '✓ copied' : 'share'}
+                        </button>
+                    </div>
                 }
             />
 
