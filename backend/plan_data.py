@@ -85,6 +85,9 @@ TASKS: dict[str, dict] = {
     # ── ML — Weekly Paper ──────────────────────────────────────────────────
     "m1_paper":      {"id": "m1_paper",      "skill_type": "ml", "frequency": "weekly", "xp": 25, "month_number": 1, "title": "Read 1 ML paper"},
 
+    # ── Probability Bootcamp ────────────────────────────────────────────────
+    "m1_prob_weekly": {"id": "m1_prob_weekly", "skill_type": "ml", "frequency": "weekly", "xp": 15, "month_number": 1, "title": "Watch 2 Brunton Probability Bootcamp videos (vids 1–8)"},
+
     # ═══════════════════════════════════════════════════════════════════════════
     # ── Month 2 — DevOps & ML Sharpening ──────────────────────────────────────
     # ═══════════════════════════════════════════════════════════════════════════
@@ -115,6 +118,9 @@ TASKS: dict[str, dict] = {
     "m2_ml_w3_2":    {"id": "m2_ml_w3_2",   "skill_type": "ml", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 3 · Evaluate with accuracy, confusion matrix, and loss curves"},
     "m2_ml_w4_1":    {"id": "m2_ml_w4_1",   "skill_type": "ml", "frequency": "once", "xp": 20, "month_number": 2, "title": "Wk 4 · Build a text classifier with torchtext or custom dataset"},
     "m2_ml_w4_2":    {"id": "m2_ml_w4_2",   "skill_type": "ml", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 4 · Save model with torch.save() and load it for inference"},
+
+    # ── Probability Bootcamp ────────────────────────────────────────────────
+    "m2_prob_weekly": {"id": "m2_prob_weekly", "skill_type": "ml", "frequency": "weekly", "xp": 15, "month_number": 2, "title": "Watch 2 Brunton Probability Bootcamp videos (vids 9–16)"},
 
     # ── Project — Add ML Endpoint ──────────────────────────────────────────
     "m2_proj_w2_1":  {"id": "m2_proj_w2_1", "skill_type": "project", "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 2 · Export your trained model and load it in FastAPI"},
@@ -155,6 +161,9 @@ TASKS: dict[str, dict] = {
     "m3_ml_w3_1":    {"id": "m3_ml_w3_1",   "skill_type": "ml", "frequency": "once", "xp": 50, "month_number": 3, "title": "Wk 3 · Fine-tune DistilBERT or BERT on a text classification task"},
     "m3_ml_w3_2":    {"id": "m3_ml_w3_2",   "skill_type": "ml", "frequency": "once", "xp": 25, "month_number": 3, "title": "Wk 3 · Evaluate fine-tuned model — report accuracy, F1, sample predictions"},
 
+    # ── Probability Bootcamp ────────────────────────────────────────────────
+    "m3_prob_weekly": {"id": "m3_prob_weekly", "skill_type": "ml", "frequency": "weekly", "xp": 15, "month_number": 3, "title": "Watch 2 Brunton Probability Bootcamp videos (vids 17–24)"},
+
     # ── Project — Deploy It Live ───────────────────────────────────────────
     "m3_proj_w3_1":  {"id": "m3_proj_w3_1", "skill_type": "project", "frequency": "once", "xp": 25, "month_number": 3, "title": "Wk 3 · Choose deployment target (EC2, Railway, or Render)"},
     "m3_proj_w3_2":  {"id": "m3_proj_w3_2", "skill_type": "project", "frequency": "once", "xp": 25, "month_number": 3, "title": "Wk 3 · Deploy your FastAPI + ML app to a live URL"},
@@ -184,6 +193,12 @@ TASKS: dict[str, dict] = {
     "m4_sd_w3_1":    {"id": "m4_sd_w3_1",   "skill_type": "system_design", "frequency": "once",   "xp": 10, "month_number": 4, "title": "Wk 3 · Study REST vs GraphQL — when to use each, tradeoffs"},
     "m4_sd_w4_1":    {"id": "m4_sd_w4_1",   "skill_type": "system_design", "frequency": "once",   "xp": 10, "month_number": 4, "title": "Wk 4 · Study CDNs, horizontal scaling, and CAP theorem"},
     "m4_sd_w4_2":    {"id": "m4_sd_w4_2",   "skill_type": "system_design", "frequency": "once",   "xp": 15, "month_number": 4, "title": "Wk 4 · Write a 1-page cheat sheet of all 5 system design concepts"},
+
+    # ── DDIA Reading ────────────────────────────────────────────────────────
+    "m4_ddia_weekly": {"id": "m4_ddia_weekly", "skill_type": "system_design", "frequency": "weekly", "xp": 20, "month_number": 4, "title": "Read 1 DDIA section (sects 1–4 of 12)"},
+
+    # ── Probability Bootcamp ────────────────────────────────────────────────
+    "m4_prob_weekly": {"id": "m4_prob_weekly", "skill_type": "ml", "frequency": "weekly", "xp": 15, "month_number": 4, "title": "Watch 2 Brunton Probability Bootcamp videos (vids 25–32)"},
 
     # ── Career — Resume & Applications ─────────────────────────────────────
     "m4_career_w1_1": {"id": "m4_career_w1_1", "skill_type": "career", "frequency": "once", "xp": 10, "month_number": 4, "title": "Wk 1 · Gather all resume content — projects, skills, education"},
@@ -249,6 +264,12 @@ TASKS: dict[str, dict] = {
     "m5_net_w4_1":   {"id": "m5_net_w4_1",  "skill_type": "career",     "frequency": "once", "xp": 15, "month_number": 5, "title": "Wk 4 · Apply to 10 more companies (30+ total)"},
     "m5_net_w4_2":   {"id": "m5_net_w4_2",  "skill_type": "networking", "frequency": "once", "xp": 10, "month_number": 5, "title": "Wk 4 · Send referral request messages to 2 more connections"},
 
+    # ── DDIA Reading ────────────────────────────────────────────────────────
+    "m5_ddia_weekly": {"id": "m5_ddia_weekly", "skill_type": "system_design", "frequency": "weekly", "xp": 20, "month_number": 5, "title": "Read 1 DDIA section (sects 5–8 of 12)"},
+
+    # ── Probability Bootcamp ────────────────────────────────────────────────
+    "m5_prob_weekly": {"id": "m5_prob_weekly", "skill_type": "ml", "frequency": "weekly", "xp": 15, "month_number": 5, "title": "Watch 2 Brunton Probability Bootcamp videos (vids 33–40, final month)"},
+
     # ═══════════════════════════════════════════════════════════════════════════
     # ── Month 6 — Polish, Practice, Peak ──────────────────────────────────────
     # ═══════════════════════════════════════════════════════════════════════════
@@ -284,6 +305,9 @@ TASKS: dict[str, dict] = {
     "m6_career_w3_1": {"id": "m6_career_w3_1", "skill_type": "career", "frequency": "once", "xp": 10, "month_number": 6, "title": "Wk 3 · Research your top 5 interview target companies"},
     "m6_career_w3_2": {"id": "m6_career_w3_2", "skill_type": "career", "frequency": "once", "xp": 15, "month_number": 6, "title": "Wk 3 · Write company-specific notes for each of your top 5"},
     "m6_career_w4_1": {"id": "m6_career_w4_1", "skill_type": "career", "frequency": "once", "xp": 10, "month_number": 6, "title": "Wk 4 · Post demo video on LinkedIn with a brief write-up"},
+
+    # ── DDIA Reading ────────────────────────────────────────────────────────
+    "m6_ddia_weekly": {"id": "m6_ddia_weekly", "skill_type": "system_design", "frequency": "weekly", "xp": 20, "month_number": 6, "title": "Read 1 DDIA section (sects 9–12 of 12, final month)"},
 }
 
 # ── Checkpoints ───────────────────────────────────────────────────────────────
@@ -417,8 +441,9 @@ MONTH_SECTIONS: dict[int, list[dict]] = {
             "m1_proj_w3_1",
             "m1_proj_w4_1",
         ]},
-        {"id": "m1_ml", "title": "ML — Weekly Paper", "skill_type": "ml", "task_ids": [
+        {"id": "m1_ml", "title": "ML — Weekly Paper & Prob Bootcamp", "skill_type": "ml", "task_ids": [
             "m1_paper",
+            "m1_prob_weekly",
         ]},
     ],
     2: [
@@ -440,6 +465,7 @@ MONTH_SECTIONS: dict[int, list[dict]] = {
             "m2_ml_w2_1", "m2_ml_w2_2",
             "m2_ml_w3_1", "m2_ml_w3_2",
             "m2_ml_w4_1", "m2_ml_w4_2",
+            "m2_prob_weekly",
         ]},
         {"id": "m2_project", "title": "Project — Add ML Endpoint", "skill_type": "project", "task_ids": [
             "m2_proj_w2_1", "m2_proj_w2_2",
@@ -464,6 +490,7 @@ MONTH_SECTIONS: dict[int, list[dict]] = {
             "m3_ml_w1_1", "m3_ml_w1_2",
             "m3_ml_w2_1", "m3_ml_w2_2",
             "m3_ml_w3_1", "m3_ml_w3_2",
+            "m3_prob_weekly",
         ]},
         {"id": "m3_project", "title": "Project — Deploy It Live", "skill_type": "project", "task_ids": [
             "m3_proj_w3_1", "m3_proj_w3_2",
@@ -484,6 +511,10 @@ MONTH_SECTIONS: dict[int, list[dict]] = {
             "m4_sd_w2_1",
             "m4_sd_w3_1",
             "m4_sd_w4_1", "m4_sd_w4_2",
+            "m4_ddia_weekly",
+        ]},
+        {"id": "m4_prob", "title": "Probability Bootcamp — Brunton", "skill_type": "ml", "task_ids": [
+            "m4_prob_weekly",
         ]},
         {"id": "m4_career", "title": "Career — Resume & Applications", "skill_type": "career", "task_ids": [
             "m4_career_w1_1", "m4_career_w1_2",
@@ -525,6 +556,10 @@ MONTH_SECTIONS: dict[int, list[dict]] = {
             "m5_net_w3_1", "m5_net_w3_2",
             "m5_net_w4_1", "m5_net_w4_2",
         ]},
+        {"id": "m5_reading", "title": "Continuous Learning — DDIA & Prob Bootcamp", "skill_type": "system_design", "task_ids": [
+            "m5_ddia_weekly",
+            "m5_prob_weekly",
+        ]},
     ],
     6: [
         {"id": "m6_dsa", "title": "DSA — Maintain the Peak", "skill_type": "dsa", "task_ids": [
@@ -550,6 +585,9 @@ MONTH_SECTIONS: dict[int, list[dict]] = {
             "m6_career_w2_1", "m6_career_w2_2",
             "m6_career_w3_1", "m6_career_w3_2",
             "m6_career_w4_1",
+        ]},
+        {"id": "m6_ddia", "title": "DDIA — Final Chapters", "skill_type": "system_design", "task_ids": [
+            "m6_ddia_weekly",
         ]},
     ],
 }
