@@ -5,9 +5,7 @@ import HeaderBar from '../components/HeaderBar'
 import CharacterHero from '../components/CharacterHero'
 import WeeklyHabits from '../components/WeeklyHabits'
 import OnTrackMeter from '../components/OnTrackMeter'
-import SkillUnlockTree from '../components/SkillUnlockTree'
 import RecentActivity from '../components/RecentActivity'
-import WeeklySummary from '../components/WeeklySummary'
 
 function LoadingScreen() {
   return (
@@ -146,7 +144,7 @@ function MonthlyNudge({ currentMonth, currentTasks }) {
 export default function Dashboard() {
   const {
     state, todayHabits, streakStatus, currentTasks, activityFeed,
-    weeklySummary, loading, error, today, hasCheckedInToday, checkin, logHabit,
+    loading, error, today, hasCheckedInToday, checkin, logHabit,
   } = useGameData()
 
   if (loading) return <LoadingScreen />
@@ -184,9 +182,7 @@ export default function Dashboard() {
           currentMonth={currentMonth}
           currentTasks={currentTasks}
         />
-        <SkillUnlockTree stats={state?.stats} />
         <RecentActivity feed={activityFeed} />
-        <WeeklySummary summary={weeklySummary} />
         <div className="h-20" />
       </main>
     </div>
