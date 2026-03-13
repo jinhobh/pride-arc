@@ -131,3 +131,20 @@ class PlanSectionTask(Base):
     section_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     task_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class TaskDayAssignment(Base):
+    """Stores which day of the week a user has manually assigned a task to.
+
+    - weekly tasks:  week_start = actual Monday of the target week (resets each week)
+    - once tasks:    week_start = date(9999, 1, 1) as a permanent marker
+    Unique per (task_id, week_start) so upsert works cleanly.
+    day_offset:  0=Mon … 6=Sun
+    """
+    __tablename__ = "task_day_assignments"
+    __table_args__ = (UniqueConstraint("task_id", "week_start", name="uq_task_week_assign"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    task_id: Mapped[str] = mapped_column(String, nullable=False)
+    week_start: Mapped[date] = mapped_column(Date, nullable=False)
+    day_offset: Mapped[int] = mapped_column(Integer, nullable=False)  # 0=Mon … 6=Sun

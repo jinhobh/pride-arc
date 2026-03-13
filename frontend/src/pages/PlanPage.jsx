@@ -757,16 +757,87 @@ function PaceWidget({ pace }) {
 
 // ── PlanWeekView ──────────────────────────────────────────────────────────────
 
+/** Strip leading "Wk N · " prefix so titles are shorter in the card. */
+function stripWkPrefix(title) {
+  return title.replace(/^Wk\s+\d+\s*·\s*/, '')
+}
+
+function WeekTaskItem({ t }) {
+  const isOnce = t.frequency === 'once'
+  const isWeekly = t.frequency === 'weekly'
+  const color = SKILL_COLORS[t.skill_type] ?? '#8B6F47'
+  const displayTitle = isOnce ? stripWkPrefix(t.title) : t.title
+  const truncated = displayTitle.length > 52 ? displayTitle.slice(0, 52) + '…' : displayTitle
+
+  return (
+    <div
+      className="text-[10px] font-sans leading-snug"
+      style={{
+        color: t.completed ? 'rgba(107,127,110,0.45)' : 'rgba(44,36,22,0.82)',
+        textDecoration: t.completed ? 'line-through' : 'none',
+      }}
+    >
+      {/* Indicator shape: circle for once/weekly, filled dot for daily */}
+      {isOnce ? (
+        <span
+          className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle flex-shrink-0"
+          style={{
+            background: t.carryover ? 'transparent' : color + '25',
+            border: `1.5px solid ${t.carryover ? '#E8956D' : color}`,
+          }}
+        />
+      ) : isWeekly ? (
+        <span
+          className="inline-block w-2 h-2 rounded-full mr-1.5 align-middle flex-shrink-0"
+          style={{ background: 'transparent', border: `1.5px solid ${color}` }}
+        />
+      ) : (
+        <span
+          className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle flex-shrink-0"
+          style={{ background: color }}
+        />
+      )}
+      {truncated}
+      <span className="ml-1 text-[9px]" style={{ color: '#4A7C59' }}>+{t.xp}</span>
+      {t.carryover && (
+        <span className="ml-1 text-[8px] font-semibold uppercase tracking-wide" style={{ color: '#E8956D' }}>
+          carry-over
+        </span>
+      )}
+    </div>
+  )
+}
+
+async function assignDay(taskId, dayOffset) {
+  const res = await fetch(`/api/plan/task/${taskId}/assign-day`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ day_offset: dayOffset }),
+  })
+  return res.ok
+}
+
 function PlanWeekView() {
   const [weekData, setWeekData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [draggingTask, setDraggingTask] = useState(null)   // task object being dragged
+  const [dragOverDay, setDragOverDay] = useState(null)     // day index 0–6
 
-  useEffect(() => {
-    fetch('/api/plan/week')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { setWeekData(d); setLoading(false) })
-      .catch(() => setLoading(false))
+  const fetchWeek = useCallback(async () => {
+    const res = await fetch('/api/plan/week')
+    const d = res.ok ? await res.json() : null
+    setWeekData(d)
+    setLoading(false)
   }, [])
+
+  useEffect(() => { fetchWeek() }, [fetchWeek])
+
+  async function handleDrop(dayIndex) {
+    if (!draggingTask || draggingTask.frequency === 'daily') return
+    setDragOverDay(null)
+    const ok = await assignDay(draggingTask.id, dayIndex)
+    if (ok) await fetchWeek()
+  }
 
   if (loading) {
     return (
@@ -780,61 +851,132 @@ function PlanWeekView() {
     return <p className="text-center text-xs text-ghibli-mist py-8">Could not load weekly plan.</p>
   }
 
+  const weekLabel = new Date(weekData.week_start + 'T12:00:00')
+    .toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+
   return (
     <div className="space-y-3">
-      <p className="text-xs text-ghibli-mist font-sans">
-        Week of {new Date(weekData.week_start + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-      </p>
+      <div className="flex items-center gap-3">
+        <p className="text-xs text-ghibli-mist font-sans">Week of {weekLabel}</p>
+        {weekData.arc_week && (
+          <span
+            className="text-[10px] font-sans font-semibold px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(74,124,89,0.12)', color: '#4A7C59', border: '1px solid rgba(74,124,89,0.25)' }}
+          >
+            Arc Wk {weekData.arc_week}
+          </span>
+        )}
+        {draggingTask && (
+          <span className="text-[10px] font-sans text-ghibli-mist italic animate-pulse">
+            Drop on a day to reschedule
+          </span>
+        )}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 text-[9px] font-sans text-ghibli-mist">
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-ghibli-mist/50" /> Daily
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-2 h-2 rounded-full border border-ghibli-mist/50" /> Weekly
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-2 h-2 rounded-sm border border-ghibli-mist/50" /> Goals
+        </span>
+        <span className="flex items-center gap-1 ml-auto" style={{ color: '#8B6F47' }}>
+          ⠿ drag to reschedule
+        </span>
+      </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {weekData.days.map(day => (
-          <div
-            key={day.date}
-            className="flex-shrink-0 w-40 rounded-xl p-3 space-y-2"
-            style={{
-              background: day.is_today ? '#EEF6EC' : '#FAF3E0',
-              border: day.is_today ? '1.5px solid #7AAE87' : '1px solid rgba(139,111,71,0.2)',
-            }}
-          >
-            <div className="flex items-center justify-between">
-              <span
-                className="font-sans text-xs font-semibold"
-                style={{ color: day.is_today ? '#4A7C59' : '#6B7F6E' }}
-              >
-                {day.day}
-              </span>
-              {day.is_today && (
-                <span className="text-[9px] font-sans font-bold uppercase tracking-wider" style={{ color: '#4A7C59' }}>
-                  Today
+        {weekData.days.map((day, dayIndex) => {
+          const dailyTasks  = day.tasks.filter(t => t.frequency === 'daily')
+          const movableTasks = day.tasks.filter(t => t.frequency !== 'daily')
+          const isDropTarget = dragOverDay === dayIndex && draggingTask?.frequency !== 'daily'
+
+          return (
+            <div
+              key={day.date}
+              className="flex-shrink-0 w-44 rounded-xl p-3 space-y-2 transition-all duration-150"
+              style={{
+                background: isDropTarget
+                  ? '#EEF6EC'
+                  : day.is_today ? '#EEF6EC' : '#FAF3E0',
+                border: isDropTarget
+                  ? '2px dashed #4A7C59'
+                  : day.is_today ? '1.5px solid #7AAE87' : '1px solid rgba(139,111,71,0.2)',
+                boxShadow: isDropTarget ? '0 0 12px rgba(74,124,89,0.2)' : 'none',
+              }}
+              onDragOver={e => { e.preventDefault(); setDragOverDay(dayIndex) }}
+              onDragLeave={e => {
+                // Only clear if leaving the column entirely, not a child element
+                if (!e.currentTarget.contains(e.relatedTarget)) setDragOverDay(null)
+              }}
+              onDrop={e => { e.preventDefault(); handleDrop(dayIndex) }}
+            >
+              {/* Day header */}
+              <div className="flex items-center justify-between">
+                <span
+                  className="font-sans text-xs font-semibold"
+                  style={{ color: day.is_today || isDropTarget ? '#4A7C59' : '#6B7F6E' }}
+                >
+                  {day.day}
                 </span>
+                {day.is_today && !isDropTarget && (
+                  <span className="text-[9px] font-sans font-bold uppercase tracking-wider" style={{ color: '#4A7C59' }}>
+                    Today
+                  </span>
+                )}
+                {isDropTarget && (
+                  <span className="text-[9px] font-sans font-bold" style={{ color: '#4A7C59' }}>↓</span>
+                )}
+              </div>
+
+              {/* Empty drop zone prompt */}
+              {day.tasks.length === 0 && (
+                <p className="text-[10px] text-ghibli-mist/40 font-sans italic">
+                  {isDropTarget ? 'Drop here' : '—'}
+                </p>
+              )}
+
+              {day.tasks.length > 0 && (
+                <div className="space-y-1.5">
+                  {/* Daily tasks (not draggable) */}
+                  {dailyTasks.map(t => (
+                    <WeekTaskItem key={t.id} t={t} />
+                  ))}
+
+                  {/* Divider before movable tasks */}
+                  {movableTasks.length > 0 && dailyTasks.length > 0 && (
+                    <div style={{ borderTop: '1px dashed rgba(139,111,71,0.25)', marginTop: '4px', paddingTop: '4px' }} />
+                  )}
+
+                  {/* Weekly + once tasks (draggable) */}
+                  {movableTasks.map(t => (
+                    <div
+                      key={t.id}
+                      draggable
+                      onDragStart={e => {
+                        setDraggingTask(t)
+                        e.dataTransfer.effectAllowed = 'move'
+                        // Set ghost text for browsers that show it
+                        e.dataTransfer.setData('text/plain', t.title)
+                      }}
+                      onDragEnd={() => setDraggingTask(null)}
+                      style={{
+                        opacity: draggingTask?.id === t.id ? 0.4 : 1,
+                        cursor: 'grab',
+                      }}
+                    >
+                      <WeekTaskItem t={t} />
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-
-            {day.tasks.length === 0 ? (
-              <p className="text-[10px] text-ghibli-mist/50 font-sans italic">Rest day</p>
-            ) : (
-              <div className="space-y-1.5">
-                {day.tasks.map(t => (
-                  <div
-                    key={t.id}
-                    className="text-[10px] font-sans leading-snug"
-                    style={{
-                      color: t.completed ? 'rgba(107,127,110,0.5)' : 'rgba(44,36,22,0.8)',
-                      textDecoration: t.completed ? 'line-through' : 'none',
-                    }}
-                  >
-                    <span
-                      className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
-                      style={{ background: SKILL_COLORS[t.skill_type] ?? '#8B6F47', flexShrink: 0 }}
-                    />
-                    {t.title.length > 45 ? t.title.slice(0, 45) + '…' : t.title}
-                    <span className="ml-1 text-[9px]" style={{ color: '#4A7C59' }}>+{t.xp}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

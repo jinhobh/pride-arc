@@ -8,10 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import crud
 from database import AsyncSessionLocal, Base, engine, get_db
-from models import CheckpointCompletion, HabitLog, PlanCheckpoint, PlanHabit, PlanSection, PlanSectionTask, PlanTask, TaskCompletion  # noqa: F401 — ensure models are imported so Base sees them
-from sqlalchemy import select
+from models import CheckpointCompletion, HabitLog, PlanCheckpoint, PlanHabit, PlanSection, PlanSectionTask, PlanTask, TaskCompletion, TaskDayAssignment  # noqa: F401 — ensure models are imported so Base sees them
+from sqlalchemy import delete, select
 from plan_data import CHECKPOINTS, HABITS, MONTH_SUBTITLES, TASKS
 from schemas import (
+    AssignDayRequest,
     PaceResponse,
     PlanCheckpointCreate,
     PlanCheckpointOut,
@@ -509,9 +510,24 @@ async def get_plan_roadmap(db: AsyncSession = Depends(get_db)):
 
 # ── Plan Weekly View ───────────────────────────────────────────────────────────
 
+def _parse_wk_number(title: str) -> int | None:
+    """Extract week number from task titles like 'Wk 1 · ...' or 'Wk 3 · ...'"""
+    import re
+    m = re.match(r'^Wk\s+(\d+)', title)
+    return int(m.group(1)) if m else None
+
+
+_PERMANENT_WEEK = datetime.date(9999, 1, 1)  # sentinel for once-task assignments
+
+
 @app.get("/plan/week")
 async def get_plan_week(db: AsyncSession = Depends(get_db)):
-    """This week's tasks grouped by day (Mon–Sun), with completion state."""
+    """This week's tasks grouped by day (Mon–Sun), with completion state.
+
+    Once tasks labelled 'Wk N' appear on the Monday that starts their week.
+    Carry-over: incomplete once tasks from earlier weeks also surface on Monday.
+    Manual day assignments (from drag-and-drop) override default placement.
+    """
     state = await crud.get_user_state(db)
     current_month = state.current_month if state else 1
     completed_ids = set(await crud.get_completed_task_ids(db))
@@ -519,36 +535,141 @@ async def get_plan_week(db: AsyncSession = Depends(get_db)):
     today = datetime.date.today()
     monday = today - datetime.timedelta(days=today.weekday())
 
-    DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    daily_tasks = [t for t in TASKS.values() if t["month_number"] == current_month and t["frequency"] == "daily"]
-    weekly_tasks = [t for t in TASKS.values() if t["month_number"] == current_month and t["frequency"] == "weekly"]
+    # ── Arc week calculation ───────────────────────────────────────────────────
+    arc_start = state.created_at.date() if state and state.created_at else today
+    month_start = arc_start + datetime.timedelta(days=(current_month - 1) * 30)
+    days_into_month = max(0, (today - month_start).days)
+    arc_week = min(4, (days_into_month // 7) + 1)  # 1–4
 
-    days = []
-    for i, day_name in enumerate(DAY_NAMES):
-        day_date = monday + datetime.timedelta(days=i)
-        is_today = day_date == today
+    # ── Load manual day assignments ────────────────────────────────────────────
+    assign_result = await db.execute(
+        select(TaskDayAssignment).where(
+            TaskDayAssignment.week_start.in_([monday, _PERMANENT_WEEK])
+        )
+    )
+    assignments: dict[str, int] = {
+        row.task_id: row.day_offset for row in assign_result.scalars().all()
+    }
 
-        tasks = []
+    # ── Bucket tasks by type ───────────────────────────────────────────────────
+    month_tasks = [t for t in TASKS.values() if t["month_number"] == current_month]
+    daily_tasks  = [t for t in month_tasks if t["frequency"] == "daily"]
+    weekly_tasks = [t for t in month_tasks if t["frequency"] == "weekly"]
+
+    # Once tasks: current week's + carry-overs from earlier incomplete weeks
+    once_tasks: list[dict] = []
+    for t in month_tasks:
+        if t["frequency"] != "once":
+            continue
+        wk = _parse_wk_number(t["title"])
+        if wk is None:
+            if t["id"] not in completed_ids:
+                once_tasks.append(t)
+        elif wk == arc_week:
+            once_tasks.append(t)
+        elif wk < arc_week and t["id"] not in completed_ids:
+            once_tasks.append(t)
+
+    def _entry(t: dict, default_day: int, is_carryover: bool = False) -> tuple[int, dict]:
+        day = assignments.get(t["id"], default_day)
+        return day, {
+            "id": t["id"],
+            "title": t["title"],
+            "skill_type": t["skill_type"],
+            "xp": t["xp"],
+            "frequency": t["frequency"],
+            "completed": t["id"] in completed_ids,
+            "carryover": is_carryover,
+            "draggable": True,
+        }
+
+    # Build a dict of day_index -> task list
+    day_buckets: dict[int, list] = {i: [] for i in range(7)}
+
+    # Daily tasks always go on their own day (not draggable/moveable)
+    for i in range(7):
         for t in daily_tasks:
-            tasks.append({
-                "id": t["id"], "title": t["title"], "skill_type": t["skill_type"],
-                "xp": t["xp"], "frequency": t["frequency"], "completed": t["id"] in completed_ids,
+            day_buckets[i].append({
+                "id": t["id"],
+                "title": t["title"],
+                "skill_type": t["skill_type"],
+                "xp": t["xp"],
+                "frequency": t["frequency"],
+                "completed": t["id"] in completed_ids,
+                "carryover": False,
+                "draggable": False,  # daily tasks fill every day; dragging is meaningless
             })
-        if i == 0:  # weekly tasks shown on Monday
-            for t in weekly_tasks:
-                tasks.append({
-                    "id": t["id"], "title": t["title"], "skill_type": t["skill_type"],
-                    "xp": t["xp"], "frequency": t["frequency"], "completed": t["id"] in completed_ids,
-                })
 
-        days.append({
-            "day": day_name,
-            "date": day_date.isoformat(),
-            "is_today": is_today,
-            "tasks": tasks,
-        })
+    # Weekly tasks default to Monday (day 0), user can reassign
+    for t in weekly_tasks:
+        day, entry = _entry(t, default_day=0)
+        day = max(0, min(6, day))
+        day_buckets[day].append(entry)
 
-    return {"week_start": monday.isoformat(), "days": days}
+    # Once tasks default to Monday (day 0), user can reassign
+    for t in once_tasks:
+        wk = _parse_wk_number(t["title"])
+        is_carryover = wk is not None and wk < arc_week
+        day, entry = _entry(t, default_day=0, is_carryover=is_carryover)
+        day = max(0, min(6, day))
+        day_buckets[day].append(entry)
+
+    DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    days = [
+        {
+            "day": DAY_NAMES[i],
+            "date": (monday + datetime.timedelta(days=i)).isoformat(),
+            "is_today": (monday + datetime.timedelta(days=i)) == today,
+            "tasks": day_buckets[i],
+        }
+        for i in range(7)
+    ]
+
+    return {
+        "week_start": monday.isoformat(),
+        "arc_week": arc_week,
+        "days": days,
+    }
+
+
+@app.post("/plan/task/{task_id}/assign-day")
+async def assign_task_day(
+    task_id: str,
+    body: AssignDayRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Assign a once or weekly task to a specific day (0=Mon…6=Sun).
+    Pass day_offset=-1 to remove the assignment and reset to default.
+    """
+    task = TASKS.get(task_id) or await crud.resolve_custom_task(db, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found")
+
+    today = datetime.date.today()
+    monday = today - datetime.timedelta(days=today.weekday())
+    week_start = _PERMANENT_WEEK if task["frequency"] == "once" else monday
+
+    if body.day_offset == -1:
+        # Remove assignment — task reverts to its default day
+        await db.execute(
+            delete(TaskDayAssignment).where(
+                TaskDayAssignment.task_id == task_id,
+                TaskDayAssignment.week_start == week_start,
+            )
+        )
+    else:
+        stmt = (
+            pg_insert(TaskDayAssignment)
+            .values(task_id=task_id, week_start=week_start, day_offset=body.day_offset)
+            .on_conflict_do_update(
+                constraint="uq_task_week_assign",
+                set_={"day_offset": body.day_offset},
+            )
+        )
+        await db.execute(stmt)
+
+    await db.commit()
+    return {"task_id": task_id, "day_offset": body.day_offset, "week_start": week_start.isoformat()}
 
 
 # ── Plan Studio — Task CRUD ────────────────────────────────────────────────────

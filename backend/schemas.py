@@ -246,6 +246,10 @@ class PlanHabitUpdate(BaseModel):
     starts_at_month: int | None = None
 
 
+class AssignDayRequest(BaseModel):
+    day_offset: int  # 0=Mon … 6=Sun; -1 = remove (reset to default)
+
+
 class PaceResponse(BaseModel):
     arc_day: int
     arc_total_days: int
