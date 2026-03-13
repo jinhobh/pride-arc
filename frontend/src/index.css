@@ -108,3 +108,11 @@
   0%   { transform: translateX(-150%); }
   100% { transform: translateX(400%); }
 }
+
+/* ── XP float-up popup ──────────────────────────────────────────────────────── */
+@keyframes xpFloatUp {
+  0%   { opacity: 1;   transform: translateY(0px) scale(1); }
+  60%  { opacity: 0.9; transform: translateY(-18px) scale(1.05); }
+  100% { opacity: 0;   transform: translateY(-32px) scale(0.9); }
+}
+.xp-float-up { animation: xpFloatUp 1.1s ease-out forwards; }

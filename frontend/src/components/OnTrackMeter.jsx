@@ -1,5 +1,3 @@
-import { SectionHeader } from './StatPanel'
-
 export default function OnTrackMeter({ currentTasks, todayHabits, totalXp }) {
     if (!currentTasks || typeof totalXp !== 'number') return null
 
@@ -26,64 +24,124 @@ export default function OnTrackMeter({ currentTasks, todayHabits, totalXp }) {
     const expectedPct = (dayOfMonth / daysInMonth) * 100
 
     const diff = actualPct - expectedPct
-    let status, barColor, bg, border, textColor, icon, message
+    let barColor, message
     if (diff >= -5) {
-        status = 'on-track'
-        barColor = 'bg-ghibli-forest'
-        bg = 'bg-ghibli-forest/8'
-        border = 'border-ghibli-forest/40'
-        textColor = 'text-ghibli-forest'
-        icon = '🟢'
+        barColor = 'var(--ghibli-forest)'
         message = "You're on track! Keep it up."
     } else if (diff >= -20) {
-        status = 'slightly-behind'
-        barColor = 'bg-ghibli-gold'
-        bg = 'bg-ghibli-gold/8'
-        border = 'border-ghibli-gold/40'
-        textColor = 'text-ghibli-gold'
-        icon = '🟡'
-        message = "Slightly behind pace — push a bit harder this week."
+        barColor = '#C9A84C'
+        message = 'Slightly behind pace — push a bit harder this week.'
     } else {
-        status = 'falling-behind'
-        barColor = 'bg-ghibli-sunset'
-        bg = 'bg-ghibli-sunset/8'
-        border = 'border-ghibli-sunset/40'
-        textColor = 'text-ghibli-sunset'
-        icon = '🔴'
-        message = "Falling behind — time to catch up!"
+        barColor = '#B85C38'
+        message = 'Falling behind — time to catch up!'
     }
 
     return (
         <section>
-            <SectionHeader title="Pace Tracker" />
-            <div className={`rounded-xl border p-4 ${bg} ${border} shadow-ghibli-card`}>
-                <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg leading-none">{icon}</span>
-                    <span className={`font-display text-sm italic ${textColor}`}>
-                        {message}
-                    </span>
-                </div>
+            {/* Section title */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <h2
+                    style={{
+                        fontFamily: '"Crimson Pro", serif',
+                        fontStyle: 'italic',
+                        fontWeight: 600,
+                        fontSize: '1.15rem',
+                        color: 'var(--ghibli-ink)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                    }}
+                >
+                    🧭 Today's Pace
+                </h2>
+            </div>
 
-                <div className="relative">
-                    <div className="h-3 rounded-full bg-ghibli-earth/15 overflow-hidden">
+            {/* Card */}
+            <div
+                style={{
+                    background: 'var(--ghibli-cream)',
+                    border: '1px solid rgba(139,111,71,0.28)',
+                    borderRadius: '14px',
+                    padding: '16px',
+                    boxShadow: '0 2px 12px rgba(139,111,71,0.10)',
+                }}
+            >
+                {/* Status message */}
+                <p
+                    style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '13px',
+                        fontStyle: 'italic',
+                        color: 'var(--ghibli-mist)',
+                        marginBottom: '12px',
+                    }}
+                >
+                    {message}
+                </p>
+
+                {/* Bar */}
+                <div style={{ position: 'relative', marginBottom: '10px' }}>
+                    {/* Track */}
+                    <div
+                        style={{
+                            height: '12px',
+                            borderRadius: '999px',
+                            background: 'var(--ghibli-sand)',
+                            overflow: 'visible',
+                            position: 'relative',
+                        }}
+                    >
+                        {/* Fill */}
                         <div
-                            className={`h-full rounded-full transition-all duration-700 ease-out ${barColor}`}
-                            style={{ width: `${Math.min(100, actualPct)}%` }}
+                            style={{
+                                height: '100%',
+                                width: `${Math.min(100, actualPct)}%`,
+                                borderRadius: '999px',
+                                background: barColor,
+                                transition: 'width 700ms ease-out',
+                            }}
                         />
                     </div>
+
+                    {/* Expected pace diamond marker */}
                     <div
-                        className="absolute top-0 w-0.5 h-3 bg-ghibli-earth/50"
-                        style={{ left: `${Math.min(100, expectedPct)}%` }}
                         title={`Expected: ${Math.round(expectedPct)}%`}
+                        style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: `${Math.min(99, expectedPct)}%`,
+                            transform: 'translate(-50%, -50%) rotate(45deg)',
+                            width: '9px',
+                            height: '9px',
+                            background: 'var(--ghibli-ink)',
+                            opacity: 0.60,
+                            borderRadius: '1px',
+                            pointerEvents: 'none',
+                        }}
                     />
                 </div>
 
-                <div className="flex items-center justify-between mt-2">
-                    <span className="font-vt text-base leading-none text-ghibli-mist tabular-nums">
+                {/* XP labels */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span
+                        style={{
+                            fontFamily: '"Crimson Pro", serif',
+                            fontStyle: 'italic',
+                            fontSize: '13px',
+                            color: 'var(--ghibli-mist)',
+                        }}
+                    >
                         {totalXp.toLocaleString()} / {totalMonthXp.toLocaleString()} XP
                     </span>
-                    <span className="font-sans text-[10px] text-ghibli-mist/70">
-                        Day {dayOfMonth}/{daysInMonth} • Expected {Math.round(expectedPct)}%
+                    <span
+                        style={{
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '11px',
+                            fontStyle: 'italic',
+                            color: 'var(--ghibli-mist)',
+                        }}
+                    >
+                        Day {dayOfMonth}/{daysInMonth} · Expected {Math.round(expectedPct)}%
                     </span>
                 </div>
             </div>

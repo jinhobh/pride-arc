@@ -45,34 +45,97 @@ function MonthlyNudge({ currentMonth, currentTasks }) {
 
   const allDone = incomplete === 0
 
+  let borderColor = 'var(--ghibli-forest)'
+  let bgGradient = 'linear-gradient(135deg, #EEF6EC, #FAF3E0)'
+  if (!allDone && incomplete > 7) {
+    borderColor = '#B85C38'
+    bgGradient = 'linear-gradient(135deg, #F6EDE8, #FAF3E0)'
+  } else if (!allDone && incomplete > 3) {
+    borderColor = '#C9A84C'
+    bgGradient = 'linear-gradient(135deg, #F6F1E4, #FAF3E0)'
+  }
+
   return (
     <button
       onClick={() => navigate('/plan')}
-      className="w-full text-left rounded-xl border border-ghibli-earth/30 bg-ghibli-cream
-        hover:border-ghibli-earth/50 hover:bg-ghibli-sand/50 transition-colors duration-150
-        px-4 py-3 flex items-center justify-between gap-4 shadow-ghibli-card"
+      style={{
+        width: '100%',
+        textAlign: 'left',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '16px',
+        padding: '12px 16px',
+        background: bgGradient,
+        borderLeft: `3px solid ${borderColor}`,
+        borderTop: 'none',
+        borderRight: 'none',
+        borderBottom: 'none',
+        borderRadius: '0 10px 10px 0',
+        boxShadow: '0 2px 10px rgba(139,111,71,0.10)',
+        cursor: 'pointer',
+        transition: 'box-shadow 150ms ease',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(139,111,71,0.18)' }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 10px rgba(139,111,71,0.10)' }}
     >
-      <div className="flex items-center gap-2 min-w-0">
-        <span className="text-base leading-none flex-shrink-0">{meta?.icon ?? '📅'}</span>
-        <div className="min-w-0">
-          <p className="font-display text-xs italic text-ghibli-mist leading-none mb-1">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+        <span style={{ fontSize: '16px', lineHeight: 1, flexShrink: 0 }}>{meta?.icon ?? '📅'}</span>
+        <div style={{ minWidth: 0 }}>
+          <p
+            style={{
+              fontFamily: '"Crimson Pro", serif',
+              fontStyle: 'italic',
+              fontSize: '11px',
+              color: 'var(--ghibli-mist)',
+              lineHeight: 1,
+              marginBottom: '3px',
+            }}
+          >
             Month {currentMonth}
           </p>
-          <p className="text-sm font-medium text-ghibli-ink truncate leading-none">
+          <p
+            style={{
+              fontFamily: '"Crimson Pro", serif',
+              fontWeight: 600,
+              fontSize: '15px',
+              color: 'var(--ghibli-ink)',
+              lineHeight: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
             {meta?.title ?? 'Current Month'}
           </p>
         </div>
       </div>
 
-      {allDone ? (
-        <span className="font-display text-xs italic text-ghibli-forest whitespace-nowrap flex-shrink-0">
-          ✅ Month complete!
-        </span>
-      ) : (
-        <span className="font-display text-xs italic text-ghibli-mist/70 whitespace-nowrap flex-shrink-0">
-          {incomplete} task{incomplete !== 1 ? 's' : ''} need attention →
-        </span>
-      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+        {allDone ? (
+          <span
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '12px',
+              color: 'var(--ghibli-forest)',
+            }}
+          >
+            ✅ Complete
+          </span>
+        ) : (
+          <span
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '12px',
+              color: 'var(--ghibli-mist)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {incomplete} task{incomplete !== 1 ? 's' : ''} left
+          </span>
+        )}
+        <span style={{ color: 'var(--ghibli-mist)', fontSize: '14px' }}>→</span>
+      </div>
     </button>
   )
 }
