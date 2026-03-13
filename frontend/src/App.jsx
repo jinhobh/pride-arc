@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Dashboard from './pages/Dashboard'
 import MonthPage from './pages/MonthPage'
@@ -5,7 +6,29 @@ import PlanPage from './pages/PlanPage'
 import StatsPage from './pages/StatsPage'
 import BottomNav from './components/BottomNav'
 
+function getSceneImage() {
+  const now   = new Date()
+  const hour  = now.getHours()
+  const month = now.getMonth() // 0=Jan … 11=Dec
+
+  if (hour >= 20 || hour < 5)  return '/scene_night.png'
+  if (hour >= 17)               return '/scene_sunset.png'
+
+  // Daytime — pick by season
+  if (month === 11 || month <= 1) return '/scene_snowy.png'   // Dec–Feb
+  if (month <= 4)                 return '/scene_blossom.png' // Mar–May
+  return '/scene_sunny.png'                                    // Jun–Nov
+}
+
 function WorldBackground() {
+  const [scene, setScene] = useState(getSceneImage)
+
+  // Re-evaluate every minute so the scene transitions as time passes
+  useEffect(() => {
+    const id = setInterval(() => setScene(getSceneImage()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 0 }}>
       {/* Scene image */}
@@ -13,9 +36,10 @@ function WorldBackground() {
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: "url('/scene.png')",
+          backgroundImage: `url('${scene}')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center bottom',
+          transition: 'background-image 1.5s ease',
         }}
       />
       {/* Vignette overlay */}
