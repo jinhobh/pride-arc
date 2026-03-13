@@ -21,29 +21,46 @@ function getCharXP(totalXp, level) {
   return { pct, current: totalXp - lo, needed: hi - lo }
 }
 
+const TOTAL_ARC_DAYS = 180 // 6 months
+
+function getArcStartDate() {
+  const stored = localStorage.getItem('arcStartDate')
+  if (stored) return stored
+  const today = new Date().toISOString().slice(0, 10)
+  localStorage.setItem('arcStartDate', today)
+  return today
+}
+
 function getPace(currentTasks) {
-  if (!currentTasks) return { status: 'on-track', label: 'On Pace', detail: '', pct: 0, expectedPct: 0 }
+  const arcStartDate  = getArcStartDate()
+  const startMs       = new Date(arcStartDate + 'T00:00:00').getTime()
+  const nowMs         = new Date().setHours(0, 0, 0, 0)
+  const daysSinceStart = Math.max(0, Math.round((nowMs - startMs) / 86400000))
+  const expectedPct   = Math.min(100, (daysSinceStart / TOTAL_ARC_DAYS) * 100)
+  const detail        = `Day ${daysSinceStart + 1} of ${TOTAL_ARC_DAYS}`
+
+  if (!currentTasks) return { status: 'on-track', label: 'On Pace', detail, pct: 0, expectedPct, earnedXP: 0, expectedXP: 0 }
+
   const all = [
-    ...(currentTasks.weekly     ?? []),
-    ...(currentTasks.monthly    ?? []),
+    ...(currentTasks.weekly      ?? []),
+    ...(currentTasks.monthly     ?? []),
     ...(currentTasks.checkpoints ?? []),
   ]
-  const total = all.length
-  const done  = all.filter(t => t.completed).length
-  if (total === 0) return { status: 'on-track', label: 'On Pace', detail: 'No tasks', pct: 0, expectedPct: 0 }
+  const total       = all.length
+  const done        = all.filter(t => t.completed).length
+  const earnedXP    = all.filter(t => t.completed).reduce((s, t) => s + (t.xp ?? 0), 0)
+  const totalXP     = all.reduce((s, t) => s + (t.xp ?? 0), 0)
+  const expectedXP  = Math.round(totalXP * expectedPct / 100)
 
-  const pct         = (done / total) * 100
-  const today       = new Date()
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
-  const dayOfMonth  = today.getDate()
-  const expectedPct = (dayOfMonth / daysInMonth) * 100
-  const detail      = `${done} / ${total} tasks · Day ${dayOfMonth} of ${daysInMonth}`
-  const diff        = pct - expectedPct
+  if (total === 0) return { status: 'on-track', label: 'On Pace', detail, pct: 0, expectedPct, earnedXP: 0, expectedXP: 0 }
 
-  if (diff >   5) return { status: 'ahead',    label: 'Ahead',   detail, pct, expectedPct }
-  if (diff >= -5) return { status: 'on-track', label: 'On Pace', detail, pct, expectedPct }
-  if (diff >= -20) return { status: 'warning', label: 'Behind',  detail, pct, expectedPct }
-  return               { status: 'behind',    label: 'Behind',  detail, pct, expectedPct }
+  const pct  = (done / total) * 100
+  const diff = pct - expectedPct
+
+  const status = diff > 5 ? 'ahead' : diff >= -5 ? 'on-track' : diff >= -20 ? 'warning' : 'behind'
+  const label  = status === 'ahead' ? 'Ahead' : status === 'on-track' ? 'On Pace' : 'Behind'
+
+  return { status, label, detail, pct, expectedPct, earnedXP, expectedXP, done, total }
 }
 
 const PACE_COLORS = {
@@ -249,10 +266,113 @@ function CharInfoPanel({ state, isMobile }) {
 
 // ── Habit Row ─────────────────────────────────────────────────────────────────
 function HabitRow({ habit, onLog, onXP }) {
+  const isCounter = habit.habit_id === 'habit_leetcode'
+  const count = habit.count ?? 0
+
   const handleToggle = async () => {
     const newCompleted = !habit.completed
     const ok = await onLog(habit.habit_id, newCompleted, newCompleted ? 1 : 0)
     if (ok && newCompleted) onXP(habit.xp_per_completion)
+  }
+
+  const handleIncrement = async () => {
+    const newCount = count + 1
+    const ok = await onLog(habit.habit_id, true, newCount)
+    if (ok) onXP(habit.xp_per_completion)
+  }
+
+  const handleDecrement = async () => {
+    if (count <= 0) return
+    const newCount = count - 1
+    await onLog(habit.habit_id, newCount > 0, newCount)
+  }
+
+  if (isCounter) {
+    return (
+      <div
+        style={{
+          display:      'flex',
+          alignItems:   'center',
+          gap:          '10px',
+          padding:      '9px 0',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        {/* Title */}
+        <span
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize:   '0.85rem',
+            color:      count > 0 ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.5)',
+            flex:       1,
+            lineHeight: 1.3,
+          }}
+        >
+          {habit.title}
+        </span>
+
+        {/* Counter controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          <button
+            onClick={handleDecrement}
+            disabled={count <= 0}
+            style={{
+              width:        '22px',
+              height:       '22px',
+              borderRadius: '50%',
+              border:       '1.5px solid rgba(255,255,255,0.25)',
+              background:   'transparent',
+              color:        count > 0 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)',
+              cursor:       count > 0 ? 'pointer' : 'default',
+              display:      'flex',
+              alignItems:   'center',
+              justifyContent: 'center',
+              fontSize:     '1rem',
+              lineHeight:   1,
+              padding:      0,
+              transition:   'all 0.15s ease',
+            }}
+          >
+            −
+          </button>
+
+          <span
+            style={{
+              fontFamily:  'VT323, monospace',
+              fontSize:    '1.3rem',
+              color:       count > 0 ? '#7AAE87' : 'rgba(255,255,255,0.3)',
+              minWidth:    '20px',
+              textAlign:   'center',
+              lineHeight:  1,
+            }}
+          >
+            {count}
+          </span>
+
+          <button
+            onClick={handleIncrement}
+            style={{
+              width:        '22px',
+              height:       '22px',
+              borderRadius: '50%',
+              border:       '1.5px solid rgba(122,174,135,0.6)',
+              background:   'transparent',
+              color:        '#7AAE87',
+              cursor:       'pointer',
+              display:      'flex',
+              alignItems:   'center',
+              justifyContent: 'center',
+              fontSize:     '1rem',
+              lineHeight:   1,
+              padding:      0,
+              transition:   'all 0.15s ease',
+            }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -492,8 +612,13 @@ function MobileHabitsDrawer({ habits, today, onLogHabit }) {
 
 // ── Pace Tracker ──────────────────────────────────────────────────────────────
 function PaceTracker({ currentTasks, isMobile }) {
+  const [hovered, setHovered] = useState(false)
   const pace   = getPace(currentTasks)
   const colors = PACE_COLORS[pace.status]
+
+  const xpDiff    = pace.earnedXP - pace.expectedXP
+  const xpAhead   = xpDiff >= 0
+  const xpDiffAbs = Math.abs(xpDiff)
 
   return (
     <div
@@ -513,8 +638,11 @@ function PaceTracker({ currentTasks, isMobile }) {
         border:              '1px solid rgba(200, 230, 255, 0.12)',
         borderRadius:        '999px',
         whiteSpace:          'nowrap',
-        pointerEvents:       'none',
+        pointerEvents:       'auto',
+        cursor:              'default',
       }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       {/* Status dot + label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -581,14 +709,78 @@ function PaceTracker({ currentTasks, isMobile }) {
       {/* Detail text */}
       <span
         style={{
-          fontFamily: 'Inter, sans-serif',
-          fontSize:   isMobile ? '0.6rem' : '0.68rem',
-          color:      'rgba(255,255,255,0.4)',
+          fontFamily:    'Inter, sans-serif',
+          fontSize:      isMobile ? '0.6rem' : '0.68rem',
+          color:         'rgba(255,255,255,0.4)',
           letterSpacing: '0.02em',
         }}
       >
         {pace.detail}
       </span>
+
+      {/* Hover tooltip */}
+      {hovered && (
+        <div
+          style={{
+            position:            'absolute',
+            top:                 'calc(100% + 10px)',
+            left:                '50%',
+            transform:           'translateX(-50%)',
+            background:          'rgba(8, 18, 34, 0.92)',
+            backdropFilter:      'blur(16px)',
+            WebkitBackdropFilter:'blur(16px)',
+            border:              '1px solid rgba(200, 230, 255, 0.14)',
+            borderRadius:        '12px',
+            padding:             '12px 16px',
+            display:             'flex',
+            flexDirection:       'column',
+            gap:                 '8px',
+            minWidth:            '200px',
+            pointerEvents:       'none',
+            zIndex:              50,
+          }}
+        >
+          {/* XP earned */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>
+              XP earned
+            </span>
+            <span style={{ fontFamily: 'VT323, monospace', fontSize: '1.1rem', color: '#7AAE87', letterSpacing: '0.04em' }}>
+              {pace.earnedXP} XP
+            </span>
+          </div>
+
+          {/* XP expected */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>
+              XP expected
+            </span>
+            <span style={{ fontFamily: 'VT323, monospace', fontSize: '1.1rem', color: 'rgba(255,255,255,0.65)', letterSpacing: '0.04em' }}>
+              {pace.expectedXP} XP
+            </span>
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+
+          {/* XP delta */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>
+              {xpAhead ? 'Ahead by' : 'Behind by'}
+            </span>
+            <span style={{ fontFamily: 'VT323, monospace', fontSize: '1.1rem', letterSpacing: '0.04em', color: xpAhead ? '#7AAE87' : '#C9A84C' }}>
+              {xpDiffAbs} XP
+            </span>
+          </div>
+
+          {/* Task count */}
+          {pace.total > 0 && (
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: '2px' }}>
+              {pace.done} / {pace.total} tasks complete this month
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
