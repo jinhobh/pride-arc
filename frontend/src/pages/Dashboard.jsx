@@ -22,7 +22,7 @@ function getCharXP(totalXp, level) {
 }
 
 function getPace(currentTasks) {
-  if (!currentTasks) return { color: '#4A7C59', label: 'On track', pct: 0 }
+  if (!currentTasks) return { status: 'on-track', label: 'On Pace', detail: '', pct: 0, expectedPct: 0 }
   const all = [
     ...(currentTasks.weekly     ?? []),
     ...(currentTasks.monthly    ?? []),
@@ -30,18 +30,27 @@ function getPace(currentTasks) {
   ]
   const total = all.length
   const done  = all.filter(t => t.completed).length
-  if (total === 0) return { color: '#4A7C59', label: 'No tasks this month', pct: 0 }
+  if (total === 0) return { status: 'on-track', label: 'On Pace', detail: 'No tasks', pct: 0, expectedPct: 0 }
 
-  const pct         = done / total
+  const pct         = (done / total) * 100
   const today       = new Date()
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
   const dayOfMonth  = today.getDate()
-  const expectedPct = dayOfMonth / daysInMonth
-  const label       = `${done} of ${total} tasks · Day ${dayOfMonth} of ${daysInMonth}`
+  const expectedPct = (dayOfMonth / daysInMonth) * 100
+  const detail      = `${done} / ${total} tasks · Day ${dayOfMonth} of ${daysInMonth}`
+  const diff        = pct - expectedPct
 
-  if (pct >= expectedPct - 0.05) return { color: '#4A7C59', label, pct: Math.round(pct * 100) }
-  if (pct >= expectedPct - 0.20) return { color: '#C9A84C', label, pct: Math.round(pct * 100) }
-  return { color: '#B85C38', label, pct: Math.round(pct * 100) }
+  if (diff >   5) return { status: 'ahead',    label: 'Ahead',   detail, pct, expectedPct }
+  if (diff >= -5) return { status: 'on-track', label: 'On Pace', detail, pct, expectedPct }
+  if (diff >= -20) return { status: 'warning', label: 'Behind',  detail, pct, expectedPct }
+  return               { status: 'behind',    label: 'Behind',  detail, pct, expectedPct }
+}
+
+const PACE_COLORS = {
+  ahead:      { fg: '#38BDF8', glow: 'rgba(56,189,248,0.7)' },
+  'on-track': { fg: '#7AAE87', glow: 'rgba(122,174,135,0.7)' },
+  warning:    { fg: '#C9A84C', glow: 'rgba(201,168,76,0.7)' },
+  behind:     { fg: '#B85C38', glow: 'rgba(184,92,56,0.7)' },
 }
 
 const GLASS = {
@@ -103,7 +112,7 @@ function CharacterSprite({ daysMissed, isMobile }) {
         position:  'fixed',
         bottom:    '64px',
         left:      '50%',
-        transform: 'translateX(-50%)',
+        transform: 'translateX(-50%) translateZ(0)',
         height:    isMobile ? '60vh' : '72vh',
         zIndex:    20,
         pointerEvents: 'none',
@@ -114,14 +123,13 @@ function CharacterSprite({ daysMissed, isMobile }) {
         alt="Character"
         className="hero-float"
         style={{
-          height:          '100%',
-          width:           'auto',
-          objectFit:       'contain',
-          objectPosition:  'bottom center',
-          imageRendering:  'pixelated',
-          filter:          [decayFilter, 'drop-shadow(0px 8px 32px rgba(10,22,40,0.6))']
-                             .filter(Boolean).join(' '),
-          transition:      'filter 1.5s ease',
+          height:         '100%',
+          width:          'auto',
+          display:        'block',
+          imageRendering: 'pixelated',
+          filter:         [decayFilter, 'drop-shadow(0px 8px 32px rgba(10,22,40,0.6))']
+                            .filter(Boolean).join(' '),
+          transition:     'filter 1.5s ease',
         }}
       />
     </div>
@@ -483,62 +491,104 @@ function MobileHabitsDrawer({ habits, today, onLogHabit }) {
 }
 
 // ── Pace Tracker ──────────────────────────────────────────────────────────────
-function PaceTracker({ currentTasks }) {
-  const [hovered, setHovered] = useState(false)
-  const pace = getPace(currentTasks)
+function PaceTracker({ currentTasks, isMobile }) {
+  const pace   = getPace(currentTasks)
+  const colors = PACE_COLORS[pace.status]
 
   return (
     <div
       style={{
-        position:      'fixed',
-        bottom:        '64px',
-        left:          0,
-        right:         0,
-        height:        hovered ? '8px' : '3px',
-        zIndex:        40,
-        pointerEvents: 'auto',
-        transition:    'height 200ms ease',
+        position:            'fixed',
+        top:                 isMobile ? '54px' : '62px',
+        left:                '50%',
+        transform:           'translateX(-50%)',
+        zIndex:              25,
+        display:             'flex',
+        alignItems:          'center',
+        gap:                 '10px',
+        padding:             '6px 16px',
+        background:          'rgba(10, 22, 40, 0.55)',
+        backdropFilter:      'blur(14px)',
+        WebkitBackdropFilter:'blur(14px)',
+        border:              '1px solid rgba(200, 230, 255, 0.12)',
+        borderRadius:        '999px',
+        whiteSpace:          'nowrap',
+        pointerEvents:       'none',
       }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
-      {/* Track */}
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.1)' }} />
-      {/* Fill */}
-      <div
-        style={{
-          position:   'absolute',
-          top:        0, left: 0, bottom: 0,
-          width:      `${pace.pct}%`,
-          background: pace.color,
-          transition: 'width 1.2s ease, background 0.5s ease',
-          borderRadius: '0 2px 2px 0',
-        }}
-      />
-      {/* Tooltip */}
-      {hovered && (
+      {/* Status dot + label */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <div
           style={{
-            position:            'absolute',
-            bottom:              '12px',
-            left:                '50%',
-            transform:           'translateX(-50%)',
-            background:          'rgba(10, 22, 40, 0.75)',
-            backdropFilter:      'blur(12px)',
-            WebkitBackdropFilter:'blur(12px)',
-            border:              '1px solid rgba(200, 230, 255, 0.15)',
-            borderRadius:        '8px',
-            padding:             '6px 12px',
-            whiteSpace:          'nowrap',
-            fontFamily:          'Inter, sans-serif',
-            fontSize:            '0.75rem',
-            color:               'rgba(255,255,255,0.8)',
-            pointerEvents:       'none',
+            width:        '7px',
+            height:       '7px',
+            borderRadius: '50%',
+            background:   colors.fg,
+            boxShadow:    `0 0 6px ${colors.glow}`,
+            flexShrink:   0,
+          }}
+        />
+        <span
+          style={{
+            fontFamily:    '"Press Start 2P", monospace',
+            fontSize:      '0.5rem',
+            color:         colors.fg,
+            letterSpacing: '0.06em',
+            lineHeight:    1,
           }}
         >
-          {pace.label}
-        </div>
-      )}
+          {pace.label.toUpperCase()}
+        </span>
+      </div>
+
+      {/* Progress bar with expected marker */}
+      <div
+        style={{
+          width:        isMobile ? '72px' : '110px',
+          height:       '4px',
+          borderRadius: '999px',
+          background:   'rgba(255,255,255,0.12)',
+          position:     'relative',
+          flexShrink:   0,
+        }}
+      >
+        {/* Actual fill */}
+        <div
+          style={{
+            position:     'absolute',
+            inset:        0,
+            width:        `${Math.min(pace.pct, 100)}%`,
+            background:   colors.fg,
+            borderRadius: '999px',
+            transition:   'width 1.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        />
+        {/* Expected pace marker */}
+        <div
+          style={{
+            position:     'absolute',
+            top:          '-4px',
+            left:         `clamp(0%, ${pace.expectedPct}%, 100%)`,
+            transform:    'translateX(-50%)',
+            width:        '2px',
+            height:       '12px',
+            background:   'rgba(255,255,255,0.5)',
+            borderRadius: '1px',
+          }}
+        />
+      </div>
+
+      {/* Detail text */}
+      <span
+        style={{
+          fontFamily: 'Inter, sans-serif',
+          fontSize:   isMobile ? '0.6rem' : '0.68rem',
+          color:      'rgba(255,255,255,0.4)',
+          letterSpacing: '0.02em',
+        }}
+      >
+        {pace.detail}
+      </span>
     </div>
   )
 }
@@ -616,14 +666,13 @@ export default function Dashboard() {
       <MorningMessage  isMobile={isMobile} />
       <CharInfoPanel   state={state} isMobile={isMobile} />
 
+      <PaceTracker currentTasks={currentTasks} isMobile={isMobile} />
+
       {isMobile ? (
         <MobileHabitsDrawer habits={todayHabits} today={today} onLogHabit={logHabit} />
       ) : (
         <DailyHabitsPanel habits={todayHabits} today={today} onLogHabit={logHabit} />
       )}
-
-      {/* Pace tracker hidden on mobile (drawer sits at the same position) */}
-      {!isMobile && <PaceTracker currentTasks={currentTasks} />}
     </>
   )
 }
