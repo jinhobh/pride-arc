@@ -35,7 +35,7 @@ export default function HeaderBar({ state, streakStatus, hasCheckedIn, onCheckin
         <span
           className="select-none"
           style={{
-            fontFamily: '"Crimson Pro", serif',
+            fontFamily: '"Shippori Mincho", serif',
             fontSize: '1.4rem',
             fontStyle: 'italic',
             color: '#4A7C59',
@@ -61,7 +61,7 @@ export default function HeaderBar({ state, streakStatus, hasCheckedIn, onCheckin
                 <span
                   className={animating ? 'streak-bounce' : ''}
                   style={{
-                    fontFamily: '"Crimson Pro", serif',
+                    fontFamily: '"Shippori Mincho", serif',
                     fontSize: '1.1rem',
                     fontWeight: 600,
                     lineHeight: 1,
@@ -121,7 +121,7 @@ export default function HeaderBar({ state, streakStatus, hasCheckedIn, onCheckin
               <span className="text-[10px] text-ghibli-spirit/70" style={{ fontFamily: 'Inter, sans-serif' }}>LV</span>
               <span
                 style={{
-                  fontFamily: '"Crimson Pro", serif',
+                  fontFamily: '"Shippori Mincho", serif',
                   fontSize: '1.1rem',
                   fontWeight: 600,
                   color: '#B8A9C9',
@@ -141,7 +141,7 @@ export default function HeaderBar({ state, streakStatus, hasCheckedIn, onCheckin
               className="relative px-4 py-1.5 text-white rounded-lg cursor-pointer active:scale-95 transition-all disabled:opacity-50"
               style={{
                 background: '#4A7C59',
-                fontFamily: '"Crimson Pro", serif',
+                fontFamily: '"Shippori Mincho", serif',
                 fontSize: '0.95rem',
                 fontStyle: 'italic',
                 fontWeight: 600,

@@ -42,7 +42,7 @@ export default function OnTrackMeter({ currentTasks, todayHabits, totalXp }) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <h2
                     style={{
-                        fontFamily: '"Crimson Pro", serif',
+                        fontFamily: '"Shippori Mincho", serif',
                         fontStyle: 'italic',
                         fontWeight: 600,
                         fontSize: '1.15rem',
@@ -125,7 +125,7 @@ export default function OnTrackMeter({ currentTasks, todayHabits, totalXp }) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span
                         style={{
-                            fontFamily: '"Crimson Pro", serif',
+                            fontFamily: '"Shippori Mincho", serif',
                             fontStyle: 'italic',
                             fontSize: '13px',
                             color: 'var(--ghibli-mist)',

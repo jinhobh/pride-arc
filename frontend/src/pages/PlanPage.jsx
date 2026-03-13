@@ -436,7 +436,7 @@ function ChapterRewardBanner({ reward }) {
         </div>
         <h2
           className="mb-3"
-          style={{ fontFamily: '"Crimson Pro", serif', fontSize: '1.6rem', fontWeight: 600, fontStyle: 'italic', color: '#2C2416', lineHeight: 1.2 }}
+          style={{ fontFamily: '"Shippori Mincho", serif', fontSize: '1.6rem', fontWeight: 600, fontStyle: 'italic', color: '#2C2416', lineHeight: 1.2 }}
         >
           {reward.title}
         </h2>

@@ -78,7 +78,7 @@ export default function CharacterHero({ state, streakStatus, daysMissed = 0 }) {
           <div>
             <h1
               style={{
-                fontFamily: '"Crimson Pro", serif',
+                fontFamily: '"Shippori Mincho", serif',
                 fontSize: '1.35rem',
                 fontStyle: 'italic',
                 fontWeight: 600,
@@ -91,7 +91,7 @@ export default function CharacterHero({ state, streakStatus, daysMissed = 0 }) {
             </h1>
             <p
               style={{
-                fontFamily: '"Crimson Pro", serif',
+                fontFamily: '"Shippori Mincho", serif',
                 fontSize: '0.82rem',
                 fontStyle: 'italic',
                 color: '#6B7F6E',
@@ -113,7 +113,7 @@ export default function CharacterHero({ state, streakStatus, daysMissed = 0 }) {
               <span className="text-base leading-none">{isStreakBroken ? '💀' : '🔥'}</span>
               <span
                 style={{
-                  fontFamily: '"Crimson Pro", serif',
+                  fontFamily: '"Shippori Mincho", serif',
                   fontSize: '1.25rem',
                   fontWeight: 700,
                   lineHeight: 1,
@@ -146,7 +146,7 @@ export default function CharacterHero({ state, streakStatus, daysMissed = 0 }) {
         <div className="flex justify-between mt-1.5">
           <span
             style={{
-              fontFamily: '"Crimson Pro", serif',
+              fontFamily: '"Shippori Mincho", serif',
               fontSize: '0.75rem',
               fontStyle: 'italic',
               color: '#6B7F6E',
@@ -159,7 +159,7 @@ export default function CharacterHero({ state, streakStatus, daysMissed = 0 }) {
           {needed > 0 && (
             <span
               style={{
-                fontFamily: '"Crimson Pro", serif',
+                fontFamily: '"Shippori Mincho", serif',
                 fontSize: '0.75rem',
                 fontStyle: 'italic',
                 color: '#6B7F6E',

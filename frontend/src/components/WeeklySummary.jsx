@@ -85,7 +85,7 @@ export default function WeeklySummary({ summary }) {
                         {isSunday && (
                             <span
                                 style={{
-                                    fontFamily: '"Crimson Pro", serif',
+                                    fontFamily: '"Shippori Mincho", serif',
                                     fontSize: '11px',
                                     fontStyle: 'italic',
                                     color: '#C9A84C',
@@ -98,7 +98,7 @@ export default function WeeklySummary({ summary }) {
                         <button
                             onClick={handleShare}
                             style={{
-                                fontFamily: '"Crimson Pro", serif',
+                                fontFamily: '"Shippori Mincho", serif',
                                 fontSize: '11px',
                                 fontStyle: 'italic',
                                 color: copied ? '#4A7C59' : '#6B7F6E',

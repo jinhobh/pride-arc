@@ -169,7 +169,7 @@ function HabitRow({ habit, onToggle, isLast }) {
       <div style={{ position: 'relative', flexShrink: 0 }}>
         <span
           style={{
-            fontFamily: '"Crimson Pro", serif',
+            fontFamily: '"Shippori Mincho", serif',
             fontStyle: 'italic',
             fontSize: '14px',
             color: habit.completed ? 'var(--ghibli-forest)' : 'var(--ghibli-mist)',
@@ -186,7 +186,7 @@ function HabitRow({ habit, onToggle, isLast }) {
               position: 'absolute',
               right: 0,
               bottom: '100%',
-              fontFamily: '"Crimson Pro", serif',
+              fontFamily: '"Shippori Mincho", serif',
               fontStyle: 'italic',
               fontWeight: 600,
               fontSize: '13px',
@@ -217,7 +217,7 @@ export default function WeeklyHabits({ habits, onLogHabit, today }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <h2
           style={{
-            fontFamily: '"Crimson Pro", serif',
+            fontFamily: '"Shippori Mincho", serif',
             fontStyle: 'italic',
             fontWeight: 600,
             fontSize: '1.15rem',
@@ -231,7 +231,7 @@ export default function WeeklyHabits({ habits, onLogHabit, today }) {
         </h2>
         <span
           style={{
-            fontFamily: '"Crimson Pro", serif',
+            fontFamily: '"Shippori Mincho", serif',
             fontStyle: 'italic',
             fontSize: '0.85rem',
             color: 'var(--ghibli-mist)',
@@ -286,7 +286,7 @@ export default function WeeklyHabits({ habits, onLogHabit, today }) {
         >
           <span
             style={{
-              fontFamily: '"Crimson Pro", serif',
+              fontFamily: '"Shippori Mincho", serif',
               fontStyle: 'italic',
               fontSize: '0.82rem',
               color: 'var(--ghibli-mist)',

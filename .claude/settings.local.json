@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(python3 \"C:/Users/jinho/.claude/skills/ui-ux-pro-max/scripts/search.py\" \"saas levelup dashboard dark professional\" --design-system -p \"LevelUp\" -f markdown 2>/dev/null || python \"C:/Users/jinho/.claude/skills/ui-ux-pro-max/scripts/search.py\" \"saas levelup dashboard dark professional\" --design-system -p \"LevelUp\" -f markdown 2>/dev/null)",
-      "Bash(mkdir -p /c/Users/jinho/projects/pride-arc/frontend/src && mkdir -p /c/Users/jinho/projects/pride-arc/backend)"
+      "Bash(mkdir -p /c/Users/jinho/projects/pride-arc/frontend/src && mkdir -p /c/Users/jinho/projects/pride-arc/backend)",
+      "Bash(cd \"C:\\\\Users\\\\jinho\\\\projects\\\\pride-arc\\\\frontend\\\\src\" && grep -rl \"Crimson Pro\" . | xargs sed -i 's/Crimson Pro/Shippori Mincho/g')"
     ]
   }
 }

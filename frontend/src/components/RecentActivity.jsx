@@ -62,7 +62,7 @@ export default function RecentActivity({ feed }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p
                   style={{
-                    fontFamily: '"Crimson Pro", serif',
+                    fontFamily: '"Shippori Mincho", serif',
                     fontSize: '13.5px',
                     fontWeight: 600,
                     color: '#2C2416',
@@ -88,7 +88,7 @@ export default function RecentActivity({ feed }) {
                   />
                   <span
                     style={{
-                      fontFamily: '"Crimson Pro", serif',
+                      fontFamily: '"Shippori Mincho", serif',
                       fontSize: '11px',
                       fontStyle: 'italic',
                       color: meta.dot,
@@ -99,7 +99,7 @@ export default function RecentActivity({ feed }) {
                   <span style={{ color: 'rgba(107,127,110,0.4)', fontSize: '10px' }}>·</span>
                   <span
                     style={{
-                      fontFamily: '"Crimson Pro", serif',
+                      fontFamily: '"Shippori Mincho", serif',
                       fontSize: '11px',
                       fontStyle: 'italic',
                       color: '#6B7F6E',
@@ -124,7 +124,7 @@ export default function RecentActivity({ feed }) {
               </span>
               <span
                 style={{
-                  fontFamily: '"Crimson Pro", serif',
+                  fontFamily: '"Shippori Mincho", serif',
                   fontSize: '10px',
                   fontStyle: 'italic',
                   color: '#6B7F6E',

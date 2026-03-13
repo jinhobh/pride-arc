@@ -5,7 +5,7 @@ export default {
     extend: {
       fontFamily: {
         sans:    ['"Inter"', 'sans-serif'],
-        display: ['"Crimson Pro"', 'serif'],
+        display: ['"Shippori Mincho"', 'serif'],
         vt:      ['VT323', 'monospace'],
       },
       colors: {

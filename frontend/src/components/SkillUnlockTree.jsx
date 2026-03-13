@@ -87,7 +87,7 @@ function SkillNode({ skillKey, stat }) {
       {/* Name */}
       <span
         style={{
-          fontFamily: '"Crimson Pro", serif',
+          fontFamily: '"Shippori Mincho", serif',
           fontSize: '10px',
           fontStyle: 'italic',
           color: active ? '#2C2416' : '#8A9E8E',
@@ -193,7 +193,7 @@ export default function SkillUnlockTree({ stats }) {
                 >
                   <span
                     style={{
-                      fontFamily: '"Crimson Pro", serif',
+                      fontFamily: '"Shippori Mincho", serif',
                       fontSize: '10px',
                       fontStyle: 'italic',
                       color: anyActive ? '#6B7F6E' : '#A8B5A2',

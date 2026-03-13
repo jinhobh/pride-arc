@@ -85,7 +85,7 @@ function MonthlyNudge({ currentMonth, currentTasks }) {
         <div style={{ minWidth: 0 }}>
           <p
             style={{
-              fontFamily: '"Crimson Pro", serif',
+              fontFamily: '"Shippori Mincho", serif',
               fontStyle: 'italic',
               fontSize: '11px',
               color: 'var(--ghibli-mist)',
@@ -97,7 +97,7 @@ function MonthlyNudge({ currentMonth, currentTasks }) {
           </p>
           <p
             style={{
-              fontFamily: '"Crimson Pro", serif',
+              fontFamily: '"Shippori Mincho", serif',
               fontWeight: 600,
               fontSize: '15px',
               color: 'var(--ghibli-ink)',

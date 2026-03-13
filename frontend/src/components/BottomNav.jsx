@@ -27,7 +27,7 @@ export default function BottomNav() {
               <span className="text-lg leading-none mb-0.5">{icon}</span>
               <span
                 style={{
-                  fontFamily: '"Crimson Pro", serif',
+                  fontFamily: '"Shippori Mincho", serif',
                   fontSize: '0.7rem',
                   fontStyle: 'italic',
                   fontWeight: isActive ? 600 : 400,
