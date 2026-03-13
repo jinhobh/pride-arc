@@ -54,9 +54,9 @@ export default function CharacterHero({ state, streakStatus, daysMissed = 0 }) {
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'contain',
+              objectFit: 'cover',
               objectPosition: 'bottom center',
-              imageRendering: 'pixelated',
+              imageRendering: 'initial',
               filter: `${decayFilter} drop-shadow(0px 8px 20px rgba(100,70,30,0.25)) drop-shadow(0 0 14px rgba(74,124,89,0.30))`,
               transition: 'filter 1.5s ease',
             }}
