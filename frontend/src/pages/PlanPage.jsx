@@ -8,6 +8,44 @@ function todayISO() {
   return new Date().toISOString().split('T')[0]
 }
 
+function getWeekDots(taskId, recentCompletions) {
+  const today = new Date()
+  const dateSet = new Set(
+    recentCompletions
+      .filter(r => r.task_id === taskId)
+      .map(r => r.completed_at.substring(0, 10))
+  )
+  const dots = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(today.getDate() - i)
+    const dateStr = d.toISOString().split('T')[0]
+    const label = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][d.getDay()]
+    dots.push({ dateStr, label, done: dateSet.has(dateStr) })
+  }
+  return dots
+}
+
+const SKILL_COLORS = {
+  dsa:           '#4A7C59',
+  ml:            '#7B68A6',
+  backend:       '#8B6F47',
+  devops:        '#5E8A7A',
+  cloud:         '#8BBDD9',
+  system_design: '#C9A84C',
+  project:       '#E8956D',
+  networking:    '#7AAE87',
+  interviewing:  '#B85C38',
+  career:        '#D4A843',
+}
+
+const DIFFICULTY_STYLES = {
+  easy:   { label: 'Easy',   bg: '#EAF4EC', text: '#4A7C59', border: '#7AAE87' },
+  medium: { label: 'Medium', bg: '#FDF6E3', text: '#8B6510', border: '#C9A84C' },
+  hard:   { label: 'Hard',   bg: '#FDF0E8', text: '#8B3A1A', border: '#E8956D' },
+  epic:   { label: 'Epic',   bg: '#F0EDF8', text: '#4A3570', border: '#B8A9C9' },
+}
+
 // ── Data hook ─────────────────────────────────────────────────────────────────
 
 function usePlanData() {
@@ -91,24 +129,28 @@ function usePlanData() {
 // ── StreakDots ─────────────────────────────────────────────────────────────────
 
 function StreakDots({ taskId, recentCompletions }) {
-  const today = new Date()
-  const dots = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today)
-    d.setDate(today.getDate() - (6 - i))
-    const dateStr = d.toISOString().split('T')[0]
-    const label = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][d.getDay()]
-    const done = recentCompletions.some(r => r.task_id === taskId && r.completed_at.startsWith(dateStr))
-    return { dateStr, label, done }
-  })
+  const todayStr = todayISO()
+  const dots = getWeekDots(taskId, recentCompletions)
 
   return (
     <div className="flex gap-1.5 mt-2">
-      {dots.map(d => (
-        <div key={d.dateStr} className="flex flex-col items-center gap-0.5">
-          <div className={`w-3 h-3 rounded-full border ${d.done ? 'bg-green-400 border-green-400' : 'bg-transparent border-slate-700'}`} />
-          <span className="font-display text-[7px] text-slate-600">{d.label}</span>
-        </div>
-      ))}
+      {dots.map(d => {
+        const isToday = d.dateStr === todayStr
+        return (
+          <div key={d.dateStr} className="flex flex-col items-center gap-0.5">
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{
+                background: d.done ? '#4A7C59' : isToday ? '#E8D5A3' : 'rgba(139,189,217,0.3)',
+                border: isToday && !d.done ? '1.5px solid #8B6F47' : 'none',
+              }}
+            />
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.6rem', color: '#6B7F6E' }}>
+              {d.label}
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -126,6 +168,7 @@ function TaskCard({ task, recentCompletions, onToggle }) {
       : recentCompletions.some(r => r.task_id === task.id)
     : false
   const checked = isRecurring ? isDoneToday : task.completed
+  const diff = task.difficulty ? DIFFICULTY_STYLES[task.difficulty] : null
 
   async function handleToggle() {
     if (pending) return
@@ -135,31 +178,57 @@ function TaskCard({ task, recentCompletions, onToggle }) {
   }
 
   return (
-    <div className={`flex gap-3 px-3 py-3 transition-opacity duration-200 ${checked ? 'opacity-50' : ''}`}>
+    <div className={`flex gap-3 px-3 py-3 transition-all duration-200 ${checked ? 'opacity-60' : ''}`}>
       <button
         onClick={handleToggle}
         disabled={pending}
         className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-all cursor-pointer ${
-          checked ? 'border-green-500 bg-green-500/20' : 'border-slate-600 hover:border-slate-400'
+          checked ? 'border-ghibli-forest bg-ghibli-forest/15' : 'border-ghibli-earth/40 hover:border-ghibli-earth/70'
         }`}
       >
         {pending ? (
-          <div className="w-2.5 h-2.5 rounded-full border border-slate-500 border-t-transparent animate-spin" />
+          <div className="w-2.5 h-2.5 rounded-full border border-ghibli-earth/50 border-t-transparent animate-spin" />
         ) : checked ? (
-          <svg className="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <svg className="w-3 h-3 text-ghibli-forest" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         ) : null}
       </button>
 
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium leading-snug ${checked ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+        <p
+          className="text-sm font-medium leading-snug"
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            color: checked ? 'rgba(107,127,110,0.6)' : '#2C2416',
+            textDecoration: checked ? 'line-through' : 'none',
+          }}
+        >
           {task.title}
         </p>
         <div className="flex flex-wrap items-center gap-2 mt-1.5">
-          <span className="font-vt text-sm text-yellow-400">+{task.xp} XP</span>
+          <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#4A7C59', fontWeight: 500 }}>
+            +{task.xp} XP
+          </span>
+          {diff && (
+            <span
+              style={{
+                background: diff.bg,
+                color: diff.text,
+                border: `1px solid ${diff.border}`,
+                borderRadius: '999px',
+                fontSize: '0.7rem',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 500,
+                padding: '1px 7px',
+                lineHeight: '1.4',
+              }}
+            >
+              {diff.label}
+            </span>
+          )}
           {isRecurring && (
-            <span className="font-display text-[8px] text-slate-600 uppercase tracking-wider">
+            <span className="font-display text-[8px] text-ghibli-mist/60 uppercase tracking-wider">
               {task.frequency}
             </span>
           )}
@@ -177,25 +246,48 @@ function TaskCard({ task, recentCompletions, onToggle }) {
 function SectionCard({ section, recentCompletions, onToggle }) {
   const [open, setOpen] = useState(true)
   const skill = SKILL_INFO[section.skillType] ?? SKILL_INFO.project
-  const { c } = skill
+  const accentColor = SKILL_COLORS[section.skillType] ?? '#8B6F47'
   const onceTasks = section.tasks.filter(t => t.frequency === 'once')
   const doneCount = onceTasks.filter(t => t.completed).length
 
   return (
-    <div className={`rounded-xl border overflow-hidden ${c.border}`}>
+    <div
+      style={{
+        borderRadius: '10px',
+        border: '1px solid rgba(139,111,71,0.2)',
+        borderLeft: `3px solid ${accentColor}`,
+        overflow: 'hidden',
+        background: '#FAF3E0',
+      }}
+    >
       <button
-        className={`w-full flex items-center gap-3 px-4 py-3 ${c.bg} cursor-pointer hover:opacity-90 transition-opacity`}
+        className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ${
+          open ? '' : 'hover:bg-[#E8D5A3]/40'
+        }`}
+        style={{
+          background: open ? 'rgba(232,213,163,0.25)' : 'transparent',
+          borderRadius: open ? '7px 7px 0 0' : '7px',
+        }}
         onClick={() => setOpen(o => !o)}
       >
         <span className="text-base leading-none">{skill.icon}</span>
-        <span className={`flex-1 text-left font-display text-[9px] uppercase tracking-wider ${c.text}`}>
+        <span
+          className="flex-1 text-left uppercase tracking-wider"
+          style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', fontWeight: 600, color: accentColor }}
+        >
           {section.title}
         </span>
         {onceTasks.length > 0 && (
-          <span className={`font-vt text-base ${c.text}`}>{doneCount}/{onceTasks.length}</span>
+          <span
+            className="font-vt text-base"
+            style={{ color: accentColor }}
+          >
+            {doneCount}/{onceTasks.length}
+          </span>
         )}
         <svg
-          className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ml-1 ${open ? 'rotate-180' : ''}`}
+          className={`w-3.5 h-3.5 transition-transform duration-200 ml-1 ${open ? 'rotate-180' : ''}`}
+          style={{ color: '#6B7F6E' }}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -203,7 +295,7 @@ function SectionCard({ section, recentCompletions, onToggle }) {
       </button>
 
       {open && (
-        <div className="divide-y divide-game-border/50 px-1">
+        <div className="divide-y divide-ghibli-earth/20 px-1">
           {section.tasks.map(task => (
             <TaskCard
               key={task.id}
@@ -238,25 +330,25 @@ function CheckpointRow({ checkpoint, onComplete }) {
         disabled={checkpoint.completed || pending}
         className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
           checkpoint.completed
-            ? 'border-yellow-500 bg-yellow-500/20'
-            : 'border-slate-600 hover:border-yellow-500/60 cursor-pointer'
+            ? 'border-ghibli-gold bg-ghibli-gold/15'
+            : 'border-ghibli-earth/40 hover:border-ghibli-gold/50 cursor-pointer'
         }`}
       >
         {pending ? (
-          <div className="w-2 h-2 rounded-full border border-slate-500 border-t-transparent animate-spin" />
+          <div className="w-2 h-2 rounded-full border border-ghibli-earth/50 border-t-transparent animate-spin" />
         ) : checkpoint.completed ? (
-          <svg className="w-2.5 h-2.5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <svg className="w-2.5 h-2.5 text-ghibli-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         ) : null}
       </button>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium leading-snug ${checkpoint.completed ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+        <p className={`text-sm font-medium leading-snug ${checkpoint.completed ? 'line-through text-ghibli-mist/60' : 'text-ghibli-ink'}`}>
           {checkpoint.title}
         </p>
         <div className="flex items-center gap-2 mt-1.5">
           <span className={`font-display text-[8px] ${skill.c.text}`}>{skill.label}</span>
-          <span className="font-vt text-sm text-yellow-400">+{checkpoint.xpReward} XP</span>
+          <span className="font-vt text-sm text-ghibli-gold">+{checkpoint.xpReward} XP</span>
         </div>
       </div>
     </div>
@@ -270,27 +362,33 @@ function CheckpointsPanel({ checkpoints, onComplete }) {
   const cpTotal = checkpoints.length
 
   return (
-    <div className="rounded-xl border border-game-border bg-game-surface overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-game-border bg-game-card/50">
+    <div className="overflow-hidden" style={{ borderRadius: '10px', border: '1px solid rgba(139,111,71,0.25)', background: '#FDF8F0' }}>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-ghibli-earth/25 bg-ghibli-sand/30">
         <div className="flex items-center gap-2">
-          <svg className="w-4 h-4 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-          </svg>
-          <span className="font-display text-[9px] text-slate-300 uppercase tracking-wider">Chapter Checkpoints</span>
+          <span className="text-base leading-none">⛩️</span>
+          <span
+            className="uppercase tracking-wider"
+            style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', fontWeight: 600, color: 'rgba(44,36,22,0.8)' }}
+          >
+            Chapter Milestones
+          </span>
         </div>
-        <span className={`font-vt text-lg ${cpDone === cpTotal ? 'text-yellow-400' : 'text-slate-400'}`}>
+        <span
+          className="font-vt text-lg"
+          style={{ color: cpDone === cpTotal ? '#D4A843' : '#6B7F6E', fontFamily: 'monospace' }}
+        >
           {cpDone}/{cpTotal}
         </span>
       </div>
-      <div className="px-4 py-2 border-b border-game-border/50">
-        <div className="h-1.5 rounded-full bg-game-card overflow-hidden">
+      <div className="px-4 py-2 border-b border-ghibli-earth/20">
+        <div className="rounded-full overflow-hidden" style={{ height: '6px', background: '#E8D5A3' }}>
           <div
-            className="h-full rounded-full bg-yellow-400 transition-all duration-500"
-            style={{ width: `${cpTotal > 0 ? (cpDone / cpTotal) * 100 : 0}%` }}
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${cpTotal > 0 ? (cpDone / cpTotal) * 100 : 0}%`, background: '#4A7C59' }}
           />
         </div>
       </div>
-      <div className="divide-y divide-game-border/50 px-1">
+      <div className="divide-y divide-ghibli-earth/20 px-1">
         {checkpoints.map(cp => (
           <CheckpointRow key={cp.id} checkpoint={cp} onComplete={onComplete} />
         ))}
@@ -301,19 +399,59 @@ function CheckpointsPanel({ checkpoints, onComplete }) {
 
 // ── ChapterRewardBanner ────────────────────────────────────────────────────────
 
-function ChapterRewardBanner({ reward, meta }) {
+function ChapterRewardBanner({ reward }) {
   return (
     <div
-      className="rounded-2xl border p-6 text-center"
-      style={{ borderColor: `${meta.hex}50`, background: `${meta.hex}0d` }}
+      className="relative rounded-2xl p-6 text-center overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, #EEF6EC 0%, #FDF8F0 50%, #EDE9F6 100%)',
+        border: '1px solid #7AAE87',
+      }}
     >
-      <div className="text-5xl mb-3 select-none">{reward.badgeIcon}</div>
-      <div className="font-display text-[8px] text-slate-500 uppercase tracking-[0.3em] mb-1">Chapter Complete</div>
-      <h2 className="font-display text-[11px] sm:text-sm text-white uppercase tracking-widest mb-3">{reward.title}</h2>
-      <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto mb-5">{reward.description}</p>
-      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10">
-        <span className="font-display text-[8px] text-yellow-500 uppercase tracking-wider">Chapter Bonus</span>
-        <span className="font-vt text-lg text-yellow-400">+{reward.xpBonus} XP</span>
+      {/* Shimmer sweep */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ overflow: 'hidden', borderRadius: 'inherit' }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '30%',
+            height: '100%',
+            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.45) 50%, transparent 100%)',
+            animation: 'shimmer-card 4s ease-in-out infinite',
+          }}
+        />
+      </div>
+
+      <div className="relative z-10">
+        <div className="text-6xl mb-4 select-none">{reward.badgeIcon}</div>
+        <div
+          className="uppercase tracking-[0.3em] mb-1"
+          style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', color: 'rgba(107,127,110,0.7)' }}
+        >
+          Chapter Complete
+        </div>
+        <h2
+          className="mb-3"
+          style={{ fontFamily: '"Shippori Mincho", serif', fontSize: '1.6rem', fontWeight: 600, fontStyle: 'italic', color: '#2C2416', lineHeight: 1.2 }}
+        >
+          {reward.title}
+        </h2>
+        <p
+          className="leading-relaxed max-w-sm mx-auto mb-5"
+          style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', fontStyle: 'italic', color: '#6B7F6E' }}
+        >
+          {reward.description}
+        </p>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg" style={{ border: '1px solid rgba(212,168,67,0.35)', background: 'rgba(212,168,67,0.08)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', fontStyle: 'italic', color: '#D4A843', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Chapter Bonus
+          </span>
+          <span className="font-vt text-2xl text-ghibli-gold">✨ +{reward.xpBonus} XP</span>
+        </div>
       </div>
     </div>
   )
@@ -353,27 +491,27 @@ function MonthSection({ n, monthData, meta, monthProgress, isCurrent, recentComp
         onClick={() => setOpen(o => !o)}
         className={`w-full flex items-center gap-4 px-5 py-4 rounded-xl border transition-all duration-200 text-left ${
           isCurrent
-            ? 'border-green-500/40 bg-game-surface'
-            : 'border-slate-800/60 bg-game-surface/40 hover:border-slate-700/60'
+            ? 'border-ghibli-forest/40 bg-ghibli-cream'
+            : 'border-ghibli-earth/30 bg-ghibli-cream/60 hover:border-ghibli-earth/50'
         }`}
-        style={isCurrent ? { boxShadow: '0 0 18px rgba(34,197,94,0.08)' } : {}}
+        style={isCurrent ? { boxShadow: '0 0 18px rgba(74,124,89,0.08)' } : {}}
       >
         <span className="text-3xl leading-none select-none flex-shrink-0">{meta.icon}</span>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="font-display text-[8px] uppercase tracking-widest text-slate-500">Month {n}</span>
+            <span className="font-display text-xs italic text-ghibli-mist">Month {n}</span>
             {isCurrent && (
-              <span className="bg-green-400 text-black font-display text-[7px] uppercase tracking-widest px-1.5 py-0.5 rounded-full">
+              <span className="bg-ghibli-forest text-white font-display text-[7px] uppercase tracking-widest px-1.5 py-0.5 rounded-full">
                 Active
               </span>
             )}
           </div>
-          <p className="font-display text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-200 leading-snug">
+          <p className="font-display text-xs sm:text-sm italic font-semibold text-ghibli-ink leading-snug">
             {meta.title}
           </p>
           {/* Mini progress bar */}
-          <div className="mt-2 h-1 rounded-full bg-black/40 overflow-hidden w-32">
+          <div className="mt-2 h-1 rounded-full bg-ghibli-earth/15 overflow-hidden w-32">
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{ width: `${pct}%`, background: meta.hex }}
@@ -382,9 +520,9 @@ function MonthSection({ n, monthData, meta, monthProgress, isCurrent, recentComp
         </div>
 
         <div className="flex items-center gap-3 flex-shrink-0">
-          <span className="font-vt text-lg text-slate-500 tabular-nums hidden sm:block">{Math.round(pct)}%</span>
+          <span className="font-vt text-lg text-ghibli-mist tabular-nums hidden sm:block">{Math.round(pct)}%</span>
           <svg
-            className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-ghibli-mist transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
             fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -397,7 +535,7 @@ function MonthSection({ n, monthData, meta, monthProgress, isCurrent, recentComp
         <div className="mt-3 space-y-3 pl-0">
           {/* Month subtitle */}
           {monthData.subtitle && (
-            <p className="text-xs text-slate-500 leading-relaxed px-1">{monthData.subtitle}</p>
+            <p className="text-xs text-ghibli-mist leading-relaxed px-1">{monthData.subtitle}</p>
           )}
 
           {/* Task sections */}
@@ -437,7 +575,7 @@ function ChapterScrollRow({ currentMonth, progress }) {
   }
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide -mx-1 px-1">
+    <div className="flex gap-3 overflow-x-auto pb-3 pt-4 scrollbar-hide -mx-1 px-1">
       {[1, 2, 3, 4, 5, 6].map(n => {
         const meta = MONTH_META[n]
         const monthProgress = progress?.months?.find(m => m.month_number === n)
@@ -450,13 +588,17 @@ function ChapterScrollRow({ currentMonth, progress }) {
           return (
             <div
               key={n}
-              className="flex-shrink-0 w-36 rounded-xl border border-slate-800/40 bg-slate-900/20 opacity-35 cursor-not-allowed select-none"
+              className="flex-shrink-0 w-36 cursor-not-allowed select-none opacity-35"
+              style={{ borderRadius: '14px', border: '1px solid rgba(200,230,245,0.6)', background: '#C8E6F5' }}
             >
               <div className="flex flex-col items-center justify-center gap-2 p-4 min-h-[140px]">
-                <svg className="w-6 h-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                </svg>
-                <span className="font-display text-[8px] uppercase tracking-widest text-slate-700">Month {n}</span>
+                <span className="text-2xl leading-none">🔒</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', color: 'rgba(107,127,110,0.7)' }}>
+                  Month {n}
+                </span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.6rem', color: 'rgba(107,127,110,0.5)', textAlign: 'center', lineHeight: 1.3 }}>
+                  {meta.title}
+                </span>
               </div>
             </div>
           )
@@ -466,48 +608,77 @@ function ChapterScrollRow({ currentMonth, progress }) {
           <button
             key={n}
             onClick={() => scrollToMonth(n)}
-            className={`relative flex-shrink-0 w-36 rounded-xl border bg-game-surface cursor-pointer text-left
-              transition-all duration-200 hover:scale-[1.03] focus:outline-none focus:ring-1 focus:ring-green-500/50 ${
-              isCurrent
-                ? 'border-green-500/50'
-                : isComplete
-                ? 'border-slate-600/60'
-                : 'border-slate-700/40 hover:border-slate-600/60'
-            }`}
-            style={isCurrent ? { boxShadow: '0 0 18px rgba(34,197,94,0.15)' } : {}}
+            className="relative flex-shrink-0 w-36 cursor-pointer text-left transition-all duration-200 hover:scale-[1.03] focus:outline-none overflow-visible"
+            style={{
+              borderRadius: '14px',
+              border: isCurrent ? '2px solid #4A7C59' : isComplete ? '1px solid #7AAE87' : '1px solid rgba(139,111,71,0.25)',
+              background: isCurrent || isComplete ? '#F0F7F1' : '#FAF3E0',
+              boxShadow: isCurrent ? '0 2px 12px rgba(74,124,89,0.15)' : 'none',
+            }}
           >
+            {/* Top ribbon for current */}
             {isCurrent && (
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-green-400 text-black
-                font-display text-[7px] uppercase tracking-widest px-2 py-0.5 rounded-full z-10 whitespace-nowrap">
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '3px',
+                  background: '#4A7C59',
+                  borderRadius: '14px 14px 0 0',
+                }}
+              />
+            )}
+
+            {/* Active pill */}
+            {isCurrent && (
+              <span
+                className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap z-10"
+                style={{
+                  background: '#4A7C59',
+                  color: '#fff',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '0.6rem',
+                  fontWeight: 600,
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                }}
+              >
                 Active
               </span>
             )}
 
-            <div className="flex flex-col gap-2.5 p-3.5 min-h-[140px]">
+            <div className="flex flex-col gap-2.5 p-3.5 min-h-[140px]" style={{ paddingTop: isCurrent ? '1.25rem' : undefined }}>
               <div className="flex items-center justify-between">
-                <span className="font-display text-[8px] uppercase tracking-widest text-slate-500">M{n}</span>
-                <span className="text-lg leading-none">{isComplete ? meta.badgeIcon : meta.icon}</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', color: '#6B7F6E' }}>M{n}</span>
+                <span className="text-xl leading-none">{isComplete ? meta.badgeIcon : meta.icon}</span>
               </div>
 
               {isComplete && (
                 <div className="flex items-center gap-1">
-                  <svg className="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <svg className="w-3 h-3" style={{ color: '#4A7C59' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="font-display text-[7px] uppercase tracking-widest text-green-400">Done</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.6rem', fontWeight: 600, color: '#4A7C59' }}>Complete</span>
                 </div>
               )}
 
-              <p className="font-sans text-[11px] text-slate-300 font-medium leading-snug flex-1">{meta.title}</p>
+              <p
+                className="flex-1 leading-snug"
+                style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', fontWeight: 500, color: 'rgba(44,36,22,0.8)' }}
+              >
+                {meta.title}
+              </p>
 
               <div className="space-y-1">
-                <div className="h-1.5 rounded-full bg-black/60 overflow-hidden">
+                <div className="rounded-full overflow-hidden" style={{ height: '6px', background: '#E8D5A3' }}>
                   <div
                     className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${pct}%`, background: meta.hex }}
+                    style={{ width: `${pct}%`, background: '#4A7C59' }}
                   />
                 </div>
-                <span className="font-vt text-sm leading-none text-slate-500 tabular-nums">{pct.toFixed(0)}%</span>
+                <span className="font-vt text-sm leading-none text-ghibli-mist tabular-nums">{pct.toFixed(0)}%</span>
               </div>
             </div>
           </button>
@@ -538,12 +709,12 @@ export default function PlanPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-game-bg flex flex-col items-center justify-center gap-4 pb-16">
+      <div className="flex flex-col items-center justify-center gap-4 pb-16" style={{ minHeight: '100%' }}>
         <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border-2 border-green-400/20" />
-          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-green-400 animate-spin" />
+          <div className="absolute inset-0 rounded-full border-2 border-ghibli-forest/20" />
+          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-ghibli-forest animate-spin" />
         </div>
-        <span className="font-display text-[9px] uppercase tracking-[0.3em] text-slate-600 animate-pulse">
+        <span className="font-display text-sm italic text-ghibli-mist animate-pulse">
           Loading plan...
         </span>
       </div>
@@ -552,24 +723,24 @@ export default function PlanPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-game-bg flex flex-col items-center justify-center gap-3 p-8 text-center pb-16">
-        <span className="font-display text-[10px] uppercase tracking-widest text-red-400">Error</span>
-        <p className="text-xs text-slate-600 font-mono max-w-sm">{error}</p>
+      <div className="flex flex-col items-center justify-center gap-3 p-8 text-center pb-16" style={{ minHeight: '100%' }}>
+        <span className="font-display text-sm italic text-red-400">Error</span>
+        <p className="text-xs text-ghibli-mist font-sans max-w-sm">{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-game-bg">
+    <div>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-8 space-y-8">
 
         {/* ── Page header ─────────────────────────────────────────────────── */}
         <div>
-          <h1 className="font-display text-sm uppercase tracking-[0.2em] text-white mb-1">
+          <h1 className="font-display text-2xl italic font-semibold text-ghibli-ink mb-1">
             Your Plan
           </h1>
           {meta && (
-            <p className="text-xs text-slate-500 font-sans">
+            <p className="text-xs text-ghibli-mist font-sans">
               Currently in Month {currentMonth} — {meta.title}
             </p>
           )}
@@ -577,7 +748,7 @@ export default function PlanPage() {
 
         {/* ── Chapter scroll row ───────────────────────────────────────────── */}
         <section>
-          <div className="font-display text-[8px] uppercase tracking-[0.25em] text-slate-600 mb-3">
+          <div className="font-display text-xs italic text-ghibli-mist/70 mb-3">
             Quest Chapters
           </div>
           <ChapterScrollRow currentMonth={currentMonth} progress={progress} />
@@ -619,14 +790,14 @@ export default function PlanPage() {
             return (
               <div
                 key={n}
-                className="flex items-center gap-4 px-5 py-4 rounded-xl border border-slate-800/40 bg-slate-900/20 opacity-35 select-none"
+                className="flex items-center gap-4 px-5 py-4 rounded-xl border border-ghibli-earth/20 bg-ghibli-sand/30 opacity-40 select-none"
               >
                 <span className="text-2xl leading-none">{lmeta.icon}</span>
                 <div>
-                  <span className="font-display text-[8px] uppercase tracking-widest text-slate-600">Month {n}</span>
-                  <p className="font-display text-[10px] uppercase tracking-wider text-slate-600 mt-0.5">{lmeta.title}</p>
+                  <span className="font-display text-xs italic text-ghibli-mist/60">Month {n}</span>
+                  <p className="font-display text-xs italic text-ghibli-mist/60 mt-0.5">{lmeta.title}</p>
                 </div>
-                <svg className="ml-auto w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="ml-auto w-4 h-4 text-ghibli-earth/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                 </svg>
               </div>

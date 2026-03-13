@@ -31,105 +31,97 @@ export default function BossBanner({ progress, daysMissed = 0 }) {
     ? (progress.tasks_completed / Math.max(1, progress.tasks_total)) * 100
     : 0
 
-  // Boss HP creep: +5% per missed day (3+ days), capped at +20%
   const hpCreep = daysMissed >= 3 ? Math.min(20, (daysMissed - 2) * 5) : 0
   const bossHpPct = Math.min(100, Math.max(0, 100 - overallPct) + hpCreep)
   const isCritical = bossHpPct <= 25
   const days = daysUntil(recruitingDate)
 
-  // HP bar color thresholds
   const hpColor =
     bossHpPct > 50
-      ? 'from-red-700 to-red-500'
+      ? 'from-ghibli-dusk to-ghibli-sunset'
       : bossHpPct > 25
-        ? 'from-orange-700 to-orange-400'
-        : 'from-yellow-600 to-yellow-400'
+        ? 'from-ghibli-gold to-yellow-400'
+        : 'from-ghibli-forest to-ghibli-forest-light'
 
   return (
     <div
-      className="relative overflow-hidden rounded-xl border border-red-900/40"
-      style={{
-        background: 'linear-gradient(135deg, #1a0a0a 0%, #0f0f23 50%, #1a0a0a 100%)',
-      }}
+      className="relative overflow-hidden rounded-2xl border border-ghibli-earth/40 shadow-ghibli-card"
+      style={{ background: 'linear-gradient(135deg, #FAF3E0 0%, #E8D5A3 50%, #FAF3E0 100%)' }}
     >
-      {/* Grid pattern */}
+      {/* Subtle grid pattern */}
       <div
-        className="absolute inset-0 opacity-[0.04]"
+        className="absolute inset-0 opacity-[0.03]"
         style={{
           backgroundImage:
-            'linear-gradient(#ff0000 1px, transparent 1px), linear-gradient(90deg, #ff0000 1px, transparent 1px)',
+            'linear-gradient(#8B6F47 1px, transparent 1px), linear-gradient(90deg, #8B6F47 1px, transparent 1px)',
           backgroundSize: '24px 24px',
         }}
       />
 
-      {/* Red corner accents */}
-      <div className="absolute top-0 left-0 w-24 h-24 bg-red-900/20 blur-2xl rounded-full -translate-x-8 -translate-y-8" />
-      <div className="absolute bottom-0 right-0 w-32 h-32 bg-red-900/20 blur-2xl rounded-full translate-x-8 translate-y-8" />
+      {/* Warm corner accents */}
+      <div className="absolute top-0 left-0 w-24 h-24 bg-ghibli-sunset/15 blur-2xl rounded-full -translate-x-8 -translate-y-8" />
+      <div className="absolute bottom-0 right-0 w-32 h-32 bg-ghibli-dusk/15 blur-2xl rounded-full translate-x-8 translate-y-8" />
 
       <div className="relative px-6 sm:px-8 py-6 sm:py-8">
         {/* Warning tag */}
         <div className="flex items-center gap-2 mb-2">
           <div className="flex gap-1">
-            <span className="block w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-            <span className="block w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" style={{ animationDelay: '0.2s' }} />
-            <span className="block w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" style={{ animationDelay: '0.4s' }} />
+            <span className="block w-1.5 h-1.5 rounded-full bg-ghibli-sunset animate-pulse" />
+            <span className="block w-1.5 h-1.5 rounded-full bg-ghibli-sunset animate-pulse" style={{ animationDelay: '0.2s' }} />
+            <span className="block w-1.5 h-1.5 rounded-full bg-ghibli-sunset animate-pulse" style={{ animationDelay: '0.4s' }} />
           </div>
-          <span className="font-display text-[9px] uppercase tracking-[0.25em] text-red-500/70">
+          <span className="font-display text-xs italic text-ghibli-dusk/80">
             Final Boss
           </span>
         </div>
 
         {/* Boss name */}
-        <h2 className="font-display text-xl sm:text-2xl lg:text-3xl text-white uppercase tracking-widest mb-1 neon-text-red">
+        <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl text-ghibli-ink italic font-bold tracking-wide mb-1">
           Recruiting Season
         </h2>
-        <p className="font-sans text-xs text-red-300/40 mb-6 tracking-wider">
-          THE FINAL BOSS · BEAT IT AND WALK AWAY WITH AN OFFER
+        <p className="font-sans text-xs text-ghibli-mist mb-6 tracking-wider">
+          The final obstacle — earn an offer
         </p>
 
         {/* HP bar */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="font-display text-[9px] uppercase tracking-[0.2em] text-red-400/80">
+            <span className="font-display text-sm italic text-ghibli-earth/80">
               Boss HP
             </span>
             <div className="flex items-center gap-2">
-              <span className="font-vt text-xl leading-none text-red-400 tabular-nums">
+              <span className="font-vt text-xl leading-none text-ghibli-dusk tabular-nums">
                 {bossHpPct.toFixed(1)}%
               </span>
               {isCritical && (
-                <span className="font-display text-[8px] text-yellow-400 uppercase tracking-wider hp-critical">
+                <span className="font-display text-xs text-ghibli-gold italic hp-critical">
                   CRITICAL
                 </span>
               )}
             </div>
           </div>
 
-          {/* Bar track */}
-          <div className="h-6 rounded bg-black/60 border border-red-900/40 overflow-hidden relative">
+          <div className="h-6 rounded-xl bg-ghibli-earth/15 border border-ghibli-earth/25 overflow-hidden relative">
             {/* Damage segments */}
             <div className="absolute inset-0 flex">
               {Array.from({ length: 20 }).map((_, i) => (
-                <div key={i} className="flex-1 border-r border-black/30 last:border-0" />
+                <div key={i} className="flex-1 border-r border-ghibli-earth/10 last:border-0" />
               ))}
             </div>
 
-            {/* HP fill */}
             <div
               className={`h-full bg-gradient-to-r ${hpColor} transition-all duration-1000 ease-out relative ${isCritical ? 'hp-critical' : ''}`}
               style={{ width: `${bossHpPct}%` }}
             >
-              {/* Shine */}
-              <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent" />
             </div>
           </div>
 
-          {/* Progress legend */}
           <div className="flex justify-between mt-1">
-            <span className="font-display text-[8px] text-slate-600 uppercase tracking-wider">
+            <span className="font-sans text-[11px] text-ghibli-mist/70">
               {overallPct.toFixed(0)}% defeated
             </span>
-            <span className="font-display text-[8px] text-slate-600 uppercase tracking-wider">
+            <span className="font-sans text-[11px] text-ghibli-mist/70">
               {progress?.tasks_completed ?? 0} / {progress?.tasks_total ?? '?'} tasks
             </span>
           </div>
@@ -144,29 +136,29 @@ export default function BossBanner({ progress, daysMissed = 0 }) {
               onBlur={handleDateChange}
               onChange={handleDateChange}
               autoFocus
-              className="bg-black/60 border border-red-500/40 rounded px-2 py-1 text-sm text-white font-mono focus:outline-none focus:border-red-400"
+              className="bg-ghibli-cream border border-ghibli-earth/40 rounded-lg px-2 py-1 text-sm text-ghibli-ink font-sans focus:outline-none focus:border-ghibli-earth"
             />
           ) : (
             <>
-              <span className="font-sans text-sm text-slate-300">
+              <span className="font-sans text-sm text-ghibli-ink/80">
                 {days > 0 ? (
                   <>
-                    <span className="font-vt text-2xl leading-none text-white">{days}</span>
-                    <span className="ml-1 text-slate-400"> days until recruiting</span>
+                    <span className="font-vt text-2xl leading-none text-ghibli-ink">{days}</span>
+                    <span className="ml-1 text-ghibli-mist"> days until recruiting</span>
                   </>
                 ) : days === 0 ? (
-                  <span className="font-display text-[10px] text-red-400 uppercase tracking-widest neon-text-red">
+                  <span className="font-display text-sm text-ghibli-sunset italic neon-text-red">
                     Recruiting starts TODAY
                   </span>
                 ) : (
-                  <span className="font-display text-[10px] text-orange-400 uppercase tracking-widest">
+                  <span className="font-display text-sm text-ghibli-dusk italic">
                     Recruiting season is LIVE
                   </span>
                 )}
               </span>
               <button
                 onClick={() => setEditing(true)}
-                className="text-slate-700 hover:text-slate-400 transition-colors cursor-pointer ml-1"
+                className="text-ghibli-earth/50 hover:text-ghibli-earth transition-colors cursor-pointer ml-1"
                 aria-label="Edit recruiting date"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

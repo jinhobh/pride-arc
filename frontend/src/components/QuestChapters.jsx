@@ -23,13 +23,12 @@ function MonthCard({ n, meta, monthProgress, isLocked, isCurrent, isComplete }) 
   const navigate = useNavigate()
   const pct = monthProgress?.completion_pct ?? 0
 
-  // ── Locked ────────────────────────────────────────────────────────────────
   if (isLocked) {
     return (
-      <div className="flex-shrink-0 w-40 rounded-xl border border-slate-800/60 bg-slate-900/20 opacity-40 cursor-not-allowed select-none">
+      <div className="flex-shrink-0 w-40 rounded-xl border border-ghibli-earth/20 bg-ghibli-sand/30 opacity-40 cursor-not-allowed select-none shadow-ghibli-card">
         <div className="flex flex-col items-center justify-center gap-2 p-5 min-h-[160px]">
-          <LockIcon className="w-7 h-7 text-slate-700" />
-          <span className="font-display text-[8px] uppercase tracking-widest text-slate-700">
+          <LockIcon className="w-7 h-7 text-ghibli-earth/40" />
+          <span className="font-display text-sm italic text-ghibli-mist/60">
             Month {n}
           </span>
         </div>
@@ -37,37 +36,34 @@ function MonthCard({ n, meta, monthProgress, isLocked, isCurrent, isComplete }) 
     )
   }
 
-  // ── Unlocked / current / complete ─────────────────────────────────────────
   const borderCls = isCurrent
-    ? 'border-green-500/50'
+    ? 'border-ghibli-forest/60'
     : isComplete
-    ? 'border-slate-600/60'
-    : 'border-slate-700/40 hover:border-slate-600/60'
+    ? 'border-ghibli-earth/50'
+    : 'border-ghibli-earth/30 hover:border-ghibli-earth/50'
 
   const glowStyle = isCurrent
-    ? { boxShadow: '0 0 18px rgba(34,197,94,0.15), 0 0 1px rgba(34,197,94,0.3)' }
-    : {}
+    ? { boxShadow: '0 0 18px rgba(74,124,89,0.18), 0 4px 16px rgba(44,36,22,0.08)' }
+    : { boxShadow: '0 2px 12px rgba(44,36,22,0.07)' }
 
   return (
     <button
       onClick={() => navigate(`/month/${n}`)}
-      className={`relative flex-shrink-0 w-40 rounded-xl border ${borderCls} bg-game-surface
+      className={`relative flex-shrink-0 w-40 rounded-xl border ${borderCls} bg-ghibli-cream overflow-visible
         cursor-pointer text-left transition-all duration-200 hover:scale-[1.03] focus:outline-none
-        focus:ring-1 focus:ring-green-500/50`}
+        focus:ring-2 focus:ring-ghibli-forest/30`}
       style={glowStyle}
     >
-      {/* "ACTIVE" chip */}
       {isCurrent && (
-        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-green-400 text-black
-          font-display text-[7px] uppercase tracking-widest px-2 py-0.5 rounded-full z-10 whitespace-nowrap">
+        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-ghibli-forest text-white
+          font-display text-xs italic px-2 py-0.5 rounded-full z-10 whitespace-nowrap">
           Active
         </span>
       )}
 
       <div className="flex flex-col gap-3 p-4 min-h-[160px]">
-        {/* Month label + status icon */}
         <div className="flex items-center justify-between">
-          <span className="font-display text-[8px] uppercase tracking-widest text-slate-500">
+          <span className="font-display text-xs italic text-ghibli-mist">
             M{n}
           </span>
           <span className="text-lg leading-none">
@@ -75,30 +71,27 @@ function MonthCard({ n, meta, monthProgress, isLocked, isCurrent, isComplete }) 
           </span>
         </div>
 
-        {/* Complete badge row */}
         {isComplete && (
           <div className="flex items-center gap-1">
-            <CheckIcon className="w-3 h-3 text-green-400" />
-            <span className="font-display text-[7px] uppercase tracking-widest text-green-400">
+            <CheckIcon className="w-3 h-3 text-ghibli-forest" />
+            <span className="font-display text-xs italic text-ghibli-forest">
               Done
             </span>
           </div>
         )}
 
-        {/* Title */}
-        <p className="font-sans text-[11px] text-slate-300 font-medium leading-snug flex-1">
+        <p className="font-sans text-[12px] text-ghibli-ink/80 font-medium leading-snug flex-1">
           {meta.title}
         </p>
 
-        {/* Progress bar + pct */}
         <div className="space-y-1">
-          <div className="h-1.5 rounded-full bg-black/60 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-ghibli-earth/15 overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{ width: `${pct}%`, background: meta.hex }}
             />
           </div>
-          <span className="font-vt text-base leading-none text-slate-500 tabular-nums">
+          <span className="font-vt text-base leading-none text-ghibli-mist tabular-nums">
             {pct.toFixed(0)}%
           </span>
         </div>
@@ -117,8 +110,7 @@ export default function QuestChapters({ progress, currentMonth }) {
   return (
     <section>
       <SectionHeader title="Quest Chapters" />
-      {/* Horizontal scroll row */}
-      <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide -mx-1 px-1">
+      <div className="flex gap-3 overflow-x-auto pb-3 pt-4 scrollbar-hide -mx-1 px-1">
         {[1, 2, 3, 4, 5, 6].map(n => {
           const meta = MONTH_META[n]
           const monthProgress = progress?.months?.find(m => m.month_number === n)

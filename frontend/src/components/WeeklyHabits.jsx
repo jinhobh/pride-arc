@@ -1,33 +1,67 @@
 import { useState } from 'react'
 import { SKILL_INFO } from '../constants/planData'
-import { SectionHeader } from './StatPanel'
 
-/** Habits that support counting (multiple completions per day) */
 const COUNTABLE_HABITS = new Set(['habit_leetcode'])
 
 function CounterInput({ count, onSet, busy }) {
   return (
-    <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+    <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
       <button
         onClick={() => onSet(Math.max(0, count - 1))}
         disabled={busy || count <= 0}
-        className="w-6 h-6 rounded flex items-center justify-center
-          bg-slate-800 hover:bg-slate-700 border border-slate-700
-          text-slate-400 hover:text-white text-xs font-bold
-          disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        style={{
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '14px',
+          fontWeight: 600,
+          color: 'var(--ghibli-ink)',
+          background: 'var(--ghibli-sand)',
+          border: '1px solid rgba(139,111,71,0.35)',
+          borderRadius: '999px',
+          width: '24px',
+          height: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'background 150ms ease',
+          opacity: busy || count <= 0 ? 0.3 : 1,
+        }}
       >
         −
       </button>
-      <span className="font-vt text-lg leading-none text-green-400 tabular-nums w-6 text-center">
+      <span
+        style={{
+          fontFamily: 'monospace',
+          fontSize: '15px',
+          fontWeight: 600,
+          color: 'var(--ghibli-ink)',
+          minWidth: '20px',
+          textAlign: 'center',
+          lineHeight: 1,
+        }}
+      >
         {count}
       </span>
       <button
         onClick={() => onSet(count + 1)}
         disabled={busy}
-        className="w-6 h-6 rounded flex items-center justify-center
-          bg-slate-800 hover:bg-slate-700 border border-slate-700
-          text-slate-400 hover:text-white text-xs font-bold
-          disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        style={{
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '14px',
+          fontWeight: 600,
+          color: 'var(--ghibli-ink)',
+          background: 'var(--ghibli-sand)',
+          border: '1px solid rgba(139,111,71,0.35)',
+          borderRadius: '999px',
+          width: '24px',
+          height: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'background 150ms ease',
+          opacity: busy ? 0.3 : 1,
+        }}
       >
         +
       </button>
@@ -35,22 +69,34 @@ function CounterInput({ count, onSet, busy }) {
   )
 }
 
-function HabitRow({ habit, onToggle }) {
+function HabitRow({ habit, onToggle, isLast }) {
   const [busy, setBusy] = useState(false)
+  const [popup, setPopup] = useState(null) // { key, xp }
   const info = SKILL_INFO[habit.skill_type]
-  const { c } = info ?? { c: { text: 'text-slate-400', border: 'border-slate-700', bar: 'bg-slate-400' } }
   const isCountable = COUNTABLE_HABITS.has(habit.habit_id)
 
   const handleToggle = async () => {
-    if (isCountable) return // countable habits use the counter, not click
+    if (isCountable) return
     setBusy(true)
+    const wasCompleted = habit.completed
     await onToggle(habit.habit_id, !habit.completed, 1)
+    if (!wasCompleted) {
+      const key = Date.now()
+      setPopup({ key, xp: habit.xp_per_completion })
+      setTimeout(() => setPopup(null), 1200)
+    }
     setBusy(false)
   }
 
   const handleSetCount = async (newCount) => {
     setBusy(true)
+    const prevCount = habit.count || 0
     await onToggle(habit.habit_id, newCount > 0, newCount)
+    if (newCount > prevCount) {
+      const key = Date.now()
+      setPopup({ key, xp: habit.xp_per_completion })
+      setTimeout(() => setPopup(null), 1200)
+    }
     setBusy(false)
   }
 
@@ -61,49 +107,98 @@ function HabitRow({ habit, onToggle }) {
   return (
     <div
       onClick={isCountable ? undefined : handleToggle}
-      className={`flex items-center gap-3 px-4 py-3 ${isCountable ? '' : 'cursor-pointer'}
-        hover:bg-white/[0.03] active:bg-white/[0.05]
-        transition-colors duration-150 ${busy ? 'opacity-60' : ''}`}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '12px 16px',
+        cursor: isCountable ? 'default' : 'pointer',
+        borderBottom: isLast ? 'none' : '1px dashed rgba(139,111,71,0.20)',
+        transition: 'background 150ms ease',
+        opacity: busy ? 0.6 : 1,
+        position: 'relative',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(232,213,163,0.30)' }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
     >
-      {/* Checkbox or Counter */}
+      {/* Checkbox or counter */}
       {isCountable ? (
         <CounterInput count={habit.count || 0} onSet={handleSetCount} busy={busy} />
       ) : (
         <div
-          className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0
-            transition-all duration-200
-            ${habit.completed
-              ? 'bg-green-400 border-green-400'
-              : `border-slate-600 hover:${c.border}`
-            }`}
+          style={{
+            width: '18px',
+            height: '18px',
+            borderRadius: '50%',
+            border: habit.completed ? 'none' : '2px solid var(--ghibli-earth)',
+            background: habit.completed ? 'var(--ghibli-forest)' : 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            transition: 'background 200ms ease, border 200ms ease',
+          }}
         >
           {habit.completed && (
-            <svg className="w-2.5 h-2.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 13l4 4L19 7" />
             </svg>
           )}
         </div>
       )}
 
       {/* Skill icon */}
-      <span className="text-base leading-none flex-shrink-0">
-        {info?.icon}
-      </span>
+      <span style={{ fontSize: '16px', lineHeight: 1, flexShrink: 0 }}>{info?.icon}</span>
 
-      {/* Title */}
+      {/* Habit label */}
       <span
-        className={`flex-1 text-sm font-medium transition-all duration-200 ${habit.completed ? 'line-through text-slate-600' : 'text-slate-200'
-          }`}
+        style={{
+          flex: 1,
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '13.5px',
+          fontWeight: 500,
+          color: habit.completed ? 'rgba(107,127,110,0.55)' : 'var(--ghibli-ink)',
+          textDecoration: habit.completed ? 'line-through' : 'none',
+          transition: 'color 200ms ease',
+        }}
       >
         {habit.title}
       </span>
 
-      {/* XP reward */}
-      <span className={`font-vt text-xl leading-none flex-shrink-0 tabular-nums ${habit.completed ? 'text-green-400' : c.text
-        }`}>
-        +{displayXp}
-      </span>
-      <span className="font-display text-[7px] text-slate-600 flex-shrink-0 uppercase">xp</span>
+      {/* XP display + popup */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <span
+          style={{
+            fontFamily: '"Shippori Mincho", serif',
+            fontStyle: 'italic',
+            fontSize: '14px',
+            color: habit.completed ? 'var(--ghibli-forest)' : 'var(--ghibli-mist)',
+            transition: 'color 200ms ease',
+          }}
+        >
+          +{displayXp} xp
+        </span>
+        {popup && (
+          <span
+            key={popup.key}
+            className="xp-float-up"
+            style={{
+              position: 'absolute',
+              right: 0,
+              bottom: '100%',
+              fontFamily: '"Shippori Mincho", serif',
+              fontStyle: 'italic',
+              fontWeight: 600,
+              fontSize: '13px',
+              color: 'var(--ghibli-forest)',
+              whiteSpace: 'nowrap',
+              pointerEvents: 'none',
+            }}
+          >
+            +{popup.xp} XP
+          </span>
+        )}
+      </div>
     </div>
   )
 }
@@ -114,48 +209,111 @@ export default function WeeklyHabits({ habits, onLogHabit, today }) {
   const done = habits.filter(h => h.completed).length
   const total = habits.length
   const allDone = done === total
+  const pct = total > 0 ? (done / total) * 100 : 0
 
   return (
     <section>
-      <SectionHeader
-        title="Daily Habits"
-        right={
-          <div className="flex items-center gap-2">
-            <span className="font-vt text-xl leading-none tabular-nums text-slate-400">
-              {done}/{total}
-            </span>
-            <span className="font-display text-[8px] text-slate-600 uppercase">today</span>
-          </div>
-        }
-      />
+      {/* Section title */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <h2
+          style={{
+            fontFamily: '"Shippori Mincho", serif',
+            fontStyle: 'italic',
+            fontWeight: 600,
+            fontSize: '1.15rem',
+            color: 'var(--ghibli-ink)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          🌿 Daily Habits
+        </h2>
+        <span
+          style={{
+            fontFamily: '"Shippori Mincho", serif',
+            fontStyle: 'italic',
+            fontSize: '0.85rem',
+            color: 'var(--ghibli-mist)',
+          }}
+        >
+          {done}/{total} today
+        </span>
+      </div>
 
+      {/* Card */}
       <div
-        className={`rounded-xl border overflow-hidden divide-y divide-white/[0.04]
-          ${allDone ? 'border-green-500/30 bg-green-500/[0.04]' : 'border-slate-800/60 bg-game-surface/40'}`}
+        style={{
+          background: 'var(--ghibli-cream)',
+          border: '1px solid rgba(139,111,71,0.28)',
+          borderRadius: '14px',
+          overflow: 'hidden',
+          boxShadow: '0 2px 12px rgba(139,111,71,0.10)',
+        }}
       >
-        {/* Date header */}
-        <div className="flex items-center justify-between px-4 py-2 bg-black/20">
-          <span className="font-display text-[8px] uppercase tracking-widest text-slate-600">
-            {allDone ? '✓ All habits complete' : 'Today\'s habits'}
-          </span>
-          <span className="font-vt text-base leading-none text-slate-700">{today}</span>
+        {/* Progress bar — top of card */}
+        <div
+          style={{
+            height: '8px',
+            background: 'var(--ghibli-sand)',
+            borderRadius: '999px 999px 0 0',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              height: '100%',
+              width: `${pct}%`,
+              background: allDone
+                ? 'linear-gradient(90deg, var(--ghibli-forest), var(--ghibli-forest-light))'
+                : 'var(--ghibli-forest)',
+              borderRadius: '999px',
+              transition: 'width 500ms cubic-bezier(0.4,0,0.2,1)',
+            }}
+          />
         </div>
 
-        {habits.map(habit => (
+        {/* Date subheader */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '8px 16px',
+            background: 'rgba(232,213,163,0.25)',
+            borderBottom: '1px dashed rgba(139,111,71,0.15)',
+          }}
+        >
+          <span
+            style={{
+              fontFamily: '"Shippori Mincho", serif',
+              fontStyle: 'italic',
+              fontSize: '0.82rem',
+              color: 'var(--ghibli-mist)',
+            }}
+          >
+            {allDone ? '✓ All habits complete' : "Today's habits"}
+          </span>
+          <span
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '11px',
+              color: 'rgba(139,111,71,0.55)',
+            }}
+          >
+            {today}
+          </span>
+        </div>
+
+        {/* Habit rows */}
+        {habits.map((habit, i) => (
           <HabitRow
             key={habit.habit_id}
             habit={habit}
             onToggle={onLogHabit}
+            isLast={i === habits.length - 1}
           />
         ))}
-
-        {/* Progress bar at bottom */}
-        <div className="h-1 bg-black/40">
-          <div
-            className="h-full bg-green-400 transition-all duration-500"
-            style={{ width: `${(done / total) * 100}%` }}
-          />
-        </div>
       </div>
     </section>
   )

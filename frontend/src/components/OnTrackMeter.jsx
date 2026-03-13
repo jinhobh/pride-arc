@@ -1,33 +1,19 @@
-import { SectionHeader } from './StatPanel'
-
-/**
- * Computes how "on track" the user is based on their total XP vs elapsed month time.
- * Calculates total available XP for the month (Tasks + Daily Habits) and tracks current accumulated XP.
- */
 export default function OnTrackMeter({ currentTasks, todayHabits, totalXp }) {
     if (!currentTasks || typeof totalXp !== 'number') return null
 
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const startDate = new Date(2026, 2, 11) // March 11, 2026
+    const startDate = new Date(2026, 2, 12)
 
     const diffDays = Math.max(0, Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)))
     const dayOfMonth = (diffDays % 30) + 1
-    const daysInMonth = 30 // Standardize plan months to 30 days
+    const daysInMonth = 30
 
     let totalMonthXp = 0
-
-    // 1. Monthly goals & checkpoints (done once per month)
     totalMonthXp += (currentTasks.monthly || []).reduce((sum, t) => sum + t.xp, 0)
     totalMonthXp += (currentTasks.checkpoints || []).reduce((sum, c) => sum + c.xp, 0)
-
-    // 2. Daily quests × days in month
     totalMonthXp += (currentTasks.daily || []).reduce((sum, t) => sum + t.xp, 0) * daysInMonth
-
-    // 3. Weekly quests × 4 weeks roughly
     totalMonthXp += (currentTasks.weekly || []).reduce((sum, t) => sum + t.xp, 0) * 4
-
-    // 4. Daily habits × days in month
     if (todayHabits) {
         totalMonthXp += todayHabits.reduce((sum, h) => sum + h.xp_per_completion, 0) * daysInMonth
     }
@@ -38,64 +24,124 @@ export default function OnTrackMeter({ currentTasks, todayHabits, totalXp }) {
     const expectedPct = (dayOfMonth / daysInMonth) * 100
 
     const diff = actualPct - expectedPct
-    let status, color, bg, icon, message
+    let barColor, message
     if (diff >= -5) {
-        status = 'on-track'
-        color = 'text-green-400'
-        bg = 'bg-green-500/10 border-green-500/30'
-        icon = '🟢'
+        barColor = 'var(--ghibli-forest)'
         message = "You're on track! Keep it up."
     } else if (diff >= -20) {
-        status = 'slightly-behind'
-        color = 'text-yellow-400'
-        bg = 'bg-yellow-500/10 border-yellow-500/30'
-        icon = '🟡'
-        message = "Slightly behind pace — push a bit harder this week."
+        barColor = '#C9A84C'
+        message = 'Slightly behind pace — push a bit harder this week.'
     } else {
-        status = 'falling-behind'
-        color = 'text-red-400'
-        bg = 'bg-red-500/10 border-red-500/30'
-        icon = '🔴'
-        message = "Falling behind — time to catch up!"
+        barColor = '#B85C38'
+        message = 'Falling behind — time to catch up!'
     }
 
     return (
         <section>
-            <SectionHeader title="Pace Tracker" />
-            <div className={`rounded-xl border p-4 ${bg}`}>
-                {/* Status */}
-                <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg leading-none">{icon}</span>
-                    <span className={`font-display text-[9px] uppercase tracking-widest ${color}`}>
-                        {message}
-                    </span>
-                </div>
+            {/* Section title */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <h2
+                    style={{
+                        fontFamily: '"Shippori Mincho", serif',
+                        fontStyle: 'italic',
+                        fontWeight: 600,
+                        fontSize: '1.15rem',
+                        color: 'var(--ghibli-ink)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                    }}
+                >
+                    🧭 Today's Pace
+                </h2>
+            </div>
 
-                {/* Progress bar with pace marker */}
-                <div className="relative">
-                    <div className="h-3 rounded-full bg-black/40 overflow-hidden">
+            {/* Card */}
+            <div
+                style={{
+                    background: 'var(--ghibli-cream)',
+                    border: '1px solid rgba(139,111,71,0.28)',
+                    borderRadius: '14px',
+                    padding: '16px',
+                    boxShadow: '0 2px 12px rgba(139,111,71,0.10)',
+                }}
+            >
+                {/* Status message */}
+                <p
+                    style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '13px',
+                        fontStyle: 'italic',
+                        color: 'var(--ghibli-mist)',
+                        marginBottom: '12px',
+                    }}
+                >
+                    {message}
+                </p>
+
+                {/* Bar */}
+                <div style={{ position: 'relative', marginBottom: '10px' }}>
+                    {/* Track */}
+                    <div
+                        style={{
+                            height: '12px',
+                            borderRadius: '999px',
+                            background: 'var(--ghibli-sand)',
+                            overflow: 'visible',
+                            position: 'relative',
+                        }}
+                    >
+                        {/* Fill */}
                         <div
-                            className={`h-full rounded-full transition-all duration-700 ease-out ${status === 'on-track' ? 'bg-green-500' :
-                                status === 'slightly-behind' ? 'bg-yellow-500' : 'bg-red-500'
-                                }`}
-                            style={{ width: `${Math.min(100, actualPct)}%` }}
+                            style={{
+                                height: '100%',
+                                width: `${Math.min(100, actualPct)}%`,
+                                borderRadius: '999px',
+                                background: barColor,
+                                transition: 'width 700ms ease-out',
+                            }}
                         />
                     </div>
-                    {/* Expected pace marker */}
+
+                    {/* Expected pace diamond marker */}
                     <div
-                        className="absolute top-0 w-0.5 h-3 bg-white/40"
-                        style={{ left: `${Math.min(100, expectedPct)}%` }}
                         title={`Expected: ${Math.round(expectedPct)}%`}
+                        style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: `${Math.min(99, expectedPct)}%`,
+                            transform: 'translate(-50%, -50%) rotate(45deg)',
+                            width: '9px',
+                            height: '9px',
+                            background: 'var(--ghibli-ink)',
+                            opacity: 0.60,
+                            borderRadius: '1px',
+                            pointerEvents: 'none',
+                        }}
                     />
                 </div>
 
-                {/* Legend */}
-                <div className="flex items-center justify-between mt-2">
-                    <span className="font-vt text-base leading-none text-slate-500 tabular-nums">
+                {/* XP labels */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span
+                        style={{
+                            fontFamily: '"Shippori Mincho", serif',
+                            fontStyle: 'italic',
+                            fontSize: '13px',
+                            color: 'var(--ghibli-mist)',
+                        }}
+                    >
                         {totalXp.toLocaleString()} / {totalMonthXp.toLocaleString()} XP
                     </span>
-                    <span className="font-display text-[7px] text-slate-600 uppercase">
-                        Day {dayOfMonth}/{daysInMonth} • Expected {Math.round(expectedPct)}%
+                    <span
+                        style={{
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '11px',
+                            fontStyle: 'italic',
+                            color: 'var(--ghibli-mist)',
+                        }}
+                    >
+                        Day {dayOfMonth}/{daysInMonth} · Expected {Math.round(expectedPct)}%
                     </span>
                 </div>
             </div>

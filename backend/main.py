@@ -536,6 +536,71 @@ async def get_activity(days: int = 180, db: AsyncSession = Depends(get_db)):
     return result
 
 
+# ── Activity feed (recent events across tasks, checkpoints, habits) ───────────
+
+@app.get("/activity-feed")
+async def get_activity_feed(limit: int = 10, db: AsyncSession = Depends(get_db)):
+    """Return the N most recent completions across tasks, checkpoints, and habits."""
+    tc_result = await db.execute(
+        select(TaskCompletion).order_by(TaskCompletion.completed_at.desc()).limit(limit * 3)
+    )
+    task_rows = tc_result.scalars().all()
+
+    cc_result = await db.execute(
+        select(CheckpointCompletion).order_by(CheckpointCompletion.completed_at.desc()).limit(limit)
+    )
+    cp_rows = cc_result.scalars().all()
+
+    hl_result = await db.execute(
+        select(HabitLog)
+        .where(HabitLog.completed == True)  # noqa: E712
+        .order_by(HabitLog.logged_date.desc())
+        .limit(limit)
+    )
+    habit_rows = hl_result.scalars().all()
+
+    events = []
+
+    for tc in task_rows:
+        task = TASKS.get(tc.task_id)
+        if task:
+            events.append({
+                "type": "task",
+                "title": task["title"],
+                "skill_type": task["skill_type"],
+                "xp": task["xp"],
+                "ts": tc.completed_at.isoformat(),
+            })
+
+    for cc in cp_rows:
+        cp = CHECKPOINTS.get(cc.checkpoint_id)
+        if cp:
+            events.append({
+                "type": "checkpoint",
+                "title": cp["title"],
+                "skill_type": cp["skill_type"],
+                "xp": cp["xp_reward"],
+                "ts": cc.completed_at.isoformat(),
+            })
+
+    for hl in habit_rows:
+        habit = HABITS.get(hl.habit_id)
+        if habit:
+            ts = datetime.datetime.combine(
+                hl.logged_date, datetime.time(12, 0), tzinfo=datetime.timezone.utc
+            )
+            events.append({
+                "type": "habit",
+                "title": habit["title"],
+                "skill_type": habit["skill_type"],
+                "xp": habit["xp_per_completion"],
+                "ts": ts.isoformat(),
+            })
+
+    events.sort(key=lambda e: e["ts"], reverse=True)
+    return events[:limit]
+
+
 # ── Weekly summary ────────────────────────────────────────────────────────────
 
 @app.get("/weekly-summary", response_model=WeeklySummaryResponse)

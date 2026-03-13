@@ -3,7 +3,11 @@ import { useState, useEffect, useCallback } from 'react'
 const BASE = '/api'
 
 function todayISO() {
-  return new Date().toISOString().split('T')[0]
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 export function useGameData() {
@@ -11,6 +15,7 @@ export function useGameData() {
   const [progress, setProgress] = useState(null)
   const [todayHabits, setTodayHabits] = useState([])
   const [activity, setActivity] = useState([])
+  const [activityFeed, setActivityFeed] = useState([])
   const [weeklySummary, setWeeklySummary] = useState(null)
   const [streakStatus, setStreakStatus] = useState(null)
   const [currentTasks, setCurrentTasks] = useState(null)
@@ -22,11 +27,12 @@ export function useGameData() {
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [stateRes, progressRes, habitsRes, activityRes, weeklyRes, streakRes, tasksRes] = await Promise.all([
+      const [stateRes, progressRes, habitsRes, activityRes, feedRes, weeklyRes, streakRes, tasksRes] = await Promise.all([
         fetch(`${BASE}/state`),
         fetch(`${BASE}/progress`),
         fetch(`${BASE}/habits/${today}`),
         fetch(`${BASE}/activity?days=180`),
+        fetch(`${BASE}/activity-feed?limit=10`),
         fetch(`${BASE}/weekly-summary`),
         fetch(`${BASE}/streak-status`),
         fetch(`${BASE}/current-tasks`),
@@ -34,11 +40,12 @@ export function useGameData() {
       if (!stateRes.ok) throw new Error(`State fetch failed: ${stateRes.status}`)
       if (!progressRes.ok) throw new Error(`Progress fetch failed: ${progressRes.status}`)
 
-      const [stateData, progressData, habitsData, activityData, weeklyData, streakData, tasksData] = await Promise.all([
+      const [stateData, progressData, habitsData, activityData, feedData, weeklyData, streakData, tasksData] = await Promise.all([
         stateRes.json(),
         progressRes.json(),
         habitsRes.ok ? habitsRes.json() : Promise.resolve([]),
         activityRes.ok ? activityRes.json() : Promise.resolve([]),
+        feedRes.ok ? feedRes.json() : Promise.resolve([]),
         weeklyRes.ok ? weeklyRes.json() : Promise.resolve(null),
         streakRes.ok ? streakRes.json() : Promise.resolve(null),
         tasksRes.ok ? tasksRes.json() : Promise.resolve(null),
@@ -48,6 +55,7 @@ export function useGameData() {
       setProgress(progressData)
       setTodayHabits(Array.isArray(habitsData) ? habitsData : [])
       setActivity(Array.isArray(activityData) ? activityData : [])
+      setActivityFeed(Array.isArray(feedData) ? feedData : [])
       setWeeklySummary(weeklyData)
       setStreakStatus(streakData)
       setCurrentTasks(tasksData)
@@ -94,6 +102,7 @@ export function useGameData() {
     progress,
     todayHabits,
     activity,
+    activityFeed,
     weeklySummary,
     streakStatus,
     currentTasks,
