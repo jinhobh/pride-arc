@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { MONTH_META, SKILL_INFO } from '../constants/planData'
+import { usePlanStudio } from '../hooks/useApi'
 
 const BASE = '/api'
 
@@ -688,7 +689,555 @@ function ChapterScrollRow({ currentMonth, progress }) {
   )
 }
 
+// ── PaceWidget ────────────────────────────────────────────────────────────────
+
+function PaceWidget({ pace }) {
+  if (!pace) return null
+
+  const statusStyles = {
+    'Ahead':    { bg: '#EEF6EC', text: '#4A7C59', border: '#7AAE87' },
+    'Behind':   { bg: '#FDF0E8', text: '#8B3A1A', border: '#E8956D' },
+    'On Track': { bg: '#FDF8F0', text: '#8B6F47', border: '#C9A84C' },
+  }
+  const s = statusStyles[pace.status] ?? statusStyles['On Track']
+  const pct = Math.min(100, Math.round((pace.arc_day / pace.arc_total_days) * 100))
+
+  return (
+    <div
+      className="rounded-xl p-4 flex flex-col gap-3"
+      style={{ background: s.bg, border: `1px solid ${s.border}` }}
+    >
+      <div className="flex items-center justify-between">
+        <span
+          className="font-sans text-xs font-semibold uppercase tracking-wider"
+          style={{ color: s.text }}
+        >
+          Arc Pace
+        </span>
+        <span
+          className="text-xs font-sans font-semibold px-2 py-0.5 rounded-full"
+          style={{ background: s.border + '30', color: s.text, border: `1px solid ${s.border}` }}
+        >
+          {pace.status}
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      <div>
+        <div className="rounded-full overflow-hidden" style={{ height: '5px', background: 'rgba(139,111,71,0.15)' }}>
+          <div
+            className="h-full rounded-full transition-all duration-700"
+            style={{ width: `${pct}%`, background: s.text }}
+          />
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="font-vt text-xs" style={{ color: s.text }}>Day {pace.arc_day}</span>
+          <span className="font-vt text-xs text-ghibli-mist">{pace.arc_total_days} days</span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between text-xs font-sans">
+        <div>
+          <span style={{ color: '#6B7F6E' }}>Expected: </span>
+          <span className="font-semibold" style={{ color: s.text }}>{pace.expected_xp_today.toLocaleString()} XP</span>
+        </div>
+        <div>
+          <span style={{ color: '#6B7F6E' }}>Earned: </span>
+          <span className="font-semibold" style={{ color: s.text }}>{pace.earned_xp.toLocaleString()} XP</span>
+        </div>
+        <div>
+          <span className="font-semibold" style={{ color: pace.delta_xp >= 0 ? '#4A7C59' : '#8B3A1A' }}>
+            {pace.delta_xp >= 0 ? '+' : ''}{pace.delta_xp} XP
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── PlanWeekView ──────────────────────────────────────────────────────────────
+
+function PlanWeekView() {
+  const [weekData, setWeekData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/plan/week')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setWeekData(d); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="w-7 h-7 rounded-full border-2 border-ghibli-forest/20 border-t-ghibli-forest animate-spin" />
+      </div>
+    )
+  }
+
+  if (!weekData) {
+    return <p className="text-center text-xs text-ghibli-mist py-8">Could not load weekly plan.</p>
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-ghibli-mist font-sans">
+        Week of {new Date(weekData.week_start + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+      </p>
+
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {weekData.days.map(day => (
+          <div
+            key={day.date}
+            className="flex-shrink-0 w-40 rounded-xl p-3 space-y-2"
+            style={{
+              background: day.is_today ? '#EEF6EC' : '#FAF3E0',
+              border: day.is_today ? '1.5px solid #7AAE87' : '1px solid rgba(139,111,71,0.2)',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span
+                className="font-sans text-xs font-semibold"
+                style={{ color: day.is_today ? '#4A7C59' : '#6B7F6E' }}
+              >
+                {day.day}
+              </span>
+              {day.is_today && (
+                <span className="text-[9px] font-sans font-bold uppercase tracking-wider" style={{ color: '#4A7C59' }}>
+                  Today
+                </span>
+              )}
+            </div>
+
+            {day.tasks.length === 0 ? (
+              <p className="text-[10px] text-ghibli-mist/50 font-sans italic">Rest day</p>
+            ) : (
+              <div className="space-y-1.5">
+                {day.tasks.map(t => (
+                  <div
+                    key={t.id}
+                    className="text-[10px] font-sans leading-snug"
+                    style={{
+                      color: t.completed ? 'rgba(107,127,110,0.5)' : 'rgba(44,36,22,0.8)',
+                      textDecoration: t.completed ? 'line-through' : 'none',
+                    }}
+                  >
+                    <span
+                      className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
+                      style={{ background: SKILL_COLORS[t.skill_type] ?? '#8B6F47', flexShrink: 0 }}
+                    />
+                    {t.title.length > 45 ? t.title.slice(0, 45) + '…' : t.title}
+                    <span className="ml-1 text-[9px]" style={{ color: '#4A7C59' }}>+{t.xp}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── PlanStudioView ────────────────────────────────────────────────────────────
+
+const SKILL_OPTIONS = [
+  'dsa', 'ml', 'backend', 'devops', 'cloud', 'system_design',
+  'project', 'networking', 'interviewing', 'career',
+]
+const FREQ_OPTIONS = ['once', 'daily', 'weekly']
+
+function EditTaskModal({ task, sectionId, monthNumber, onSave, onClose, onDelete }) {
+  const [form, setForm] = useState({
+    title: task?.title ?? '',
+    skill_type: task?.skill_type ?? 'dsa',
+    frequency: task?.frequency ?? 'once',
+    xp: task?.xp ?? 10,
+    month_number: task?.month_number ?? monthNumber,
+  })
+  const [saving, setSaving] = useState(false)
+
+  function setField(k, v) { setForm(f => ({ ...f, [k]: v })) }
+
+  async function handleSave() {
+    if (!form.title.trim()) return
+    setSaving(true)
+    await onSave(task?.id ?? null, { ...form, xp: Number(form.xp), section_id: sectionId })
+    setSaving(false)
+    onClose()
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      style={{ background: 'rgba(10,14,26,0.6)' }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        className="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 space-y-4"
+        style={{ background: '#FAF3E0', border: '1px solid rgba(139,111,71,0.3)', maxHeight: '90vh', overflowY: 'auto' }}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-sm italic font-semibold text-ghibli-ink">
+            {task ? 'Edit Task' : 'Add Task'}
+            {task?.is_custom && (
+              <span className="ml-2 text-ghibli-gold text-base">✱</span>
+            )}
+          </h3>
+          <button onClick={onClose} className="text-ghibli-mist hover:text-ghibli-ink text-lg leading-none">×</button>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className="block text-[10px] font-sans font-semibold uppercase tracking-wider text-ghibli-mist mb-1">Title</label>
+            <textarea
+              value={form.title}
+              onChange={e => setField('title', e.target.value)}
+              rows={2}
+              className="w-full rounded-lg px-3 py-2 text-sm font-sans resize-none focus:outline-none"
+              style={{ background: '#FDF8F0', border: '1px solid rgba(139,111,71,0.3)', color: '#2C2416' }}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-sans font-semibold uppercase tracking-wider text-ghibli-mist mb-1">Skill</label>
+              <select
+                value={form.skill_type}
+                onChange={e => setField('skill_type', e.target.value)}
+                className="w-full rounded-lg px-2 py-2 text-xs font-sans focus:outline-none"
+                style={{ background: '#FDF8F0', border: '1px solid rgba(139,111,71,0.3)', color: '#2C2416' }}
+              >
+                {SKILL_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-sans font-semibold uppercase tracking-wider text-ghibli-mist mb-1">Frequency</label>
+              <select
+                value={form.frequency}
+                onChange={e => setField('frequency', e.target.value)}
+                className="w-full rounded-lg px-2 py-2 text-xs font-sans focus:outline-none"
+                style={{ background: '#FDF8F0', border: '1px solid rgba(139,111,71,0.3)', color: '#2C2416' }}
+              >
+                {FREQ_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-sans font-semibold uppercase tracking-wider text-ghibli-mist mb-1">XP</label>
+              <input
+                type="number"
+                value={form.xp}
+                min={1}
+                onChange={e => setField('xp', e.target.value)}
+                className="w-full rounded-lg px-3 py-2 text-sm font-sans focus:outline-none"
+                style={{ background: '#FDF8F0', border: '1px solid rgba(139,111,71,0.3)', color: '#2C2416' }}
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-sans font-semibold uppercase tracking-wider text-ghibli-mist mb-1">Month</label>
+              <select
+                value={form.month_number}
+                onChange={e => setField('month_number', Number(e.target.value))}
+                className="w-full rounded-lg px-2 py-2 text-xs font-sans focus:outline-none"
+                style={{ background: '#FDF8F0', border: '1px solid rgba(139,111,71,0.3)', color: '#2C2416' }}
+              >
+                {[1,2,3,4,5,6].map(m => <option key={m} value={m}>Month {m}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-1">
+          <button
+            onClick={handleSave}
+            disabled={saving || !form.title.trim()}
+            className="flex-1 py-2 rounded-lg text-sm font-sans font-semibold transition-opacity"
+            style={{ background: '#4A7C59', color: '#fff', opacity: saving ? 0.6 : 1 }}
+          >
+            {saving ? 'Saving…' : task ? 'Save Changes' : 'Add Task'}
+          </button>
+          {task && onDelete && (
+            <button
+              onClick={() => { onDelete(task.id); onClose() }}
+              className="px-4 py-2 rounded-lg text-sm font-sans font-semibold"
+              style={{ background: 'rgba(229,62,62,0.12)', color: '#C53030', border: '1px solid rgba(229,62,62,0.3)' }}
+            >
+              Hide
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StudioSectionCard({ section, onEditTask, onAddTask, onDeleteTask }) {
+  const [open, setOpen] = useState(true)
+  const accentColor = SKILL_COLORS[section.skillType] ?? '#8B6F47'
+
+  return (
+    <div
+      className="overflow-hidden"
+      style={{
+        borderRadius: '10px',
+        border: '1px solid rgba(139,111,71,0.2)',
+        borderLeft: `3px solid ${accentColor}`,
+        background: '#FAF3E0',
+      }}
+    >
+      <button
+        className="w-full flex items-center gap-3 px-4 py-3 cursor-pointer"
+        style={{ background: open ? 'rgba(232,213,163,0.25)' : 'transparent' }}
+        onClick={() => setOpen(o => !o)}
+      >
+        <span
+          className="flex-1 text-left uppercase tracking-wider"
+          style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', fontWeight: 600, color: accentColor }}
+        >
+          {section.title}
+        </span>
+        <span className="text-xs font-sans text-ghibli-mist">{section.tasks.length}</span>
+        <svg
+          className={`w-3.5 h-3.5 transition-transform duration-200 ml-1 ${open ? 'rotate-180' : ''}`}
+          style={{ color: '#6B7F6E' }}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="px-1 pb-2">
+          {section.tasks.map(task => (
+            <div
+              key={task.id}
+              className="flex items-center gap-2 px-3 py-2 border-t border-ghibli-earth/15 group"
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{ background: SKILL_COLORS[task.skill_type] ?? '#8B6F47' }}
+              />
+              <span
+                className="flex-1 text-xs font-sans leading-snug"
+                style={{ color: task.completed ? 'rgba(107,127,110,0.5)' : 'rgba(44,36,22,0.85)' }}
+              >
+                {task.title}
+                {task.is_custom && <span className="ml-1 text-ghibli-gold text-xs">✱</span>}
+              </span>
+              <span className="text-[10px] font-sans" style={{ color: '#4A7C59' }}>+{task.xp}</span>
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => onEditTask(task, section.id)}
+                  className="p-1 rounded hover:bg-ghibli-earth/20 transition-colors"
+                  title="Edit task"
+                >
+                  <svg className="w-3 h-3 text-ghibli-mist" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => onDeleteTask(task.id)}
+                  className="p-1 rounded hover:bg-red-100 transition-colors"
+                  title="Hide task"
+                >
+                  <svg className="w-3 h-3 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <button
+            onClick={() => onAddTask(section.id)}
+            className="w-full flex items-center gap-2 px-3 py-2 mt-1 rounded-lg text-xs font-sans transition-colors hover:bg-ghibli-earth/10"
+            style={{ color: '#6B7F6E', border: '1px dashed rgba(139,111,71,0.3)' }}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Add task
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PlanStudioView({ currentMonth }) {
+  const {
+    studioData, pace, loading, error,
+    fetchStudioMonth, updateTask, createTask, deleteTask,
+  } = usePlanStudio()
+
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth ?? 1)
+  const [editTarget, setEditTarget] = useState(null) // { task, sectionId } | null
+  const [addTarget, setAddTarget] = useState(null)   // sectionId | null
+
+  useEffect(() => {
+    fetchStudioMonth(selectedMonth)
+  }, [selectedMonth, fetchStudioMonth])
+
+  const refreshData = useCallback(() => {
+    fetchStudioMonth(selectedMonth)
+  }, [fetchStudioMonth, selectedMonth])
+
+  async function handleSaveTask(taskId, formData) {
+    if (taskId) {
+      await updateTask(taskId, {
+        title: formData.title,
+        skill_type: formData.skill_type,
+        frequency: formData.frequency,
+        xp: formData.xp,
+        month_number: formData.month_number,
+      })
+    } else {
+      await createTask({
+        title: formData.title,
+        skill_type: formData.skill_type,
+        frequency: formData.frequency,
+        xp: formData.xp,
+        month_number: formData.month_number,
+        section_id: formData.section_id,
+      })
+    }
+    await refreshData()
+  }
+
+  async function handleDeleteTask(taskId) {
+    if (!confirm('Hide this task? Your completion history is preserved.')) return
+    await deleteTask(taskId)
+    await refreshData()
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="w-7 h-7 rounded-full border-2 border-ghibli-forest/20 border-t-ghibli-forest animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return <p className="text-center text-xs text-red-400 py-8">{error}</p>
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Pace widget at top of Studio */}
+      <PaceWidget pace={pace} />
+
+      {/* Month selector */}
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-sans font-semibold text-ghibli-mist uppercase tracking-wider">Month</span>
+        <div className="flex gap-1.5 flex-wrap">
+          {[1,2,3,4,5,6].map(m => (
+            <button
+              key={m}
+              onClick={() => setSelectedMonth(m)}
+              className="w-8 h-8 rounded-lg text-xs font-sans font-semibold transition-all"
+              style={{
+                background: selectedMonth === m ? '#4A7C59' : 'rgba(139,111,71,0.12)',
+                color: selectedMonth === m ? '#fff' : '#6B7F6E',
+                border: selectedMonth === m ? 'none' : '1px solid rgba(139,111,71,0.2)',
+              }}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {studioData && (
+        <>
+          {/* Subtitle */}
+          {studioData.subtitle && (
+            <p className="text-xs text-ghibli-mist font-sans leading-relaxed">{studioData.subtitle}</p>
+          )}
+
+          {/* Task sections */}
+          <div className="space-y-3">
+            {studioData.sections.map(section => (
+              <StudioSectionCard
+                key={section.id}
+                section={section}
+                onEditTask={(task, sectionId) => setEditTarget({ task, sectionId })}
+                onAddTask={(sectionId) => setAddTarget(sectionId)}
+                onDeleteTask={handleDeleteTask}
+              />
+            ))}
+          </div>
+
+          {/* Checkpoints */}
+          {studioData.checkpoints.length > 0 && (
+            <div className="overflow-hidden" style={{ borderRadius: '10px', border: '1px solid rgba(212,168,67,0.3)', background: '#FDF8F0' }}>
+              <div className="px-4 py-3 border-b border-ghibli-earth/20 flex items-center gap-2">
+                <span className="text-sm">⛩️</span>
+                <span className="text-xs font-sans font-semibold uppercase tracking-wider text-ghibli-mist">Checkpoints</span>
+              </div>
+              <div className="px-2 py-1">
+                {studioData.checkpoints.map(cp => (
+                  <div key={cp.id} className="flex items-center gap-3 px-2 py-2 border-b border-ghibli-earth/10 last:border-0">
+                    <span className={`flex-1 text-xs font-sans ${cp.completed ? 'line-through text-ghibli-mist/50' : 'text-ghibli-ink'}`}>
+                      {cp.title}
+                      {cp.is_custom && <span className="ml-1 text-ghibli-gold">✱</span>}
+                    </span>
+                    <span className="font-vt text-sm text-ghibli-gold">+{cp.xp_reward}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Habits */}
+          {studioData.habits.length > 0 && (
+            <div className="overflow-hidden" style={{ borderRadius: '10px', border: '1px solid rgba(139,189,217,0.4)', background: '#F0F7FB' }}>
+              <div className="px-4 py-3 border-b border-ghibli-earth/20 flex items-center gap-2">
+                <span className="text-sm">🌱</span>
+                <span className="text-xs font-sans font-semibold uppercase tracking-wider text-ghibli-mist">Daily Habits</span>
+              </div>
+              <div className="px-2 py-1">
+                {studioData.habits.map(h => (
+                  <div key={h.id} className="flex items-center gap-3 px-2 py-2 border-b border-ghibli-earth/10 last:border-0">
+                    <span className="flex-1 text-xs font-sans text-ghibli-ink">
+                      {h.title}
+                      {h.is_custom && <span className="ml-1 text-ghibli-gold">✱</span>}
+                    </span>
+                    <span className="text-[10px] font-sans text-ghibli-mist">+{h.xp_per_completion} XP</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Edit/Add Modal */}
+      {(editTarget || addTarget !== null) && (
+        <EditTaskModal
+          task={editTarget?.task ?? null}
+          sectionId={editTarget?.sectionId ?? addTarget}
+          monthNumber={selectedMonth}
+          onSave={handleSaveTask}
+          onClose={() => { setEditTarget(null); setAddTarget(null) }}
+          onDelete={editTarget ? handleDeleteTask : null}
+        />
+      )}
+    </div>
+  )
+}
+
 // ── PlanPage ───────────────────────────────────────────────────────────────────
+
+const TABS = [
+  { key: 'roadmap', label: 'Roadmap' },
+  { key: 'weekly',  label: 'Weekly' },
+  { key: 'studio',  label: 'Studio ✏️' },
+]
 
 export default function PlanPage() {
   const {
@@ -696,8 +1245,14 @@ export default function PlanPage() {
     loading, error, toggleTask, completeCheckpoint,
   } = usePlanData()
 
+  const [searchParams, setSearchParams] = useSearchParams()
   const location = useLocation()
   const meta = MONTH_META[currentMonth]
+  const activeTab = searchParams.get('view') ?? 'roadmap'
+
+  function setTab(key) {
+    setSearchParams({ view: key }, { replace: true })
+  }
 
   // Scroll to hash anchor after data loads (e.g. navigated from /stats)
   useEffect(() => {
@@ -707,7 +1262,7 @@ export default function PlanPage() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [loading, location.hash])
 
-  if (loading) {
+  if (loading && activeTab !== 'studio') {
     return (
       <div className="flex flex-col items-center justify-center gap-4 pb-16" style={{ minHeight: '100%' }}>
         <div className="relative w-10 h-10">
@@ -721,7 +1276,7 @@ export default function PlanPage() {
     )
   }
 
-  if (error) {
+  if (error && activeTab !== 'studio') {
     return (
       <div className="flex flex-col items-center justify-center gap-3 p-8 text-center pb-16" style={{ minHeight: '100%' }}>
         <span className="font-display text-sm italic text-red-400">Error</span>
@@ -732,7 +1287,7 @@ export default function PlanPage() {
 
   return (
     <div>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-8 space-y-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-8 space-y-6">
 
         {/* ── Page header ─────────────────────────────────────────────────── */}
         <div>
@@ -746,64 +1301,96 @@ export default function PlanPage() {
           )}
         </div>
 
-        {/* ── Chapter scroll row ───────────────────────────────────────────── */}
-        <section>
-          <div className="font-display text-xs italic text-ghibli-mist/70 mb-3">
-            Quest Chapters
-          </div>
-          <ChapterScrollRow currentMonth={currentMonth} progress={progress} />
-        </section>
-
-        {/* ── Month sections ───────────────────────────────────────────────── */}
-        <div className="space-y-4">
-          {/* Current month first */}
-          <MonthSection
-            key={currentMonth}
-            n={currentMonth}
-            monthData={monthsData[currentMonth] ?? null}
-            meta={MONTH_META[currentMonth]}
-            monthProgress={progress?.months?.find(m => m.month_number === currentMonth)}
-            isCurrent={true}
-            recentCompletions={recentCompletions}
-            onToggle={toggleTask}
-            onCompleteCheckpoint={completeCheckpoint}
-          />
-
-          {/* Previous months, collapsed by default */}
-          {Array.from({ length: currentMonth - 1 }, (_, i) => currentMonth - 1 - i).map(n => (
-            <MonthSection
-              key={n}
-              n={n}
-              monthData={monthsData[n] ?? null}
-              meta={MONTH_META[n]}
-              monthProgress={progress?.months?.find(m => m.month_number === n)}
-              isCurrent={false}
-              recentCompletions={recentCompletions}
-              onToggle={toggleTask}
-              onCompleteCheckpoint={completeCheckpoint}
-            />
+        {/* ── Tab switcher ─────────────────────────────────────────────────── */}
+        <div
+          className="flex gap-1 p-1 rounded-xl"
+          style={{ background: 'rgba(139,111,71,0.12)', border: '1px solid rgba(139,111,71,0.15)' }}
+        >
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setTab(tab.key)}
+              className="flex-1 py-2 rounded-lg text-xs font-sans font-semibold transition-all"
+              style={{
+                background: activeTab === tab.key ? '#FAF3E0' : 'transparent',
+                color: activeTab === tab.key ? '#2C2416' : '#6B7F6E',
+                boxShadow: activeTab === tab.key ? '0 1px 3px rgba(139,111,71,0.15)' : 'none',
+              }}
+            >
+              {tab.label}
+            </button>
           ))}
-
-          {/* Locked months (greyed out, not expandable) */}
-          {Array.from({ length: 6 - currentMonth }, (_, i) => currentMonth + 1 + i).map(n => {
-            const lmeta = MONTH_META[n]
-            return (
-              <div
-                key={n}
-                className="flex items-center gap-4 px-5 py-4 rounded-xl border border-ghibli-earth/20 bg-ghibli-sand/30 opacity-40 select-none"
-              >
-                <span className="text-2xl leading-none">{lmeta.icon}</span>
-                <div>
-                  <span className="font-display text-xs italic text-ghibli-mist/60">Month {n}</span>
-                  <p className="font-display text-xs italic text-ghibli-mist/60 mt-0.5">{lmeta.title}</p>
-                </div>
-                <svg className="ml-auto w-4 h-4 text-ghibli-earth/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                </svg>
-              </div>
-            )
-          })}
         </div>
+
+        {/* ── Tab content ──────────────────────────────────────────────────── */}
+
+        {activeTab === 'roadmap' && (
+          <div className="space-y-6">
+            {/* Chapter scroll row */}
+            <section>
+              <div className="font-display text-xs italic text-ghibli-mist/70 mb-3">Quest Chapters</div>
+              <ChapterScrollRow currentMonth={currentMonth} progress={progress} />
+            </section>
+
+            {/* Month sections */}
+            <div className="space-y-4">
+              <MonthSection
+                key={currentMonth}
+                n={currentMonth}
+                monthData={monthsData[currentMonth] ?? null}
+                meta={MONTH_META[currentMonth]}
+                monthProgress={progress?.months?.find(m => m.month_number === currentMonth)}
+                isCurrent={true}
+                recentCompletions={recentCompletions}
+                onToggle={toggleTask}
+                onCompleteCheckpoint={completeCheckpoint}
+              />
+
+              {Array.from({ length: currentMonth - 1 }, (_, i) => currentMonth - 1 - i).map(n => (
+                <MonthSection
+                  key={n}
+                  n={n}
+                  monthData={monthsData[n] ?? null}
+                  meta={MONTH_META[n]}
+                  monthProgress={progress?.months?.find(m => m.month_number === n)}
+                  isCurrent={false}
+                  recentCompletions={recentCompletions}
+                  onToggle={toggleTask}
+                  onCompleteCheckpoint={completeCheckpoint}
+                />
+              ))}
+
+              {Array.from({ length: 6 - currentMonth }, (_, i) => currentMonth + 1 + i).map(n => {
+                const lmeta = MONTH_META[n]
+                return (
+                  <div
+                    key={n}
+                    className="flex items-center gap-4 px-5 py-4 rounded-xl border border-ghibli-earth/20 bg-ghibli-sand/30 opacity-40 select-none"
+                  >
+                    <span className="text-2xl leading-none">{lmeta.icon}</span>
+                    <div>
+                      <span className="font-display text-xs italic text-ghibli-mist/60">Month {n}</span>
+                      <p className="font-display text-xs italic text-ghibli-mist/60 mt-0.5">{lmeta.title}</p>
+                    </div>
+                    <svg className="ml-auto w-4 h-4 text-ghibli-earth/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'weekly' && (
+          <div className="space-y-4">
+            <PlanWeekView />
+          </div>
+        )}
+
+        {activeTab === 'studio' && (
+          <PlanStudioView currentMonth={currentMonth} />
+        )}
       </div>
 
       <div className="h-20" />

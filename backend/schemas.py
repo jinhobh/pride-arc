@@ -157,3 +157,100 @@ class StreakStatusResponse(BaseModel):
     longest: int
     checked_in_today: bool
     days_missed: int
+
+
+# ── Plan Studio schemas ───────────────────────────────────────────────────────
+
+class PlanTaskOut(BaseModel):
+    task_id: str
+    title: str
+    skill_type: str
+    frequency: str
+    xp: int
+    month_number: int
+    sort_order: int
+    is_active: bool
+    is_custom: bool
+
+    model_config = {"from_attributes": True}
+
+
+class PlanTaskCreate(BaseModel):
+    title: str
+    skill_type: str
+    frequency: str
+    xp: int
+    month_number: int
+    section_id: str | None = None
+
+
+class PlanTaskUpdate(BaseModel):
+    title: str | None = None
+    skill_type: str | None = None
+    frequency: str | None = None
+    xp: int | None = None
+    month_number: int | None = None
+
+
+class PlanCheckpointOut(BaseModel):
+    checkpoint_id: str
+    title: str
+    skill_type: str
+    xp_reward: int
+    month_number: int
+    sort_order: int
+    is_active: bool
+    is_custom: bool
+
+    model_config = {"from_attributes": True}
+
+
+class PlanCheckpointCreate(BaseModel):
+    title: str
+    skill_type: str
+    xp_reward: int
+    month_number: int
+
+
+class PlanCheckpointUpdate(BaseModel):
+    title: str | None = None
+    skill_type: str | None = None
+    xp_reward: int | None = None
+    month_number: int | None = None
+
+
+class PlanHabitOut(BaseModel):
+    habit_id: str
+    title: str
+    skill_type: str
+    xp_per_completion: int
+    starts_at_month: int | None
+    sort_order: int
+    is_active: bool
+    is_custom: bool
+
+    model_config = {"from_attributes": True}
+
+
+class PlanHabitCreate(BaseModel):
+    title: str
+    skill_type: str
+    xp_per_completion: int
+    starts_at_month: int | None = None
+
+
+class PlanHabitUpdate(BaseModel):
+    title: str | None = None
+    skill_type: str | None = None
+    xp_per_completion: int | None = None
+    starts_at_month: int | None = None
+
+
+class PaceResponse(BaseModel):
+    arc_day: int
+    arc_total_days: int
+    expected_xp_today: int
+    earned_xp: int
+    delta_xp: int
+    status: str  # "On Track" | "Behind" | "Ahead"
+    total_arc_xp: int

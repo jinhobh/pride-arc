@@ -3,13 +3,14 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from models import Badge, CheckpointCompletion, HabitLog, StatLevel, TaskCompletion, UserState
+from models import Badge, CheckpointCompletion, HabitLog, PlanCheckpoint, PlanHabit, PlanSection, PlanSectionTask, PlanTask, StatLevel, TaskCompletion, UserState
 from plan_data import (
     CHAPTER_REWARDS,
     CHECKPOINTS,
     CHECKPOINTS_BY_MONTH,
     HABITS,
     INITIAL_STATS,
+    MONTH_SECTIONS,
     TASKS,
     calc_char_level,
     calc_skill_level,
@@ -177,15 +178,128 @@ async def seed_stat_levels(db: AsyncSession) -> list[StatLevel]:
     return rows
 
 
+async def seed_plan_data(db: AsyncSession) -> None:
+    """Seed plan_tasks, plan_checkpoints, plan_habits, plan_sections, plan_section_tasks.
+    Uses ON CONFLICT DO NOTHING so edits made via Studio are never overwritten."""
+
+    # Tasks
+    for i, (task_id, task) in enumerate(TASKS.items()):
+        stmt = (
+            pg_insert(PlanTask)
+            .values(
+                task_id=task["id"],
+                title=task["title"],
+                skill_type=task["skill_type"],
+                frequency=task["frequency"],
+                xp=task["xp"],
+                month_number=task["month_number"],
+                sort_order=i,
+                is_active=True,
+                is_custom=False,
+            )
+            .on_conflict_do_nothing(index_elements=["task_id"])
+        )
+        await db.execute(stmt)
+
+    # Checkpoints
+    for i, (cp_id, cp) in enumerate(CHECKPOINTS.items()):
+        stmt = (
+            pg_insert(PlanCheckpoint)
+            .values(
+                checkpoint_id=cp["id"],
+                title=cp["title"],
+                skill_type=cp["skill_type"],
+                xp_reward=cp["xp_reward"],
+                month_number=cp["month_number"],
+                sort_order=i,
+                is_active=True,
+                is_custom=False,
+            )
+            .on_conflict_do_nothing(index_elements=["checkpoint_id"])
+        )
+        await db.execute(stmt)
+
+    # Habits
+    for i, (habit_id, habit) in enumerate(HABITS.items()):
+        stmt = (
+            pg_insert(PlanHabit)
+            .values(
+                habit_id=habit["id"],
+                title=habit["title"],
+                skill_type=habit["skill_type"],
+                xp_per_completion=habit["xp_per_completion"],
+                starts_at_month=habit.get("starts_at_month"),
+                sort_order=i,
+                is_active=True,
+                is_custom=False,
+            )
+            .on_conflict_do_nothing(index_elements=["habit_id"])
+        )
+        await db.execute(stmt)
+
+    # Sections + section-task join rows
+    task_counter = 0
+    for month_num, sections in MONTH_SECTIONS.items():
+        for s_idx, section_def in enumerate(sections):
+            stmt = (
+                pg_insert(PlanSection)
+                .values(
+                    section_id=section_def["id"],
+                    title=section_def["title"],
+                    skill_type=section_def["skill_type"],
+                    month_number=month_num,
+                    sort_order=s_idx,
+                )
+                .on_conflict_do_nothing(index_elements=["section_id"])
+            )
+            await db.execute(stmt)
+
+            for t_idx, task_id in enumerate(section_def["task_ids"]):
+                # Use a composite unique check: if (section_id, task_id) not already there
+                existing = await db.execute(
+                    select(PlanSectionTask).where(
+                        PlanSectionTask.section_id == section_def["id"],
+                        PlanSectionTask.task_id == task_id,
+                    )
+                )
+                if not existing.scalar_one_or_none():
+                    db.add(PlanSectionTask(
+                        section_id=section_def["id"],
+                        task_id=task_id,
+                        sort_order=t_idx,
+                    ))
+            task_counter += 1
+
+    await db.commit()
+
+
+async def resolve_custom_task(db: AsyncSession, task_id: str) -> dict | None:
+    """Look up a task from the DB plan_tasks table (for custom tasks not in plan_data.py)."""
+    result = await db.execute(
+        select(PlanTask).where(PlanTask.task_id == task_id, PlanTask.is_active == True)  # noqa: E712
+    )
+    row = result.scalar_one_or_none()
+    if row:
+        return {
+            "id": row.task_id,
+            "title": row.title,
+            "skill_type": row.skill_type,
+            "frequency": row.frequency,
+            "xp": row.xp,
+            "month_number": row.month_number,
+        }
+    return None
+
+
 # ── Task operations ───────────────────────────────────────────────────────────
 
 async def complete_task(
-    db: AsyncSession, task_id: str
+    db: AsyncSession, task_id: str, task_data: dict | None = None
 ) -> tuple[int, StatLevelOut, int, int, bool, BadgeOut | None]:
     """
     Returns: (xp_awarded, stat_out, new_total_xp, new_char_level, chapter_unlocked, chapter_badge)
     """
-    task = TASKS[task_id]
+    task = task_data or TASKS[task_id]
     xp = task["xp"]
 
     db.add(TaskCompletion(task_id=task_id))
@@ -205,13 +319,13 @@ async def complete_task(
 
 
 async def uncomplete_task(
-    db: AsyncSession, task_id: str
+    db: AsyncSession, task_id: str, task_data: dict | None = None
 ) -> tuple[int, StatLevelOut, int, int]:
     """
     Deletes the most recent TaskCompletion for task_id, reverses XP.
     Returns: (xp_revoked, stat_out, new_total_xp, new_char_level)
     """
-    task = TASKS[task_id]
+    task = task_data or TASKS[task_id]
     xp = task["xp"]
 
     # Delete most recent completion

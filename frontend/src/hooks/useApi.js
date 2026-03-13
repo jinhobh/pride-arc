@@ -198,3 +198,113 @@ export function useMonthData() {
     refetch: fetchAll,
   }
 }
+
+export function usePlanStudio() {
+  const [studioData, setStudioData] = useState(null)
+  const [pace, setPace] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchStudioMonth = useCallback(async (month) => {
+    setLoading(true)
+    try {
+      const [studioRes, paceRes] = await Promise.all([
+        fetch(`${BASE}/plan/studio/${month}`),
+        fetch(`${BASE}/plan/pace`),
+      ])
+      const [data, paceData] = await Promise.all([
+        studioRes.ok ? studioRes.json() : null,
+        paceRes.ok ? paceRes.json() : null,
+      ])
+      setStudioData(data)
+      setPace(paceData)
+      setError(null)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const updateTask = useCallback(async (taskId, updates) => {
+    const res = await fetch(`${BASE}/plan/task/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+    return res.ok ? res.json() : null
+  }, [])
+
+  const createTask = useCallback(async (data) => {
+    const res = await fetch(`${BASE}/plan/task`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return res.ok ? res.json() : null
+  }, [])
+
+  const deleteTask = useCallback(async (taskId) => {
+    const res = await fetch(`${BASE}/plan/task/${taskId}`, { method: 'DELETE' })
+    return res.ok ? res.json() : null
+  }, [])
+
+  const restoreTask = useCallback(async (taskId) => {
+    const res = await fetch(`${BASE}/plan/task/${taskId}/restore`, { method: 'POST' })
+    return res.ok ? res.json() : null
+  }, [])
+
+  const updateCheckpoint = useCallback(async (cpId, updates) => {
+    const res = await fetch(`${BASE}/plan/checkpoint/${cpId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+    return res.ok ? res.json() : null
+  }, [])
+
+  const createCheckpoint = useCallback(async (data) => {
+    const res = await fetch(`${BASE}/plan/checkpoint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return res.ok ? res.json() : null
+  }, [])
+
+  const deleteCheckpoint = useCallback(async (cpId) => {
+    const res = await fetch(`${BASE}/plan/checkpoint/${cpId}`, { method: 'DELETE' })
+    return res.ok ? res.json() : null
+  }, [])
+
+  const updateHabit = useCallback(async (habitId, updates) => {
+    const res = await fetch(`${BASE}/plan/habit/${habitId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+    return res.ok ? res.json() : null
+  }, [])
+
+  const createHabit = useCallback(async (data) => {
+    const res = await fetch(`${BASE}/plan/habit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return res.ok ? res.json() : null
+  }, [])
+
+  const deleteHabit = useCallback(async (habitId) => {
+    const res = await fetch(`${BASE}/plan/habit/${habitId}`, { method: 'DELETE' })
+    return res.ok ? res.json() : null
+  }, [])
+
+  return {
+    studioData, pace, loading, error,
+    fetchStudioMonth,
+    updateTask, createTask, deleteTask, restoreTask,
+    updateCheckpoint, createCheckpoint, deleteCheckpoint,
+    updateHabit, createHabit, deleteHabit,
+  }
+}

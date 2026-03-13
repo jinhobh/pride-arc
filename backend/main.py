@@ -8,10 +8,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import crud
 from database import AsyncSessionLocal, Base, engine, get_db
-from models import CheckpointCompletion, HabitLog, TaskCompletion  # noqa: F401 — ensure models are imported so Base sees them
+from models import CheckpointCompletion, HabitLog, PlanCheckpoint, PlanHabit, PlanSection, PlanSectionTask, PlanTask, TaskCompletion  # noqa: F401 — ensure models are imported so Base sees them
 from sqlalchemy import select
-from plan_data import CHECKPOINTS, HABITS, TASKS
+from plan_data import CHECKPOINTS, HABITS, MONTH_SUBTITLES, TASKS
 from schemas import (
+    PaceResponse,
+    PlanCheckpointCreate,
+    PlanCheckpointOut,
+    PlanCheckpointUpdate,
+    PlanHabitCreate,
+    PlanHabitOut,
+    PlanHabitUpdate,
+    PlanTaskCreate,
+    PlanTaskOut,
+    PlanTaskUpdate,
     ActivityDay,
     CheckinResponse,
     CheckpointCompleteRequest,
@@ -52,6 +62,10 @@ async def lifespan(app: FastAPI):
             await crud.create_initial_state(db)
             await crud.seed_stat_levels(db)
             await db.commit()
+
+    # Seed plan data into DB tables (idempotent — on_conflict_do_nothing)
+    async with AsyncSessionLocal() as db:
+        await crud.seed_plan_data(db)
 
     yield
 
@@ -132,7 +146,7 @@ async def get_state(db: AsyncSession = Depends(get_db)):
 
 @app.post("/task/complete", response_model=TaskCompleteResponse)
 async def complete_task(body: TaskCompleteRequest, db: AsyncSession = Depends(get_db)):
-    task = TASKS.get(body.task_id)
+    task = TASKS.get(body.task_id) or await crud.resolve_custom_task(db, body.task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task '{body.task_id}' not found")
 
@@ -146,7 +160,7 @@ async def complete_task(body: TaskCompleteRequest, db: AsyncSession = Depends(ge
             )
 
     xp, stat, total_xp, char_level, chapter_unlocked, chapter_badge = await crud.complete_task(
-        db, body.task_id
+        db, body.task_id, task_data=task
     )
     return TaskCompleteResponse(
         xp_awarded=xp,
@@ -160,7 +174,7 @@ async def complete_task(body: TaskCompleteRequest, db: AsyncSession = Depends(ge
 
 @app.post("/task/uncomplete", response_model=TaskUncompleteResponse)
 async def uncomplete_task(body: TaskCompleteRequest, db: AsyncSession = Depends(get_db)):
-    task = TASKS.get(body.task_id)
+    task = TASKS.get(body.task_id) or await crud.resolve_custom_task(db, body.task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task '{body.task_id}' not found")
 
@@ -171,7 +185,7 @@ async def uncomplete_task(body: TaskCompleteRequest, db: AsyncSession = Depends(
             detail=f"Task '{body.task_id}' has not been completed",
         )
 
-    xp, stat, total_xp, char_level = await crud.uncomplete_task(db, body.task_id)
+    xp, stat, total_xp, char_level = await crud.uncomplete_task(db, body.task_id, task_data=task)
     return TaskUncompleteResponse(
         xp_revoked=xp,
         new_total_xp=total_xp,
@@ -393,6 +407,457 @@ async def get_month_plan(n: int, db: AsyncSession = Depends(get_db)):
         "checkpoints": checkpoints,
         "chapterReward": chapter_reward,
     }
+
+
+# ── Plan Pace ─────────────────────────────────────────────────────────────────
+
+@app.get("/plan/pace", response_model=PaceResponse)
+async def get_plan_pace(db: AsyncSession = Depends(get_db)):
+    """Return on-track pace metrics for the 6-month arc."""
+    state = await crud.get_user_state(db)
+    today = datetime.date.today()
+    created = state.created_at.date() if state and state.created_at else today
+    arc_day = max(1, (today - created).days + 1)
+    arc_total_days = 180
+
+    # Calculate total possible XP across the entire arc
+    total_arc_xp = 0
+    for m in range(1, 7):
+        monthly_tasks = [t for t in TASKS.values() if t["month_number"] == m]
+        once_xp = sum(t["xp"] for t in monthly_tasks if t["frequency"] == "once")
+        daily_xp = sum(t["xp"] for t in monthly_tasks if t["frequency"] == "daily") * 30
+        weekly_xp = sum(t["xp"] for t in monthly_tasks if t["frequency"] == "weekly") * 4
+        cp_xp = sum(c["xp_reward"] for c in CHECKPOINTS.values() if c["month_number"] == m)
+        total_arc_xp += once_xp + daily_xp + weekly_xp + cp_xp
+
+    expected_xp_today = round((arc_day / arc_total_days) * total_arc_xp)
+    earned_xp = state.total_xp if state else 0
+    delta_xp = earned_xp - expected_xp_today
+
+    if delta_xp >= 50:
+        status_label = "Ahead"
+    elif delta_xp <= -50:
+        status_label = "Behind"
+    else:
+        status_label = "On Track"
+
+    return PaceResponse(
+        arc_day=arc_day,
+        arc_total_days=arc_total_days,
+        expected_xp_today=expected_xp_today,
+        earned_xp=earned_xp,
+        delta_xp=delta_xp,
+        status=status_label,
+        total_arc_xp=total_arc_xp,
+    )
+
+
+# ── Plan Roadmap ───────────────────────────────────────────────────────────────
+
+@app.get("/plan/roadmap")
+async def get_plan_roadmap(db: AsyncSession = Depends(get_db)):
+    """6-month arc overview with XP totals and completion percentages."""
+    from plan_data import CHAPTER_REWARDS, MONTH_SUBTITLES
+    completed_ids = set(await crud.get_completed_task_ids(db))
+    completed_cps = set(await crud.get_completed_checkpoint_ids(db))
+    state = await crud.get_user_state(db)
+    current_month = state.current_month if state else 1
+
+    months = []
+    for n in range(1, 7):
+        month_tasks = [t for t in TASKS.values() if t["month_number"] == n]
+        month_cps = [c for c in CHECKPOINTS.values() if c["month_number"] == n]
+        once_tasks = [t for t in month_tasks if t["frequency"] == "once"]
+
+        total_xp = (
+            sum(t["xp"] for t in once_tasks)
+            + sum(c["xp_reward"] for c in month_cps)
+        )
+        earned_xp = (
+            sum(t["xp"] for t in once_tasks if t["id"] in completed_ids)
+            + sum(c["xp_reward"] for c in month_cps if c["id"] in completed_cps)
+        )
+        done_items = (
+            sum(1 for t in once_tasks if t["id"] in completed_ids)
+            + sum(1 for c in month_cps if c["id"] in completed_cps)
+        )
+        total_items = len(once_tasks) + len(month_cps)
+        pct = round(done_items / total_items * 100, 1) if total_items else 0.0
+
+        skills = list(set(t["skill_type"] for t in month_tasks))
+        reward = CHAPTER_REWARDS.get(n, {})
+
+        months.append({
+            "month_number": n,
+            "subtitle": MONTH_SUBTITLES.get(n, ""),
+            "completion_pct": pct,
+            "earned_xp": earned_xp,
+            "total_xp": total_xp,
+            "skills": skills,
+            "is_locked": n > current_month,
+            "is_current": n == current_month,
+            "chapter_reward": {
+                "badge_id": reward.get("badge_id", ""),
+                "title": reward.get("title", ""),
+                "icon": reward.get("icon", ""),
+                "xp_bonus": reward.get("xp_bonus", 0),
+            },
+        })
+
+    return {"months": months}
+
+
+# ── Plan Weekly View ───────────────────────────────────────────────────────────
+
+@app.get("/plan/week")
+async def get_plan_week(db: AsyncSession = Depends(get_db)):
+    """This week's tasks grouped by day (Mon–Sun), with completion state."""
+    state = await crud.get_user_state(db)
+    current_month = state.current_month if state else 1
+    completed_ids = set(await crud.get_completed_task_ids(db))
+
+    today = datetime.date.today()
+    monday = today - datetime.timedelta(days=today.weekday())
+
+    DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    daily_tasks = [t for t in TASKS.values() if t["month_number"] == current_month and t["frequency"] == "daily"]
+    weekly_tasks = [t for t in TASKS.values() if t["month_number"] == current_month and t["frequency"] == "weekly"]
+
+    days = []
+    for i, day_name in enumerate(DAY_NAMES):
+        day_date = monday + datetime.timedelta(days=i)
+        is_today = day_date == today
+
+        tasks = []
+        for t in daily_tasks:
+            tasks.append({
+                "id": t["id"], "title": t["title"], "skill_type": t["skill_type"],
+                "xp": t["xp"], "frequency": t["frequency"], "completed": t["id"] in completed_ids,
+            })
+        if i == 0:  # weekly tasks shown on Monday
+            for t in weekly_tasks:
+                tasks.append({
+                    "id": t["id"], "title": t["title"], "skill_type": t["skill_type"],
+                    "xp": t["xp"], "frequency": t["frequency"], "completed": t["id"] in completed_ids,
+                })
+
+        days.append({
+            "day": day_name,
+            "date": day_date.isoformat(),
+            "is_today": is_today,
+            "tasks": tasks,
+        })
+
+    return {"week_start": monday.isoformat(), "days": days}
+
+
+# ── Plan Studio — Task CRUD ────────────────────────────────────────────────────
+
+@app.get("/plan/studio/{month_number}")
+async def get_studio_month(month_number: int, db: AsyncSession = Depends(get_db)):
+    """Return editable plan data for Studio view (tasks from DB, with is_custom flag)."""
+    from plan_data import MONTH_SECTIONS, CHAPTER_REWARDS
+    if month_number < 1 or month_number > 6:
+        raise HTTPException(status_code=404, detail=f"Month {month_number} does not exist")
+
+    completed_ids = set(await crud.get_completed_task_ids(db))
+    completed_cps = set(await crud.get_completed_checkpoint_ids(db))
+
+    # Fetch DB tasks for this month (active only)
+    db_tasks_result = await db.execute(
+        select(PlanTask)
+        .where(PlanTask.month_number == month_number, PlanTask.is_active == True)  # noqa: E712
+        .order_by(PlanTask.sort_order)
+    )
+    db_tasks = {t.task_id: t for t in db_tasks_result.scalars().all()}
+
+    # Fetch DB checkpoints for this month
+    db_cps_result = await db.execute(
+        select(PlanCheckpoint)
+        .where(PlanCheckpoint.month_number == month_number, PlanCheckpoint.is_active == True)  # noqa: E712
+        .order_by(PlanCheckpoint.sort_order)
+    )
+    db_cps = {c.checkpoint_id: c for c in db_cps_result.scalars().all()}
+
+    # Build sections using MONTH_SECTIONS as structure
+    sections = []
+    section_task_ids_seen: set[str] = set()
+    for section_def in MONTH_SECTIONS.get(month_number, []):
+        tasks = []
+        for tid in section_def["task_ids"]:
+            db_task = db_tasks.get(tid)
+            if db_task:
+                tasks.append({
+                    "id": db_task.task_id,
+                    "title": db_task.title,
+                    "skill_type": db_task.skill_type,
+                    "frequency": db_task.frequency,
+                    "xp": db_task.xp,
+                    "completed": db_task.task_id in completed_ids,
+                    "is_custom": db_task.is_custom,
+                    "sort_order": db_task.sort_order,
+                })
+                section_task_ids_seen.add(tid)
+        sections.append({
+            "id": section_def["id"],
+            "title": section_def["title"],
+            "skillType": section_def["skill_type"],
+            "tasks": tasks,
+        })
+
+    # Custom tasks not in any section
+    custom_tasks = [
+        {
+            "id": t.task_id, "title": t.title, "skill_type": t.skill_type,
+            "frequency": t.frequency, "xp": t.xp,
+            "completed": t.task_id in completed_ids, "is_custom": t.is_custom,
+            "sort_order": t.sort_order,
+        }
+        for t in db_tasks.values()
+        if t.task_id not in section_task_ids_seen and t.is_custom
+    ]
+    if custom_tasks:
+        sections.append({"id": "custom", "title": "Custom Tasks", "skillType": "project", "tasks": custom_tasks})
+
+    # Checkpoints
+    checkpoints = [
+        {
+            "id": c.checkpoint_id, "title": c.title, "skill_type": c.skill_type,
+            "xp_reward": c.xp_reward, "completed": c.checkpoint_id in completed_cps,
+            "is_custom": c.is_custom,
+        }
+        for c in db_cps.values()
+    ]
+
+    # Habits (all active habits for this month based on starts_at_month)
+    db_habits_result = await db.execute(
+        select(PlanHabit)
+        .where(PlanHabit.is_active == True)  # noqa: E712
+        .order_by(PlanHabit.sort_order)
+    )
+    habits = [
+        {
+            "id": h.habit_id, "title": h.title, "skill_type": h.skill_type,
+            "xp_per_completion": h.xp_per_completion, "starts_at_month": h.starts_at_month,
+            "is_custom": h.is_custom,
+        }
+        for h in db_habits_result.scalars().all()
+        if h.starts_at_month is None or h.starts_at_month <= month_number
+    ]
+
+    reward = CHAPTER_REWARDS.get(month_number, {})
+    return {
+        "monthNumber": month_number,
+        "subtitle": MONTH_SUBTITLES.get(month_number, ""),
+        "sections": sections,
+        "checkpoints": checkpoints,
+        "habits": habits,
+        "chapterReward": {
+            "title": reward.get("title", ""),
+            "icon": reward.get("icon", ""),
+            "xp_bonus": reward.get("xp_bonus", 0),
+        },
+    }
+
+
+@app.patch("/plan/task/{task_id}", response_model=PlanTaskOut)
+async def update_plan_task(task_id: str, body: PlanTaskUpdate, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(PlanTask).where(PlanTask.task_id == task_id))
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found")
+
+    if body.title is not None:
+        task.title = body.title
+    if body.xp is not None:
+        task.xp = body.xp
+    if body.frequency is not None:
+        task.frequency = body.frequency
+    if body.skill_type is not None:
+        task.skill_type = body.skill_type
+    if body.month_number is not None:
+        task.month_number = body.month_number
+    task.is_custom = True
+
+    await db.commit()
+    await db.refresh(task)
+    return PlanTaskOut.model_validate(task)
+
+
+@app.post("/plan/task", response_model=PlanTaskOut)
+async def create_plan_task(body: PlanTaskCreate, db: AsyncSession = Depends(get_db)):
+    import secrets
+    task_id = f"custom_{secrets.token_urlsafe(8)}"
+
+    # Find current max sort_order for this month
+    result = await db.execute(
+        select(PlanTask)
+        .where(PlanTask.month_number == body.month_number)
+        .order_by(PlanTask.sort_order.desc())
+        .limit(1)
+    )
+    last = result.scalar_one_or_none()
+    sort_order = (last.sort_order + 1) if last else 0
+
+    task = PlanTask(
+        task_id=task_id,
+        title=body.title,
+        skill_type=body.skill_type,
+        frequency=body.frequency,
+        xp=body.xp,
+        month_number=body.month_number,
+        sort_order=sort_order,
+        is_active=True,
+        is_custom=True,
+    )
+    db.add(task)
+    await db.commit()
+    await db.refresh(task)
+
+    # If section_id provided, add to section
+    if body.section_id:
+        existing_st = await db.execute(
+            select(PlanSectionTask)
+            .where(
+                PlanSectionTask.section_id == body.section_id,
+                PlanSectionTask.task_id == task_id,
+            )
+        )
+        if not existing_st.scalar_one_or_none():
+            db.add(PlanSectionTask(section_id=body.section_id, task_id=task_id, sort_order=sort_order))
+            await db.commit()
+
+    return PlanTaskOut.model_validate(task)
+
+
+@app.delete("/plan/task/{task_id}")
+async def delete_plan_task(task_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(PlanTask).where(PlanTask.task_id == task_id))
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found")
+    task.is_active = False
+    await db.commit()
+    return {"deleted": True, "task_id": task_id}
+
+
+@app.post("/plan/task/{task_id}/restore")
+async def restore_plan_task(task_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(PlanTask).where(PlanTask.task_id == task_id))
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found")
+    task.is_active = True
+    await db.commit()
+    return {"restored": True, "task_id": task_id}
+
+
+# ── Plan Studio — Checkpoint CRUD ─────────────────────────────────────────────
+
+@app.patch("/plan/checkpoint/{checkpoint_id}", response_model=PlanCheckpointOut)
+async def update_plan_checkpoint(checkpoint_id: str, body: PlanCheckpointUpdate, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(PlanCheckpoint).where(PlanCheckpoint.checkpoint_id == checkpoint_id))
+    cp = result.scalar_one_or_none()
+    if not cp:
+        raise HTTPException(status_code=404, detail=f"Checkpoint '{checkpoint_id}' not found")
+
+    if body.title is not None:
+        cp.title = body.title
+    if body.xp_reward is not None:
+        cp.xp_reward = body.xp_reward
+    if body.skill_type is not None:
+        cp.skill_type = body.skill_type
+    if body.month_number is not None:
+        cp.month_number = body.month_number
+    cp.is_custom = True
+
+    await db.commit()
+    await db.refresh(cp)
+    return PlanCheckpointOut.model_validate(cp)
+
+
+@app.post("/plan/checkpoint", response_model=PlanCheckpointOut)
+async def create_plan_checkpoint(body: PlanCheckpointCreate, db: AsyncSession = Depends(get_db)):
+    import secrets
+    cp_id = f"custom_cp_{secrets.token_urlsafe(6)}"
+    cp = PlanCheckpoint(
+        checkpoint_id=cp_id,
+        title=body.title,
+        skill_type=body.skill_type,
+        xp_reward=body.xp_reward,
+        month_number=body.month_number,
+        is_active=True,
+        is_custom=True,
+    )
+    db.add(cp)
+    await db.commit()
+    await db.refresh(cp)
+    return PlanCheckpointOut.model_validate(cp)
+
+
+@app.delete("/plan/checkpoint/{checkpoint_id}")
+async def delete_plan_checkpoint(checkpoint_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(PlanCheckpoint).where(PlanCheckpoint.checkpoint_id == checkpoint_id))
+    cp = result.scalar_one_or_none()
+    if not cp:
+        raise HTTPException(status_code=404, detail=f"Checkpoint '{checkpoint_id}' not found")
+    cp.is_active = False
+    await db.commit()
+    return {"deleted": True, "checkpoint_id": checkpoint_id}
+
+
+# ── Plan Studio — Habit CRUD ───────────────────────────────────────────────────
+
+@app.patch("/plan/habit/{habit_id}", response_model=PlanHabitOut)
+async def update_plan_habit(habit_id: str, body: PlanHabitUpdate, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(PlanHabit).where(PlanHabit.habit_id == habit_id))
+    habit = result.scalar_one_or_none()
+    if not habit:
+        raise HTTPException(status_code=404, detail=f"Habit '{habit_id}' not found")
+
+    if body.title is not None:
+        habit.title = body.title
+    if body.xp_per_completion is not None:
+        habit.xp_per_completion = body.xp_per_completion
+    if body.skill_type is not None:
+        habit.skill_type = body.skill_type
+    if body.starts_at_month is not None:
+        habit.starts_at_month = body.starts_at_month
+    habit.is_custom = True
+
+    await db.commit()
+    await db.refresh(habit)
+    return PlanHabitOut.model_validate(habit)
+
+
+@app.post("/plan/habit", response_model=PlanHabitOut)
+async def create_plan_habit(body: PlanHabitCreate, db: AsyncSession = Depends(get_db)):
+    import secrets
+    habit_id = f"custom_habit_{secrets.token_urlsafe(6)}"
+    habit = PlanHabit(
+        habit_id=habit_id,
+        title=body.title,
+        skill_type=body.skill_type,
+        xp_per_completion=body.xp_per_completion,
+        starts_at_month=body.starts_at_month,
+        is_active=True,
+        is_custom=True,
+    )
+    db.add(habit)
+    await db.commit()
+    await db.refresh(habit)
+    return PlanHabitOut.model_validate(habit)
+
+
+@app.delete("/plan/habit/{habit_id}")
+async def delete_plan_habit(habit_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(PlanHabit).where(PlanHabit.habit_id == habit_id))
+    habit = result.scalar_one_or_none()
+    if not habit:
+        raise HTTPException(status_code=404, detail=f"Habit '{habit_id}' not found")
+    habit.is_active = False
+    await db.commit()
+    return {"deleted": True, "habit_id": habit_id}
 
 
 # ── Check-in ──────────────────────────────────────────────────────────────────
