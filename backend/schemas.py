@@ -250,6 +250,14 @@ class AssignDayRequest(BaseModel):
     day_offset: int  # 0=Mon … 6=Sun; -1 = remove (reset to default)
 
 
+class MissedTaskOut(BaseModel):
+    id: str
+    title: str
+    xp: int
+    skill_type: str
+    month_number: int
+
+
 class PaceResponse(BaseModel):
     arc_day: int
     arc_total_days: int
@@ -258,3 +266,4 @@ class PaceResponse(BaseModel):
     delta_xp: int
     status: str  # "On Track" | "Behind" | "Ahead"
     total_arc_xp: int
+    missed_tasks: list[MissedTaskOut] = []

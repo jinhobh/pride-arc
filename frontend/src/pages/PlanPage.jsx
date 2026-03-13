@@ -692,6 +692,7 @@ function ChapterScrollRow({ currentMonth, progress }) {
 // ── PaceWidget ────────────────────────────────────────────────────────────────
 
 function PaceWidget({ pace }) {
+  const [expanded, setExpanded] = useState(false)
   if (!pace) return null
 
   const statusStyles = {
@@ -701,56 +702,131 @@ function PaceWidget({ pace }) {
   }
   const s = statusStyles[pace.status] ?? statusStyles['On Track']
   const pct = Math.min(100, Math.round((pace.arc_day / pace.arc_total_days) * 100))
+  const missed = pace.missed_tasks ?? []
+  const missedXp = missed.reduce((sum, t) => sum + t.xp, 0)
 
   return (
     <div
-      className="rounded-xl p-4 flex flex-col gap-3"
+      className="rounded-xl flex flex-col"
       style={{ background: s.bg, border: `1px solid ${s.border}` }}
     >
-      <div className="flex items-center justify-between">
-        <span
-          className="font-sans text-xs font-semibold uppercase tracking-wider"
-          style={{ color: s.text }}
-        >
-          Arc Pace
-        </span>
-        <span
-          className="text-xs font-sans font-semibold px-2 py-0.5 rounded-full"
-          style={{ background: s.border + '30', color: s.text, border: `1px solid ${s.border}` }}
-        >
-          {pace.status}
-        </span>
-      </div>
-
-      {/* Progress bar */}
-      <div>
-        <div className="rounded-full overflow-hidden" style={{ height: '5px', background: 'rgba(139,111,71,0.15)' }}>
-          <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${pct}%`, background: s.text }}
-          />
-        </div>
-        <div className="flex justify-between mt-1">
-          <span className="font-vt text-xs" style={{ color: s.text }}>Day {pace.arc_day}</span>
-          <span className="font-vt text-xs text-ghibli-mist">{pace.arc_total_days} days</span>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between text-xs font-sans">
-        <div>
-          <span style={{ color: '#6B7F6E' }}>Expected: </span>
-          <span className="font-semibold" style={{ color: s.text }}>{pace.expected_xp_today.toLocaleString()} XP</span>
-        </div>
-        <div>
-          <span style={{ color: '#6B7F6E' }}>Earned: </span>
-          <span className="font-semibold" style={{ color: s.text }}>{pace.earned_xp.toLocaleString()} XP</span>
-        </div>
-        <div>
-          <span className="font-semibold" style={{ color: pace.delta_xp >= 0 ? '#4A7C59' : '#8B3A1A' }}>
-            {pace.delta_xp >= 0 ? '+' : ''}{pace.delta_xp} XP
+      {/* Clickable header area */}
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full text-left p-4 flex flex-col gap-3 focus:outline-none"
+        style={{ cursor: 'pointer' }}
+      >
+        <div className="flex items-center justify-between">
+          <span
+            className="font-sans text-xs font-semibold uppercase tracking-wider"
+            style={{ color: s.text }}
+          >
+            Arc Pace
           </span>
+          <div className="flex items-center gap-2">
+            <span
+              className="text-xs font-sans font-semibold px-2 py-0.5 rounded-full"
+              style={{ background: s.border + '30', color: s.text, border: `1px solid ${s.border}` }}
+            >
+              {pace.status}
+            </span>
+            <svg
+              className="transition-transform duration-200"
+              style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', color: s.text }}
+              width="12" height="12" viewBox="0 0 12 12" fill="none"
+            >
+              <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
         </div>
-      </div>
+
+        {/* Progress bar */}
+        <div>
+          <div className="rounded-full overflow-hidden" style={{ height: '5px', background: 'rgba(139,111,71,0.15)' }}>
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${pct}%`, background: s.text }}
+            />
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="font-vt text-xs" style={{ color: s.text }}>Day {pace.arc_day}</span>
+            <span className="font-vt text-xs text-ghibli-mist">{pace.arc_total_days} days</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-xs font-sans">
+          <div>
+            <span style={{ color: '#6B7F6E' }}>Expected: </span>
+            <span className="font-semibold" style={{ color: s.text }}>{pace.expected_xp_today.toLocaleString()} XP</span>
+          </div>
+          <div>
+            <span style={{ color: '#6B7F6E' }}>Earned: </span>
+            <span className="font-semibold" style={{ color: s.text }}>{pace.earned_xp.toLocaleString()} XP</span>
+          </div>
+          <div>
+            <span className="font-semibold" style={{ color: pace.delta_xp >= 0 ? '#4A7C59' : '#8B3A1A' }}>
+              {pace.delta_xp >= 0 ? '+' : ''}{pace.delta_xp} XP
+            </span>
+          </div>
+        </div>
+      </button>
+
+      {/* Expandable missed tasks panel */}
+      {expanded && (
+        <div
+          className="px-4 pb-4 flex flex-col gap-2"
+          style={{ borderTop: `1px solid ${s.border}40` }}
+        >
+          <div className="flex items-center justify-between pt-3 pb-1">
+            <span className="font-sans text-xs font-semibold" style={{ color: s.text }}>
+              Missed Tasks ({missed.length})
+            </span>
+            {missed.length > 0 && (
+              <span className="font-sans text-xs font-semibold" style={{ color: '#8B3A1A' }}>
+                −{missedXp.toLocaleString()} XP
+              </span>
+            )}
+          </div>
+
+          {missed.length === 0 ? (
+            <p className="font-sans text-xs" style={{ color: '#6B7F6E' }}>
+              No missed tasks — great work!
+            </p>
+          ) : (
+            <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-1">
+              {missed.map(t => {
+                const color = SKILL_COLORS[t.skill_type] ?? '#8B6F47'
+                return (
+                  <div
+                    key={t.id}
+                    className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5"
+                    style={{ background: color + '12', border: `1px solid ${color}28` }}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+                        style={{ background: color }}
+                      />
+                      <span
+                        className="font-sans text-[11px] truncate"
+                        style={{ color: 'rgba(44,36,22,0.75)' }}
+                      >
+                        {t.title}
+                      </span>
+                    </div>
+                    <span
+                      className="font-sans text-[11px] font-semibold flex-shrink-0"
+                      style={{ color }}
+                    >
+                      {t.xp} XP
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

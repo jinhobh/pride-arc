@@ -1,4 +1,5 @@
 import datetime
+import math
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -14,6 +15,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from plan_data import CHECKPOINTS, HABITS, MONTH_SUBTITLES, TASKS
 from schemas import (
     AssignDayRequest,
+    MissedTaskOut,
     PaceResponse,
     PlanCheckpointCreate,
     PlanCheckpointOut,
@@ -422,17 +424,24 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
     arc_day = max(1, (today - created).days + 1)
     arc_total_days = 180
 
-    # Calculate total possible XP across the entire arc
-    total_arc_xp = 0
-    for m in range(1, 7):
-        monthly_tasks = [t for t in TASKS.values() if t["month_number"] == m]
-        once_xp = sum(t["xp"] for t in monthly_tasks if t["frequency"] == "once")
-        daily_xp = sum(t["xp"] for t in monthly_tasks if t["frequency"] == "daily") * 30
-        weekly_xp = sum(t["xp"] for t in monthly_tasks if t["frequency"] == "weekly") * 4
-        cp_xp = sum(c["xp_reward"] for c in CHECKPOINTS.values() if c["month_number"] == m)
-        total_arc_xp += once_xp + daily_xp + weekly_xp + cp_xp
+    # Which month of the arc are we in (1–6)?
+    current_month = min(6, math.ceil(arc_day / 30))
 
-    expected_xp_today = round((arc_day / arc_total_days) * total_arc_xp)
+    # Expected XP = all "once" task XP + checkpoint XP from fully elapsed months.
+    # This stays consistent with the missed-tasks list (same filter: month < current).
+    expected_xp_today = sum(
+        t["xp"] for t in TASKS.values()
+        if t["frequency"] == "once" and t["month_number"] < current_month
+    ) + sum(
+        c["xp_reward"] for c in CHECKPOINTS.values()
+        if c["month_number"] < current_month
+    )
+
+    # Total arc XP (once + checkpoints only) used for the progress bar reference.
+    total_arc_xp = sum(
+        t["xp"] for t in TASKS.values() if t["frequency"] == "once"
+    ) + sum(c["xp_reward"] for c in CHECKPOINTS.values())
+
     earned_xp = state.total_xp if state else 0
     delta_xp = earned_xp - expected_xp_today
 
@@ -443,6 +452,23 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
     else:
         status_label = "On Track"
 
+    # Missed tasks: incomplete "once" tasks from fully elapsed months
+    completed_ids = set(await crud.get_completed_task_ids(db))
+    missed = [
+        MissedTaskOut(
+            id=t["id"],
+            title=t["title"],
+            xp=t["xp"],
+            skill_type=t["skill_type"],
+            month_number=t["month_number"],
+        )
+        for t in TASKS.values()
+        if t["frequency"] == "once"
+        and t["month_number"] < current_month
+        and t["id"] not in completed_ids
+    ]
+    missed.sort(key=lambda x: (x.month_number, x.skill_type, x.title))
+
     return PaceResponse(
         arc_day=arc_day,
         arc_total_days=arc_total_days,
@@ -451,6 +477,7 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
         delta_xp=delta_xp,
         status=status_label,
         total_arc_xp=total_arc_xp,
+        missed_tasks=missed,
     )
 
 
