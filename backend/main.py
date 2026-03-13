@@ -27,6 +27,7 @@ from schemas import (
     PlanTaskOut,
     PlanTaskUpdate,
     ActivityDay,
+    HabitActivityDay,
     CheckinResponse,
     CheckpointCompleteRequest,
     CheckpointCompleteResponse,
@@ -1145,6 +1146,51 @@ async def get_activity(days: int = 180, db: AsyncSession = Depends(get_db)):
             result.append(ActivityDay(date=d, total_xp=info["total_xp"], dominant_skill=dominant))
         else:
             result.append(ActivityDay(date=d, total_xp=0, dominant_skill=None))
+        current += datetime.timedelta(days=1)
+
+    return result
+
+
+# ── Habit activity heatmap ────────────────────────────────────────────────────
+
+@app.get("/activity-habits", response_model=list[HabitActivityDay])
+async def get_habit_activity(days: int = 180, db: AsyncSession = Depends(get_db)):
+    since = datetime.date.today() - datetime.timedelta(days=days)
+
+    # Fetch all completed habit logs in range
+    hl_result = await db.execute(
+        select(HabitLog).where(
+            HabitLog.logged_date >= since,
+            HabitLog.completed == True,  # noqa: E712
+        )
+    )
+    habit_rows = hl_result.scalars().all()
+
+    # Get current month to determine which habits are available
+    user_state = await crud.get_user_state(db)
+    current_month = user_state.current_month if user_state else 1
+
+    habits_total = sum(
+        1 for h in HABITS.values()
+        if h.get("starts_at_month") is None or h["starts_at_month"] <= current_month
+    )
+
+    # Aggregate completed habit counts by date
+    from collections import defaultdict
+    day_done: dict[str, set] = defaultdict(set)
+    for hl in habit_rows:
+        day_done[hl.logged_date.isoformat()].add(hl.habit_id)
+
+    result = []
+    current = since
+    today = datetime.date.today()
+    while current <= today:
+        d = current.isoformat()
+        result.append(HabitActivityDay(
+            date=d,
+            habits_done=len(day_done.get(d, set())),
+            habits_total=habits_total,
+        ))
         current += datetime.timedelta(days=1)
 
     return result

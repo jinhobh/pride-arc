@@ -1,38 +1,30 @@
 import { useState, useMemo } from 'react'
-import { SKILL_INFO } from '../constants/planData'
 import { SectionHeader } from './StatPanel'
-
-const SKILL_HUE = {
-    dsa: 187, ml: 263, backend: 25, devops: 48, cloud: 199,
-    system_design: 234, project: 160, networking: 330, interviewing: 350, career: 38,
-}
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', '']
 
-function getCellColor(xp, dominantSkill) {
-    if (xp === 0) return 'rgba(139,111,71,0.1)' // empty cell — soft earth tint
-    const hue = SKILL_HUE[dominantSkill] ?? 140
-    if (xp <= 25) return `hsla(${hue}, 40%, 55%, 0.6)`
-    if (xp <= 75) return `hsla(${hue}, 50%, 45%, 0.8)`
-    return `hsla(${hue}, 55%, 38%, 1)`
+function getCellColor(done, total) {
+    if (done === 0 || total === 0) return 'rgba(139,111,71,0.1)' // empty
+    if (done >= total) return 'hsla(140, 55%, 38%, 1)'           // all done — full green
+    if (done / total >= 0.5) return 'hsla(140, 50%, 48%, 0.8)'   // most done — medium green
+    return 'hsla(140, 40%, 58%, 0.55)'                            // some done — light green
 }
 
 function Tooltip({ day }) {
     if (!day) return null
-    const skills = day.dominant_skill
-        ? (SKILL_INFO[day.dominant_skill]?.label ?? day.dominant_skill)
-        : 'None'
+    const label = day.habits_total === 0
+        ? 'No habits'
+        : day.habits_done === 0
+            ? 'No habits done'
+            : `${day.habits_done} / ${day.habits_total} habits`
     return (
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50
       pointer-events-none whitespace-nowrap px-3 py-2 rounded-xl
       bg-ghibli-cream border border-ghibli-earth/40 shadow-ghibli-card
       opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             <div className="font-vt text-sm text-ghibli-ink leading-none">{day.date}</div>
-            <div className="font-vt text-lg text-ghibli-forest leading-none mt-1">
-                {day.total_xp} <span className="text-xs text-ghibli-mist">XP</span>
-            </div>
-            <div className="font-sans text-[10px] text-ghibli-mist mt-1">{skills}</div>
+            <div className="font-vt text-lg text-ghibli-forest leading-none mt-1">{label}</div>
             <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0
         border-l-[5px] border-r-[5px] border-t-[5px]
         border-l-transparent border-r-transparent border-t-ghibli-earth/40" />
@@ -75,7 +67,7 @@ export default function ActivityHeatmap({ activity }) {
                     col.push(null)
                 } else {
                     const key = d.toISOString().split('T')[0]
-                    col.push(dateMap[key] ?? { date: key, total_xp: 0, dominant_skill: null })
+                    col.push(dateMap[key] ?? { date: key, habits_done: 0, habits_total: 0 })
                 }
                 if (dow === 0) {
                     const m = d.getMonth()
@@ -95,7 +87,7 @@ export default function ActivityHeatmap({ activity }) {
     return (
         <section>
             <SectionHeader
-                title="Activity"
+                title="Habit Activity"
                 right={
                     <div className="flex items-center gap-2">
                         <span className="font-sans text-[11px] text-ghibli-mist/70">Last 6 months</span>
@@ -137,7 +129,7 @@ export default function ActivityHeatmap({ activity }) {
                                     style={{
                                         width: 14, height: 14, marginRight: 2,
                                         borderRadius: 3,
-                                        backgroundColor: day ? getCellColor(day.total_xp, day.dominant_skill) : 'transparent',
+                                        backgroundColor: day ? getCellColor(day.habits_done, day.habits_total) : 'transparent',
                                         transition: 'transform 0.1s',
                                         cursor: day ? 'pointer' : 'default',
                                     }}
@@ -152,14 +144,12 @@ export default function ActivityHeatmap({ activity }) {
                 </div>
 
                 <div className="flex items-center gap-2 mt-3 ml-8">
-                    <span className="font-sans text-[8px] text-ghibli-earth/50 uppercase">Less</span>
-                    {[0, 10, 50, 100].map(xp => (
-                        <div key={xp} style={{
-                            width: 12, height: 12, borderRadius: 2,
-                            backgroundColor: getCellColor(xp, 'project'),
-                        }} />
-                    ))}
-                    <span className="font-sans text-[8px] text-ghibli-earth/50 uppercase">More</span>
+                    <span className="font-sans text-[8px] text-ghibli-earth/50 uppercase">None</span>
+                    <div style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: getCellColor(0, 5) }} />
+                    <div style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: getCellColor(2, 5) }} />
+                    <div style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: getCellColor(4, 5) }} />
+                    <div style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: getCellColor(5, 5) }} />
+                    <span className="font-sans text-[8px] text-ghibli-earth/50 uppercase">All</span>
                 </div>
             </div>
         </section>

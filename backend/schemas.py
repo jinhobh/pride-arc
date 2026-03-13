@@ -138,6 +138,12 @@ class ActivityDay(BaseModel):
     dominant_skill: str | None
 
 
+class HabitActivityDay(BaseModel):
+    date: str
+    habits_done: int
+    habits_total: int
+
+
 class WeeklySkillXP(BaseModel):
     skill_type: str
     label: str

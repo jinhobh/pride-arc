@@ -12,7 +12,7 @@ const BASE = '/api'
 function useStatsData() {
   const [state, setState] = useState(null)
   const [progress, setProgress] = useState(null)
-  const [activity, setActivity] = useState([])
+  const [habitActivity, setHabitActivity] = useState([])
   const [weeklySummary, setWeeklySummary] = useState(null)
   const [streakStatus, setStreakStatus] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -21,27 +21,27 @@ function useStatsData() {
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [stateRes, progressRes, activityRes, weeklyRes, streakRes] = await Promise.all([
+      const [stateRes, progressRes, habitActivityRes, weeklyRes, streakRes] = await Promise.all([
         fetch(`${BASE}/state`),
         fetch(`${BASE}/progress`),
-        fetch(`${BASE}/activity?days=180`),
+        fetch(`${BASE}/activity-habits?days=180`),
         fetch(`${BASE}/weekly-summary`),
         fetch(`${BASE}/streak-status`),
       ])
       if (!stateRes.ok)    throw new Error(`State fetch failed: ${stateRes.status}`)
       if (!progressRes.ok) throw new Error(`Progress fetch failed: ${progressRes.status}`)
 
-      const [stateData, progressData, activityData, weeklyData, streakData] = await Promise.all([
+      const [stateData, progressData, habitActivityData, weeklyData, streakData] = await Promise.all([
         stateRes.json(),
         progressRes.json(),
-        activityRes.ok  ? activityRes.json()  : Promise.resolve([]),
-        weeklyRes.ok    ? weeklyRes.json()    : Promise.resolve(null),
-        streakRes.ok    ? streakRes.json()    : Promise.resolve(null),
+        habitActivityRes.ok ? habitActivityRes.json() : Promise.resolve([]),
+        weeklyRes.ok        ? weeklyRes.json()        : Promise.resolve(null),
+        streakRes.ok        ? streakRes.json()        : Promise.resolve(null),
       ])
 
       setState(stateData)
       setProgress(progressData)
-      setActivity(Array.isArray(activityData) ? activityData : [])
+      setHabitActivity(Array.isArray(habitActivityData) ? habitActivityData : [])
       setWeeklySummary(weeklyData)
       setStreakStatus(streakData)
       setError(null)
@@ -54,7 +54,7 @@ function useStatsData() {
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
-  return { state, progress, activity, weeklySummary, streakStatus, loading, error }
+  return { state, progress, habitActivity, weeklySummary, streakStatus, loading, error }
 }
 
 function HeadlineStat({ label, value, unit, colorClass = 'text-ghibli-forest' }) {
@@ -142,7 +142,7 @@ function OverallProgress({ progress }) {
 }
 
 export default function StatsPage() {
-  const { state, progress, activity, weeklySummary, streakStatus, loading, error } = useStatsData()
+  const { state, progress, habitActivity, weeklySummary, streakStatus, loading, error } = useStatsData()
 
   if (loading) {
     return (
@@ -193,7 +193,7 @@ export default function StatsPage() {
 
         <BossBanner progress={progress} daysMissed={daysMissed} />
         <StatPanel stats={state?.stats} daysMissed={daysMissed} />
-        <ActivityHeatmap activity={activity} />
+        <ActivityHeatmap activity={habitActivity} />
         <WeeklySummary summary={weeklySummary} />
         <OverallProgress progress={progress} />
 
