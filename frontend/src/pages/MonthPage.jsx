@@ -360,14 +360,14 @@ export default function MonthPage() {
 
   if (!meta) {
     return (
-      <div className="min-h-screen bg-ghibli-sky flex items-center justify-center">
+      <div className="flex items-center justify-center" style={{ minHeight: '100%' }}>
         <p className="font-display text-sm italic text-ghibli-mist">Month not found</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-ghibli-sky">
+    <div>
       {/* Back nav */}
       <div className="max-w-3xl mx-auto px-4 pt-6 pb-2">
         <button

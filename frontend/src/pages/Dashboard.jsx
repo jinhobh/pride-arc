@@ -9,7 +9,7 @@ import RecentActivity from '../components/RecentActivity'
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen bg-ghibli-sky flex flex-col items-center justify-center gap-4">
+    <div className="flex flex-col items-center justify-center gap-4" style={{ minHeight: '100%' }}>
       <div className="relative w-10 h-10">
         <div className="absolute inset-0 rounded-full border-2 border-ghibli-forest/20" />
         <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-ghibli-forest animate-spin" />
@@ -23,7 +23,7 @@ function LoadingScreen() {
 
 function ErrorScreen({ message }) {
   return (
-    <div className="min-h-screen bg-ghibli-sky flex flex-col items-center justify-center gap-3 p-8 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 p-8 text-center" style={{ minHeight: '100%' }}>
       <span className="font-display text-base italic text-red-500 neon-text-red">
         Connection Error
       </span>
@@ -154,7 +154,7 @@ export default function Dashboard() {
   const currentMonth = state?.current_month ?? 1
 
   return (
-    <div className="bg-ghibli-sky">
+    <>
       <HeaderBar
         state={state}
         streakStatus={streakStatus}
@@ -183,8 +183,7 @@ export default function Dashboard() {
           currentTasks={currentTasks}
         />
         <RecentActivity feed={activityFeed} />
-        <div className="h-20" />
       </main>
-    </div>
+    </>
   )
 }

@@ -9,10 +9,18 @@ const TABS = [
 export default function BottomNav() {
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-50 flex backdrop-blur-sm"
       style={{
-        background: 'rgba(250,243,224,0.96)',
-        borderTop: '1px solid rgba(139,111,71,0.28)',
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '64px',
+        zIndex: 50,
+        background: 'rgba(10, 22, 40, 0.45)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(200, 230, 255, 0.1)',
+        display: 'flex',
       }}
     >
       {TABS.map(({ to, icon, label }) => (
@@ -20,31 +28,32 @@ export default function BottomNav() {
           key={to}
           to={to}
           end
-          className="flex-1 flex flex-col items-center justify-center py-2 transition-colors"
+          style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', position: 'relative' }}
         >
           {({ isActive }) => (
             <>
-              <span className="text-lg leading-none mb-0.5">{icon}</span>
+              <span style={{ fontSize: '18px', lineHeight: 1, marginBottom: '3px' }}>{icon}</span>
               <span
                 style={{
                   fontFamily: '"Shippori Mincho", serif',
-                  fontSize: '0.7rem',
+                  fontSize: '0.65rem',
                   fontStyle: 'italic',
                   fontWeight: isActive ? 600 : 400,
-                  color: isActive ? '#4A7C59' : 'rgba(107,127,110,0.7)',
+                  color: isActive ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.55)',
                   transition: 'color 0.15s ease',
                 }}
               >
                 {label}
               </span>
-              {/* Active underline dot */}
+              {/* Active indicator dot */}
               <div
                 style={{
-                  marginTop: '3px',
+                  position: 'absolute',
+                  bottom: '6px',
                   width: '4px',
                   height: '4px',
                   borderRadius: '50%',
-                  background: isActive ? '#4A7C59' : 'transparent',
+                  background: isActive ? 'rgba(255,255,255,0.9)' : 'transparent',
                   transition: 'background 0.15s ease',
                 }}
               />

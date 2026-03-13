@@ -26,72 +26,79 @@ export default function HeaderBar({ state, streakStatus, hasCheckedIn, onCheckin
 
   return (
     <header
-      className="sticky top-0 z-50 bg-ghibli-cream backdrop-blur-sm border-b border-ghibli-earth/30"
-      style={{ boxShadow: '0 1px 8px rgba(139,111,71,0.10)' }}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '56px',
+        zIndex: 50,
+        background: 'rgba(10, 22, 40, 0.35)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(200, 230, 255, 0.08)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 16px',
+        boxSizing: 'border-box',
+      }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
-
-        {/* Logo */}
-        <span
-          className="select-none"
+      {/* Left: streak */}
+      {state && (
+        <div
           style={{
-            fontFamily: '"Shippori Mincho", serif',
-            fontSize: '1.4rem',
-            fontStyle: 'italic',
-            color: '#4A7C59',
-            letterSpacing: '0.02em',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
           }}
         >
-          Level<span style={{ fontWeight: 700 }}>Up</span>
-        </span>
-
-        <div className="flex items-center gap-2 sm:gap-3">
-
-          {/* Streak */}
-          {state && (
-            <div
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 10px',
+              borderRadius: '8px',
+              border: `1px solid ${isStreakBroken ? 'rgba(196,123,90,0.4)' : 'rgba(212,168,67,0.4)'}`,
+              background: isStreakBroken ? 'rgba(196,123,90,0.12)' : 'rgba(212,168,67,0.12)',
+            }}
+          >
+            <span style={{ fontSize: '14px', lineHeight: 1 }}>{streakIcon}</span>
+            <span
+              className={animating ? 'streak-bounce' : ''}
               style={{
-                border: `1px solid ${isStreakBroken ? 'rgba(196,123,90,0.35)' : 'rgba(212,168,67,0.35)'}`,
-                background: isStreakBroken ? 'rgba(196,123,90,0.08)' : 'rgba(212,168,67,0.08)',
+                fontFamily: '"Shippori Mincho", serif',
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                lineHeight: 1,
+                color: isStreakBroken ? '#E8956D' : '#F0C44A',
               }}
             >
-              <span className="text-xs leading-none">{streakIcon}</span>
-              <div className="flex flex-col items-center">
-                <span
-                  className={animating ? 'streak-bounce' : ''}
-                  style={{
-                    fontFamily: '"Shippori Mincho", serif',
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    lineHeight: 1,
-                    color: isStreakBroken ? '#C47B5A' : '#D4A843',
-                  }}
-                >
-                  {streakStatus?.streak ?? state.streak_current}
-                </span>
-                {streakStatus && (
-                  <span className="font-sans text-[9px] text-ghibli-mist/70 leading-none">
-                    Best: {streakStatus.longest}
-                  </span>
-                )}
-              </div>
-              <span
-                className="hidden sm:block text-[10px]"
-                style={{ color: isStreakBroken ? 'rgba(196,123,90,0.7)' : 'rgba(212,168,67,0.7)', fontFamily: 'Inter, sans-serif' }}
-              >
-                days
-              </span>
-            </div>
-          )}
-
-          {/* XP */}
-          {state && (
-            <div
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+              {streakStatus?.streak ?? state.streak_current}
+            </span>
+            <span
               style={{
-                border: '1px solid rgba(44,36,22,0.18)',
-                background: 'rgba(44,36,22,0.04)',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '10px',
+                color: 'rgba(255,255,255,0.5)',
+              }}
+            >
+              {streakStatus ? `/ ${streakStatus.longest} best` : 'days'}
+            </span>
+          </div>
+
+          {/* XP pill */}
+          {state.total_xp > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255,255,255,0.12)',
+                background: 'rgba(255,255,255,0.07)',
               }}
             >
               <span
@@ -99,71 +106,80 @@ export default function HeaderBar({ state, streakStatus, hasCheckedIn, onCheckin
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '0.85rem',
                   fontWeight: 600,
-                  color: '#2C2416',
+                  color: 'rgba(255,255,255,0.9)',
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
                 {state.total_xp.toLocaleString()}
               </span>
-              <span className="hidden sm:block text-[10px] text-ghibli-mist" style={{ fontFamily: 'Inter, sans-serif' }}>XP</span>
-            </div>
-          )}
-
-          {/* Char level */}
-          {state && (
-            <div
-              className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg"
-              style={{
-                border: '1px solid rgba(184,169,201,0.4)',
-                background: 'rgba(184,169,201,0.10)',
-              }}
-            >
-              <span className="text-[10px] text-ghibli-spirit/70" style={{ fontFamily: 'Inter, sans-serif' }}>LV</span>
               <span
                 style={{
-                  fontFamily: '"Shippori Mincho", serif',
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  color: '#B8A9C9',
-                  lineHeight: 1,
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '10px',
+                  color: 'rgba(255,255,255,0.45)',
                 }}
               >
-                {state.character_level}
+                XP
               </span>
             </div>
           )}
-
-          {/* Check-in */}
-          {!hasCheckedIn ? (
-            <button
-              onClick={handleCheckin}
-              disabled={busy}
-              className="relative px-4 py-1.5 text-white rounded-lg cursor-pointer active:scale-95 transition-all disabled:opacity-50"
-              style={{
-                background: '#4A7C59',
-                fontFamily: '"Shippori Mincho", serif',
-                fontSize: '0.95rem',
-                fontStyle: 'italic',
-                fontWeight: 600,
-                boxShadow: '0 2px 8px rgba(74,124,89,0.25)',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = '#7AAE87'}
-              onMouseLeave={e => e.currentTarget.style.background = '#4A7C59'}
-            >
-              {busy ? '...' : 'Check In'}
-            </button>
-          ) : (
-            <div
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
-              style={{ border: '1px solid rgba(139,111,71,0.35)', background: 'rgba(232,213,163,0.4)' }}
-            >
-              <svg className="w-3 h-3 text-ghibli-forest" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              <span className="text-[10px] text-ghibli-mist" style={{ fontFamily: 'Inter, sans-serif' }}>Done</span>
-            </div>
-          )}
         </div>
+      )}
+
+      {/* Right: check-in */}
+      <div>
+        {!hasCheckedIn ? (
+          <button
+            onClick={handleCheckin}
+            disabled={busy}
+            style={{
+              background: 'rgba(74,124,89,0.9)',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '7px 16px',
+              fontFamily: '"Shippori Mincho", serif',
+              fontSize: '0.9rem',
+              fontStyle: 'italic',
+              fontWeight: 600,
+              color: '#fff',
+              cursor: 'pointer',
+              opacity: busy ? 0.5 : 1,
+              transition: 'background 0.15s, transform 0.1s',
+              boxShadow: '0 2px 10px rgba(74,124,89,0.35)',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(122,174,135,0.95)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(74,124,89,0.9)' }}
+            onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.96)' }}
+            onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)' }}
+          >
+            {busy ? '...' : 'Check In'}
+          </button>
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              border: '1px solid rgba(255,255,255,0.18)',
+              background: 'rgba(255,255,255,0.08)',
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(122,174,135,1)" strokeWidth="3">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '11px',
+                color: 'rgba(255,255,255,0.65)',
+              }}
+            >
+              Done
+            </span>
+          </div>
+        )}
       </div>
     </header>
   )

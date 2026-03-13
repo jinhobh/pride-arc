@@ -709,7 +709,7 @@ export default function PlanPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-ghibli-sky flex flex-col items-center justify-center gap-4 pb-16">
+      <div className="flex flex-col items-center justify-center gap-4 pb-16" style={{ minHeight: '100%' }}>
         <div className="relative w-10 h-10">
           <div className="absolute inset-0 rounded-full border-2 border-ghibli-forest/20" />
           <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-ghibli-forest animate-spin" />
@@ -723,7 +723,7 @@ export default function PlanPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-ghibli-sky flex flex-col items-center justify-center gap-3 p-8 text-center pb-16">
+      <div className="flex flex-col items-center justify-center gap-3 p-8 text-center pb-16" style={{ minHeight: '100%' }}>
         <span className="font-display text-sm italic text-red-400">Error</span>
         <p className="text-xs text-ghibli-mist font-sans max-w-sm">{error}</p>
       </div>
@@ -731,7 +731,7 @@ export default function PlanPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ghibli-sky">
+    <div>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-8 space-y-8">
 
         {/* ── Page header ─────────────────────────────────────────────────── */}
