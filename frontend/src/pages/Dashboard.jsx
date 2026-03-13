@@ -611,12 +611,13 @@ function MobileHabitsDrawer({ habits, today, onLogHabit }) {
 }
 
 // ── Pace Tracker ──────────────────────────────────────────────────────────────
-function PaceTracker({ currentTasks, isMobile }) {
+function PaceTracker({ currentTasks, totalXp, isMobile }) {
   const [hovered, setHovered] = useState(false)
   const pace   = getPace(currentTasks)
   const colors = PACE_COLORS[pace.status]
 
-  const xpDiff    = pace.earnedXP - pace.expectedXP
+  const earnedXP  = totalXp ?? pace.earnedXP
+  const xpDiff    = earnedXP - pace.expectedXP
   const xpAhead   = xpDiff >= 0
   const xpDiffAbs = Math.abs(xpDiff)
 
@@ -746,7 +747,7 @@ function PaceTracker({ currentTasks, isMobile }) {
               XP earned
             </span>
             <span style={{ fontFamily: 'VT323, monospace', fontSize: '1.1rem', color: '#7AAE87', letterSpacing: '0.04em' }}>
-              {pace.earnedXP} XP
+              {earnedXP} XP
             </span>
           </div>
 
@@ -858,7 +859,7 @@ export default function Dashboard() {
       <MorningMessage  isMobile={isMobile} />
       <CharInfoPanel   state={state} isMobile={isMobile} />
 
-      <PaceTracker currentTasks={currentTasks} isMobile={isMobile} />
+      <PaceTracker currentTasks={currentTasks} totalXp={state?.total_xp} isMobile={isMobile} />
 
       {isMobile ? (
         <MobileHabitsDrawer habits={todayHabits} today={today} onLogHabit={logHabit} />
