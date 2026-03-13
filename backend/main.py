@@ -10,6 +10,7 @@ import crud
 from database import AsyncSessionLocal, Base, engine, get_db
 from models import CheckpointCompletion, HabitLog, PlanCheckpoint, PlanHabit, PlanSection, PlanSectionTask, PlanTask, TaskCompletion, TaskDayAssignment  # noqa: F401 — ensure models are imported so Base sees them
 from sqlalchemy import delete, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from plan_data import CHECKPOINTS, HABITS, MONTH_SUBTITLES, TASKS
 from schemas import (
     AssignDayRequest,

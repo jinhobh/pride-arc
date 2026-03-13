@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { MONTH_META, SKILL_INFO } from '../constants/planData'
 import { usePlanStudio } from '../hooks/useApi'
@@ -820,8 +820,10 @@ async function assignDay(taskId, dayOffset) {
 function PlanWeekView() {
   const [weekData, setWeekData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [draggingTask, setDraggingTask] = useState(null)   // task object being dragged
-  const [dragOverDay, setDragOverDay] = useState(null)     // day index 0–6
+  // draggingTaskRef holds the live task so handleDrop is never stale
+  const draggingTaskRef = useRef(null)
+  const [draggingTaskId, setDraggingTaskId] = useState(null)  // only for visual opacity
+  const [dragOverDay, setDragOverDay] = useState(null)         // day index 0–6
 
   const fetchWeek = useCallback(async () => {
     const res = await fetch('/api/plan/week')
@@ -833,9 +835,12 @@ function PlanWeekView() {
   useEffect(() => { fetchWeek() }, [fetchWeek])
 
   async function handleDrop(dayIndex) {
-    if (!draggingTask || draggingTask.frequency === 'daily') return
+    const task = draggingTaskRef.current
+    draggingTaskRef.current = null
+    setDraggingTaskId(null)
     setDragOverDay(null)
-    const ok = await assignDay(draggingTask.id, dayIndex)
+    if (!task || task.frequency === 'daily') return
+    const ok = await assignDay(task.id, dayIndex)
     if (ok) await fetchWeek()
   }
 
@@ -866,7 +871,7 @@ function PlanWeekView() {
             Arc Wk {weekData.arc_week}
           </span>
         )}
-        {draggingTask && (
+        {draggingTaskId && (
           <span className="text-[10px] font-sans text-ghibli-mist italic animate-pulse">
             Drop on a day to reschedule
           </span>
@@ -891,29 +896,31 @@ function PlanWeekView() {
 
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {weekData.days.map((day, dayIndex) => {
-          const dailyTasks  = day.tasks.filter(t => t.frequency === 'daily')
+          const dailyTasks   = day.tasks.filter(t => t.frequency === 'daily')
           const movableTasks = day.tasks.filter(t => t.frequency !== 'daily')
-          const isDropTarget = dragOverDay === dayIndex && draggingTask?.frequency !== 'daily'
+          const isDropTarget = dragOverDay === dayIndex
 
           return (
             <div
               key={day.date}
               className="flex-shrink-0 w-44 rounded-xl p-3 space-y-2 transition-all duration-150"
               style={{
-                background: isDropTarget
-                  ? '#EEF6EC'
-                  : day.is_today ? '#EEF6EC' : '#FAF3E0',
+                background: isDropTarget ? '#EEF6EC' : day.is_today ? '#EEF6EC' : '#FAF3E0',
                 border: isDropTarget
                   ? '2px dashed #4A7C59'
                   : day.is_today ? '1.5px solid #7AAE87' : '1px solid rgba(139,111,71,0.2)',
                 boxShadow: isDropTarget ? '0 0 12px rgba(74,124,89,0.2)' : 'none',
               }}
-              onDragOver={e => { e.preventDefault(); setDragOverDay(dayIndex) }}
-              onDragLeave={e => {
-                // Only clear if leaving the column entirely, not a child element
-                if (!e.currentTarget.contains(e.relatedTarget)) setDragOverDay(null)
+              onDragOver={e => {
+                // Must call preventDefault to allow dropping
+                e.preventDefault()
+                e.dataTransfer.dropEffect = 'move'
+                if (dragOverDay !== dayIndex) setDragOverDay(dayIndex)
               }}
-              onDrop={e => { e.preventDefault(); handleDrop(dayIndex) }}
+              onDrop={e => {
+                e.preventDefault()
+                handleDrop(dayIndex)
+              }}
             >
               {/* Day header */}
               <div className="flex items-center justify-between">
@@ -942,7 +949,7 @@ function PlanWeekView() {
 
               {day.tasks.length > 0 && (
                 <div className="space-y-1.5">
-                  {/* Daily tasks (not draggable) */}
+                  {/* Daily tasks — not draggable */}
                   {dailyTasks.map(t => (
                     <WeekTaskItem key={t.id} t={t} />
                   ))}
@@ -952,20 +959,25 @@ function PlanWeekView() {
                     <div style={{ borderTop: '1px dashed rgba(139,111,71,0.25)', marginTop: '4px', paddingTop: '4px' }} />
                   )}
 
-                  {/* Weekly + once tasks (draggable) */}
+                  {/* Weekly + once tasks — draggable */}
                   {movableTasks.map(t => (
                     <div
                       key={t.id}
                       draggable
                       onDragStart={e => {
-                        setDraggingTask(t)
+                        // Write to ref immediately — ref is always current in handleDrop
+                        draggingTaskRef.current = t
+                        setDraggingTaskId(t.id)
                         e.dataTransfer.effectAllowed = 'move'
-                        // Set ghost text for browsers that show it
                         e.dataTransfer.setData('text/plain', t.title)
                       }}
-                      onDragEnd={() => setDraggingTask(null)}
+                      onDragEnd={() => {
+                        draggingTaskRef.current = null
+                        setDraggingTaskId(null)
+                        setDragOverDay(null)
+                      }}
                       style={{
-                        opacity: draggingTask?.id === t.id ? 0.4 : 1,
+                        opacity: draggingTaskId === t.id ? 0.4 : 1,
                         cursor: 'grab',
                       }}
                     >
