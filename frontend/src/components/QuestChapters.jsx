@@ -49,7 +49,7 @@ function MonthCard({ n, meta, monthProgress, isLocked, isCurrent, isComplete }) 
   return (
     <button
       onClick={() => navigate(`/month/${n}`)}
-      className={`relative flex-shrink-0 w-40 rounded-xl border ${borderCls} bg-ghibli-cream
+      className={`relative flex-shrink-0 w-40 rounded-xl border ${borderCls} bg-ghibli-cream overflow-visible
         cursor-pointer text-left transition-all duration-200 hover:scale-[1.03] focus:outline-none
         focus:ring-2 focus:ring-ghibli-forest/30`}
       style={glowStyle}
@@ -110,7 +110,7 @@ export default function QuestChapters({ progress, currentMonth }) {
   return (
     <section>
       <SectionHeader title="Quest Chapters" />
-      <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide -mx-1 px-1">
+      <div className="flex gap-3 overflow-x-auto pb-3 pt-4 scrollbar-hide -mx-1 px-1">
         {[1, 2, 3, 4, 5, 6].map(n => {
           const meta = MONTH_META[n]
           const monthProgress = progress?.months?.find(m => m.month_number === n)

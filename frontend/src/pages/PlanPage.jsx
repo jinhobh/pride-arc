@@ -575,7 +575,7 @@ function ChapterScrollRow({ currentMonth, progress }) {
   }
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide -mx-1 px-1">
+    <div className="flex gap-3 overflow-x-auto pb-3 pt-4 scrollbar-hide -mx-1 px-1">
       {[1, 2, 3, 4, 5, 6].map(n => {
         const meta = MONTH_META[n]
         const monthProgress = progress?.months?.find(m => m.month_number === n)
@@ -608,7 +608,7 @@ function ChapterScrollRow({ currentMonth, progress }) {
           <button
             key={n}
             onClick={() => scrollToMonth(n)}
-            className="relative flex-shrink-0 w-36 cursor-pointer text-left transition-all duration-200 hover:scale-[1.03] focus:outline-none"
+            className="relative flex-shrink-0 w-36 cursor-pointer text-left transition-all duration-200 hover:scale-[1.03] focus:outline-none overflow-visible"
             style={{
               borderRadius: '14px',
               border: isCurrent ? '2px solid #4A7C59' : isComplete ? '1px solid #7AAE87' : '1px solid rgba(139,111,71,0.25)',
