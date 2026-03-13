@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameData } from '../hooks/useApi'
 import { MONTH_META } from '../constants/planData'
@@ -84,18 +83,9 @@ export default function Dashboard() {
     today, hasCheckedInToday, checkin, logHabit,
   } = useGameData()
 
-  const [scrollY, setScrollY] = useState(0)
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
   if (loading) return <LoadingScreen />
   if (error)   return <ErrorScreen message={error} />
 
-  const scrollProgress = Math.min(1, scrollY / (window.innerHeight * 0.55))
   const daysMissed   = streakStatus?.days_missed ?? 0
   const currentMonth = state?.current_month ?? 1
 
@@ -108,25 +98,12 @@ export default function Dashboard() {
         onCheckin={checkin}
       />
 
-      <div className="sticky top-14 z-0">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         <CharacterHero
           state={state}
           streakStatus={streakStatus}
           daysMissed={daysMissed}
-          scrollProgress={scrollProgress}
         />
-      </div>
-
-      <div
-        className="relative z-10 -mt-24 rounded-t-3xl overflow-hidden"
-        style={{ background: 'var(--ghibli-sky)' }}
-      >
-        <div className="h-px bg-gradient-to-r from-transparent via-ghibli-forest/20 to-transparent" />
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-ghibli-earth/20" />
-        </div>
-
-        <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-8">
           <WeeklyHabits
             habits={todayHabits}
             onLogHabit={logHabit}
@@ -141,10 +118,8 @@ export default function Dashboard() {
             currentMonth={currentMonth}
             currentTasks={currentTasks}
           />
-        </main>
-
         <div className="h-20" />
-      </div>
+      </main>
     </div>
   )
 }

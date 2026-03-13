@@ -28,28 +28,50 @@ function getWeekDots(taskId, recentCompletions) {
   return dots
 }
 
-const DIFFICULTY = {
-  easy: { label: 'EASY', cls: 'text-green-400  bg-green-500/10  border-green-500/30' },
-  medium: { label: 'MED', cls: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30' },
-  hard: { label: 'HARD', cls: 'text-orange-400 bg-orange-500/10 border-orange-500/30' },
-  epic: { label: 'EPIC', cls: 'text-purple-400 bg-purple-500/10 border-purple-500/30' },
+const SKILL_COLORS = {
+  dsa:           '#4A7C59',
+  ml:            '#7B68A6',
+  backend:       '#8B6F47',
+  devops:        '#5E8A7A',
+  cloud:         '#8BBDD9',
+  system_design: '#C9A84C',
+  project:       '#E8956D',
+  networking:    '#7AAE87',
+  interviewing:  '#B85C38',
+  career:        '#D4A843',
+}
+
+const DIFFICULTY_STYLES = {
+  easy:   { label: 'Easy',   bg: '#EAF4EC', text: '#4A7C59', border: '#7AAE87' },
+  medium: { label: 'Medium', bg: '#FDF6E3', text: '#8B6510', border: '#C9A84C' },
+  hard:   { label: 'Hard',   bg: '#FDF0E8', text: '#8B3A1A', border: '#E8956D' },
+  epic:   { label: 'Epic',   bg: '#F0EDF8', text: '#4A3570', border: '#B8A9C9' },
 }
 
 // ── StreakDots ─────────────────────────────────────────────────────────────────
 
 function StreakDots({ taskId, recentCompletions }) {
+  const todayStr = todayISO()
   const dots = getWeekDots(taskId, recentCompletions)
   return (
     <div className="flex gap-1.5 mt-2">
-      {dots.map(d => (
-        <div key={d.dateStr} className="flex flex-col items-center gap-0.5">
-          <div className={`w-3 h-3 rounded-full border ${d.done
-              ? 'bg-ghibli-forest border-ghibli-forest'
-              : 'bg-transparent border-ghibli-earth/40'
-            }`} />
-          <span className="font-display text-[7px] text-ghibli-mist/60">{d.label}</span>
-        </div>
-      ))}
+      {dots.map(d => {
+        const isToday = d.dateStr === todayStr
+        return (
+          <div key={d.dateStr} className="flex flex-col items-center gap-0.5">
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{
+                background: d.done ? '#4A7C59' : isToday ? '#E8D5A3' : 'rgba(139,189,217,0.3)',
+                border: isToday && !d.done ? '1.5px solid #8B6F47' : 'none',
+              }}
+            />
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.6rem', color: '#6B7F6E' }}>
+              {d.label}
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -67,6 +89,7 @@ function TaskCard({ task, recentCompletions, onToggle }) {
       : recentCompletions.some(r => r.task_id === task.id)
     : false
   const checked = isRecurring ? isRecurringDone : task.completed
+  const diff = task.difficulty ? DIFFICULTY_STYLES[task.difficulty] : null
 
   async function handleToggle() {
     if (pending) return
@@ -76,13 +99,13 @@ function TaskCard({ task, recentCompletions, onToggle }) {
   }
 
   return (
-    <div className={`flex gap-3 px-3 py-3 transition-opacity duration-200 ${checked ? 'opacity-50' : ''}`}>
-      {/* Checkbox */}
+    <div className={`flex gap-3 px-3 py-3 transition-all duration-200 ${checked ? 'opacity-60' : ''}`}>
       <button
         onClick={handleToggle}
         disabled={pending}
-        className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-all cursor-pointer ${checked ? 'border-ghibli-forest bg-ghibli-forest/15' : 'border-ghibli-earth/40 hover:border-ghibli-earth/70'
-          }`}
+        className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-all cursor-pointer ${
+          checked ? 'border-ghibli-forest bg-ghibli-forest/15' : 'border-ghibli-earth/40 hover:border-ghibli-earth/70'
+        }`}
         aria-label={checked ? 'Mark incomplete' : 'Mark complete'}
       >
         {pending ? (
@@ -94,13 +117,38 @@ function TaskCard({ task, recentCompletions, onToggle }) {
         ) : null}
       </button>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium leading-snug ${checked ? 'line-through text-ghibli-mist/60' : 'text-ghibli-ink'}`}>
+        <p
+          className="text-sm font-medium leading-snug"
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            color: checked ? 'rgba(107,127,110,0.6)' : '#2C2416',
+            textDecoration: checked ? 'line-through' : 'none',
+          }}
+        >
           {task.title}
         </p>
         <div className="flex flex-wrap items-center gap-2 mt-1.5">
-          <span className="font-vt text-sm text-ghibli-gold">+{task.xp} XP</span>
+          <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#4A7C59', fontWeight: 500 }}>
+            +{task.xp} XP
+          </span>
+          {diff && (
+            <span
+              style={{
+                background: diff.bg,
+                color: diff.text,
+                border: `1px solid ${diff.border}`,
+                borderRadius: '999px',
+                fontSize: '0.7rem',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 500,
+                padding: '1px 7px',
+                lineHeight: '1.4',
+              }}
+            >
+              {diff.label}
+            </span>
+          )}
           {isRecurring && (
             <span className="font-display text-[8px] text-ghibli-mist/60 uppercase tracking-wider">
               {task.frequency}
@@ -120,35 +168,51 @@ function TaskCard({ task, recentCompletions, onToggle }) {
 function SectionCard({ section, recentCompletions, onToggle }) {
   const [open, setOpen] = useState(true)
   const skill = SKILL_INFO[section.skillType] || SKILL_INFO.project
-  const c = skill.c
+  const accentColor = SKILL_COLORS[section.skillType] ?? '#8B6F47'
   const onceTasks = section.tasks.filter(t => t.frequency === 'once')
   const doneCount = onceTasks.filter(t => t.completed).length
 
   return (
-    <div className={`rounded-xl border overflow-hidden ${c.border}`}>
-      {/* Header — click to collapse */}
+    <div
+      style={{
+        borderRadius: '10px',
+        border: '1px solid rgba(139,111,71,0.2)',
+        borderLeft: `3px solid ${accentColor}`,
+        overflow: 'hidden',
+        background: '#FAF3E0',
+      }}
+    >
       <button
-        className={`w-full flex items-center gap-3 px-4 py-3 ${c.bg} cursor-pointer hover:opacity-90 transition-opacity`}
+        className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ${
+          open ? '' : 'hover:bg-[#E8D5A3]/40'
+        }`}
+        style={{
+          background: open ? 'rgba(232,213,163,0.25)' : 'transparent',
+          borderRadius: open ? '7px 7px 0 0' : '7px',
+        }}
         onClick={() => setOpen(o => !o)}
       >
         <span className="text-base leading-none">{skill.icon}</span>
-        <span className={`flex-1 text-left font-display text-[9px] uppercase tracking-wider ${c.text}`}>
+        <span
+          className="flex-1 text-left uppercase tracking-wider"
+          style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', fontWeight: 600, color: accentColor }}
+        >
           {section.title}
         </span>
         {onceTasks.length > 0 && (
-          <span className={`font-vt text-base ${c.text}`}>
+          <span className="font-vt text-base" style={{ color: accentColor }}>
             {doneCount}/{onceTasks.length}
           </span>
         )}
         <svg
-          className={`w-3.5 h-3.5 text-ghibli-mist transition-transform duration-200 ml-1 ${open ? 'rotate-180' : ''}`}
+          className={`w-3.5 h-3.5 transition-transform duration-200 ml-1 ${open ? 'rotate-180' : ''}`}
+          style={{ color: '#6B7F6E' }}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
-      {/* Task list */}
       {open && (
         <div className="divide-y divide-ghibli-earth/20 px-1">
           {section.tasks.map(task => (
@@ -387,33 +451,34 @@ export default function MonthPage() {
 
         {/* ── Checkpoints ────────────────────────────────────────────────────── */}
         {!loading && month && (
-          <div className="rounded-xl border border-ghibli-earth/30 bg-ghibli-cream overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-ghibli-earth/25 bg-ghibli-sand/40">
+          <div className="overflow-hidden" style={{ borderRadius: '10px', border: '1px solid rgba(139,111,71,0.25)', background: '#FDF8F0' }}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-ghibli-earth/25 bg-ghibli-sand/30">
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-ghibli-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                </svg>
-                <span className="font-display text-xs italic text-ghibli-ink/80">
-                  Chapter Checkpoints
+                <span className="text-base leading-none">⛩️</span>
+                <span
+                  className="uppercase tracking-wider"
+                  style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', fontWeight: 600, color: 'rgba(44,36,22,0.8)' }}
+                >
+                  Chapter Milestones
                 </span>
               </div>
-              <span className={`font-vt text-lg ${allCpsDone ? 'text-ghibli-gold' : 'text-ghibli-mist'}`}>
+              <span
+                className="font-vt text-lg"
+                style={{ color: allCpsDone ? '#D4A843' : '#6B7F6E', fontFamily: 'monospace' }}
+              >
                 {cpDoneCount}/{month.checkpoints.length}
               </span>
             </div>
 
-            {/* Checkpoint progress bar */}
             <div className="px-4 py-2 border-b border-ghibli-earth/20">
-              <div className="h-1.5 rounded-full bg-ghibli-sand overflow-hidden">
+              <div className="rounded-full overflow-hidden" style={{ height: '6px', background: '#E8D5A3' }}>
                 <div
-                  className="h-full rounded-full bg-ghibli-gold transition-all duration-500"
-                  style={{ width: `${month.checkpoints.length > 0 ? (cpDoneCount / month.checkpoints.length) * 100 : 0}%` }}
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${month.checkpoints.length > 0 ? (cpDoneCount / month.checkpoints.length) * 100 : 0}%`, background: '#4A7C59' }}
                 />
               </div>
             </div>
 
-            {/* Rows */}
             <div className="divide-y divide-ghibli-earth/20 px-1">
               {month.checkpoints.map(cp => (
                 <CheckpointRow
@@ -429,22 +494,56 @@ export default function MonthPage() {
         {/* ── Chapter reward banner ──────────────────────────────────────────── */}
         {!loading && month && allCpsDone && (
           <div
-            className="rounded-2xl border p-6 text-center"
-            style={{ borderColor: `${meta.hex}50`, background: `${meta.hex}0d` }}
+            className="relative rounded-2xl p-6 text-center overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #EEF6EC 0%, #FDF8F0 50%, #EDE9F6 100%)',
+              border: '1px solid #7AAE87',
+            }}
           >
-            <div className="text-5xl mb-3 select-none">{month.chapterReward.badgeIcon}</div>
-            <div className="font-display text-xs italic text-ghibli-mist/70 uppercase tracking-[0.3em] mb-1">
-              Chapter Complete
+            {/* Shimmer sweep */}
+            <div className="absolute inset-0 pointer-events-none" style={{ overflow: 'hidden', borderRadius: 'inherit' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '30%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.45) 50%, transparent 100%)',
+                  animation: 'shimmer-card 4s ease-in-out infinite',
+                }}
+              />
             </div>
-            <h2 className="font-display text-sm sm:text-base text-ghibli-ink italic font-semibold tracking-wide mb-3">
-              {month.chapterReward.title}
-            </h2>
-            <p className="text-xs text-ghibli-mist leading-relaxed max-w-sm mx-auto mb-5">
-              {month.chapterReward.description}
-            </p>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ghibli-gold/30 bg-ghibli-gold/10">
-              <span className="font-display text-xs italic text-ghibli-gold uppercase tracking-wider">Chapter Bonus</span>
-              <span className="font-vt text-lg text-ghibli-gold">+{month.chapterReward.xpBonus} XP</span>
+
+            <div className="relative z-10">
+              <div className="text-6xl mb-4 select-none">{month.chapterReward.badgeIcon}</div>
+              <div
+                className="uppercase tracking-[0.3em] mb-1"
+                style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', color: 'rgba(107,127,110,0.7)' }}
+              >
+                Chapter Complete
+              </div>
+              <h2
+                className="mb-3"
+                style={{ fontFamily: '"Crimson Pro", serif', fontSize: '1.6rem', fontWeight: 600, fontStyle: 'italic', color: '#2C2416', lineHeight: 1.2 }}
+              >
+                {month.chapterReward.title}
+              </h2>
+              <p
+                className="leading-relaxed max-w-sm mx-auto mb-5"
+                style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', fontStyle: 'italic', color: '#6B7F6E' }}
+              >
+                {month.chapterReward.description}
+              </p>
+              <div
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg"
+                style={{ border: '1px solid rgba(212,168,67,0.35)', background: 'rgba(212,168,67,0.08)' }}
+              >
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', fontStyle: 'italic', color: '#D4A843', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Chapter Bonus
+                </span>
+                <span className="font-vt text-2xl text-ghibli-gold">✨ +{month.chapterReward.xpBonus} XP</span>
+              </div>
             </div>
           </div>
         )}
