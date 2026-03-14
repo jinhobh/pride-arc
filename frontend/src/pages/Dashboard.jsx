@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useGameData } from '../hooks/useApi'
 import HeaderBar from '../components/HeaderBar'
+import Character3D from '../components/Character3D'
+import { emitCharacterEvent } from '../utils/characterEvents'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CHAR_LEVEL_THRESHOLDS = [
@@ -75,8 +77,8 @@ function XPFloat({ xp, onDone }) {
   )
 }
 
-// ── Character Sprite ──────────────────────────────────────────────────────────
-function CharacterSprite({ daysMissed, isMobile }) {
+// ── Character Sprite (fallback while 3D loads) ───────────────────────────────
+function CharacterSpriteFallback({ daysMissed, isMobile }) {
   let decayFilter = ''
   if      (daysMissed === 1) decayFilter = 'saturate(0.65) brightness(0.93)'
   else if (daysMissed === 2) decayFilter = 'saturate(0.3) brightness(0.85)'
@@ -419,6 +421,7 @@ function DailyHabitsPanel({ habits, today, onLogHabit }) {
   const handleXP = useCallback((xp) => {
     const id = floatId.current++
     setXpFloats(prev => [...prev, { id, xp }])
+    emitCharacterEvent('task_complete')
   }, [])
 
   return (
@@ -479,6 +482,7 @@ function MobileHabitsDrawer({ habits, today, onLogHabit }) {
   const handleXP = useCallback((xp) => {
     const id = floatId.current++
     setXpFloats(prev => [...prev, { id, xp }])
+    emitCharacterEvent('task_complete')
   }, [])
 
   const onTouchStart = (e) => { touchStartY.current = e.touches[0].clientY }
@@ -845,7 +849,7 @@ export default function Dashboard() {
         onCheckin={checkin}
       />
 
-      <CharacterSprite daysMissed={daysMissed} isMobile={isMobile} />
+      <Character3D daysMissed={daysMissed} isMobile={isMobile} />
       <MorningMessage  isMobile={isMobile} />
       <CharInfoPanel   state={state} isMobile={isMobile} />
 
