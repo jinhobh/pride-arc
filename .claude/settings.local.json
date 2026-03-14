@@ -5,12 +5,7 @@
       "Bash(mkdir -p /c/Users/jinho/projects/pride-arc/frontend/src && mkdir -p /c/Users/jinho/projects/pride-arc/backend)",
       "Bash(cd \"C:\\\\Users\\\\jinho\\\\projects\\\\pride-arc\\\\frontend\\\\src\" && grep -rl \"Crimson Pro\" . | xargs sed -i 's/Crimson Pro/Shippori Mincho/g')",
       "Bash(python -c \"import backend.plan_data; print\\('OK — tasks:', len\\(backend.plan_data.TASKS\\)\\)\")",
-      "Bash(ls frontend/public/scene_*)",
-      "Bash(du -h \"C:/Users/jinho/projects/pride-arc/frontend/public/animations/\"*.glb)",
-      "Bash(cd C:/Users/jinho/projects/pride-arc/frontend && npm install three @react-three/fiber @react-three/drei)",
-      "Bash(cd C:/Users/jinho/projects/pride-arc/frontend && npm install three @react-three/fiber@8 @react-three/drei@9)",
-      "Bash(cd C:/Users/jinho/projects/pride-arc/frontend && node -e \"\nconst fs = require\\('fs'\\);\nconst path = require\\('path'\\);\nconst dir = 'public/animations';\nconst files = fs.readdirSync\\(dir\\).filter\\(f => f.endsWith\\('.glb'\\)\\);\nfor \\(const f of files\\) {\n  const buf = fs.readFileSync\\(path.join\\(dir, f\\)\\);\n  const jsonLen = buf.readUInt32LE\\(12\\);\n  const json = JSON.parse\\(buf.slice\\(20, 20 + jsonLen\\).toString\\('utf8'\\)\\);\n  const clips = \\(json.animations || []\\).map\\(a => a.name\\);\n  console.log\\(f + ': ' + JSON.stringify\\(clips\\)\\);\n})",
-      "Bash(cd C:/Users/jinho/projects/pride-arc/frontend && npx vite build 2>&1 | tail -20)"
+      "Bash(ls frontend/public/scene_*)"
     ]
   }
 }
