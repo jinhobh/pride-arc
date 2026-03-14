@@ -19,6 +19,7 @@ export function useGameData() {
   const [weeklySummary, setWeeklySummary] = useState(null)
   const [streakStatus, setStreakStatus] = useState(null)
   const [currentTasks, setCurrentTasks] = useState(null)
+  const [pace, setPace] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -27,7 +28,7 @@ export function useGameData() {
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [stateRes, progressRes, habitsRes, activityRes, feedRes, weeklyRes, streakRes, tasksRes] = await Promise.all([
+      const [stateRes, progressRes, habitsRes, activityRes, feedRes, weeklyRes, streakRes, tasksRes, paceRes] = await Promise.all([
         fetch(`${BASE}/state`),
         fetch(`${BASE}/progress`),
         fetch(`${BASE}/habits/${today}`),
@@ -36,11 +37,12 @@ export function useGameData() {
         fetch(`${BASE}/weekly-summary`),
         fetch(`${BASE}/streak-status`),
         fetch(`${BASE}/current-tasks`),
+        fetch(`${BASE}/plan/pace`),
       ])
       if (!stateRes.ok) throw new Error(`State fetch failed: ${stateRes.status}`)
       if (!progressRes.ok) throw new Error(`Progress fetch failed: ${progressRes.status}`)
 
-      const [stateData, progressData, habitsData, activityData, feedData, weeklyData, streakData, tasksData] = await Promise.all([
+      const [stateData, progressData, habitsData, activityData, feedData, weeklyData, streakData, tasksData, paceData] = await Promise.all([
         stateRes.json(),
         progressRes.json(),
         habitsRes.ok ? habitsRes.json() : Promise.resolve([]),
@@ -49,6 +51,7 @@ export function useGameData() {
         weeklyRes.ok ? weeklyRes.json() : Promise.resolve(null),
         streakRes.ok ? streakRes.json() : Promise.resolve(null),
         tasksRes.ok ? tasksRes.json() : Promise.resolve(null),
+        paceRes.ok ? paceRes.json() : Promise.resolve(null),
       ])
 
       setState(stateData)
@@ -59,6 +62,7 @@ export function useGameData() {
       setWeeklySummary(weeklyData)
       setStreakStatus(streakData)
       setCurrentTasks(tasksData)
+      setPace(paceData)
       setError(null)
     } catch (err) {
       setError(err.message)
@@ -106,6 +110,7 @@ export function useGameData() {
     weeklySummary,
     streakStatus,
     currentTasks,
+    pace,
     loading,
     error,
     today,
