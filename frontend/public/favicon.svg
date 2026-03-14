@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0a0e1a"/>
+  <!-- Body -->
+  <ellipse cx="256" cy="310" rx="140" ry="160" fill="#6b7280"/>
+  <!-- Belly -->
+  <ellipse cx="256" cy="340" rx="95" ry="110" fill="#d1d5db"/>
+  <!-- Belly chevrons -->
+  <path d="M220 290 L256 310 L292 290" stroke="#6b7280" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M215 315 L256 338 L297 315" stroke="#6b7280" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M218 340 L256 363 L294 340" stroke="#6b7280" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M222 365 L256 385 L290 365" stroke="#6b7280" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <!-- Left ear -->
+  <polygon points="175,195 155,100 210,170" fill="#6b7280"/>
+  <polygon points="180,190 165,115 205,175" fill="#4b5563"/>
+  <!-- Right ear -->
+  <polygon points="337,195 357,100 302,170" fill="#6b7280"/>
+  <polygon points="332,190 347,115 307,175" fill="#4b5563"/>
+  <!-- Left eye -->
+  <ellipse cx="215" cy="235" rx="22" ry="24" fill="#fbbf24"/>
+  <ellipse cx="215" cy="235" rx="12" ry="14" fill="#0a0e1a"/>
+  <circle cx="210" cy="229" r="4" fill="#fff"/>
+  <!-- Right eye -->
+  <ellipse cx="297" cy="235" rx="22" ry="24" fill="#fbbf24"/>
+  <ellipse cx="297" cy="235" rx="12" ry="14" fill="#0a0e1a"/>
+  <circle cx="292" cy="229" r="4" fill="#fff"/>
+  <!-- Nose -->
+  <ellipse cx="256" cy="258" rx="8" ry="5" fill="#374151"/>
+  <!-- Mouth -->
+  <path d="M225 270 Q240 285 256 270 Q272 285 287 270" stroke="#374151" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Whiskers left -->
+  <line x1="140" y1="248" x2="195" y2="258" stroke="#9ca3af" stroke-width="3" stroke-linecap="round"/>
+  <line x1="138" y1="270" x2="195" y2="268" stroke="#9ca3af" stroke-width="3" stroke-linecap="round"/>
+  <!-- Whiskers right -->
+  <line x1="317" y1="258" x2="372" y2="248" stroke="#9ca3af" stroke-width="3" stroke-linecap="round"/>
+  <line x1="317" y1="268" x2="374" y2="270" stroke="#9ca3af" stroke-width="3" stroke-linecap="round"/>
+</svg>
