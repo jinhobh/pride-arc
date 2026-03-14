@@ -21,47 +21,6 @@ function getCharXP(totalXp, level) {
   return { pct, current: totalXp - lo, needed: hi - lo }
 }
 
-const TOTAL_ARC_DAYS = 180 // 6 months
-
-function getArcStartDate() {
-  const stored = localStorage.getItem('arcStartDate')
-  if (stored) return stored
-  const today = new Date().toISOString().slice(0, 10)
-  localStorage.setItem('arcStartDate', today)
-  return today
-}
-
-function getPace(currentTasks) {
-  const arcStartDate  = getArcStartDate()
-  const startMs       = new Date(arcStartDate + 'T00:00:00').getTime()
-  const nowMs         = new Date().setHours(0, 0, 0, 0)
-  const daysSinceStart = Math.max(0, Math.round((nowMs - startMs) / 86400000))
-  const expectedPct   = Math.min(100, (daysSinceStart / TOTAL_ARC_DAYS) * 100)
-  const detail        = `Day ${daysSinceStart + 1} of ${TOTAL_ARC_DAYS}`
-
-  if (!currentTasks) return { status: 'on-track', label: 'On Pace', detail, pct: 0, expectedPct, earnedXP: 0, expectedXP: 0 }
-
-  const all = [
-    ...(currentTasks.weekly      ?? []),
-    ...(currentTasks.monthly     ?? []),
-    ...(currentTasks.checkpoints ?? []),
-  ]
-  const total       = all.length
-  const done        = all.filter(t => t.completed).length
-  const earnedXP    = all.filter(t => t.completed).reduce((s, t) => s + (t.xp ?? 0), 0)
-  const totalXP     = all.reduce((s, t) => s + (t.xp ?? 0), 0)
-  const expectedXP  = Math.round(totalXP * expectedPct / 100)
-
-  if (total === 0) return { status: 'on-track', label: 'On Pace', detail, pct: 0, expectedPct, earnedXP: 0, expectedXP: 0 }
-
-  const pct  = (done / total) * 100
-  const diff = pct - expectedPct
-
-  const status = diff > 5 ? 'ahead' : diff >= -5 ? 'on-track' : diff >= -20 ? 'warning' : 'behind'
-  const label  = status === 'ahead' ? 'Ahead' : status === 'on-track' ? 'On Pace' : 'Behind'
-
-  return { status, label, detail, pct, expectedPct, earnedXP, expectedXP, done, total }
-}
 
 const PACE_COLORS = {
   ahead:      { fg: '#38BDF8', glow: 'rgba(56,189,248,0.7)' },
@@ -611,15 +570,30 @@ function MobileHabitsDrawer({ habits, today, onLogHabit }) {
 }
 
 // ── Pace Tracker ──────────────────────────────────────────────────────────────
-function PaceTracker({ currentTasks, totalXp, isMobile }) {
+function PaceTracker({ pace: paceData, isMobile }) {
   const [hovered, setHovered] = useState(false)
-  const pace   = getPace(currentTasks)
-  const colors = PACE_COLORS[pace.status]
 
-  const earnedXP  = totalXp ?? pace.earnedXP
-  const xpDiff    = earnedXP - pace.expectedXP
-  const xpAhead   = xpDiff >= 0
-  const xpDiffAbs = Math.abs(xpDiff)
+  if (!paceData) return null
+
+  const daysSinceStart = paceData.arc_day - 1
+  const expectedPct    = Math.min(100, (daysSinceStart / paceData.arc_total_days) * 100)
+  const detail         = `Day ${paceData.arc_day} of ${paceData.arc_total_days}`
+
+  const earnedXP   = paceData.earned_xp
+  const expectedXP = paceData.expected_xp_today
+  const totalArcXP = paceData.total_arc_xp
+  const xpDiff     = paceData.delta_xp
+  const xpAhead    = xpDiff >= 0
+  const xpDiffAbs  = Math.abs(xpDiff)
+
+  // Progress bar: earned XP as % of total arc XP
+  const pct = totalArcXP > 0 ? (earnedXP / totalArcXP) * 100 : 0
+
+  // Status mapping from backend labels to dashboard style keys
+  const statusMap = { 'Ahead': 'ahead', 'On Track': 'on-track', 'Behind': 'behind' }
+  const status = statusMap[paceData.status] ?? 'on-track'
+  const colors = PACE_COLORS[status]
+  const label  = status === 'ahead' ? 'Ahead' : status === 'on-track' ? 'On Pace' : 'Behind'
 
   return (
     <div
@@ -666,7 +640,7 @@ function PaceTracker({ currentTasks, totalXp, isMobile }) {
             lineHeight:    1,
           }}
         >
-          {pace.label.toUpperCase()}
+          {label.toUpperCase()}
         </span>
       </div>
 
@@ -686,7 +660,7 @@ function PaceTracker({ currentTasks, totalXp, isMobile }) {
           style={{
             position:     'absolute',
             inset:        0,
-            width:        `${Math.min(pace.pct, 100)}%`,
+            width:        `${Math.min(pct, 100)}%`,
             background:   colors.fg,
             borderRadius: '999px',
             transition:   'width 1.4s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -697,7 +671,7 @@ function PaceTracker({ currentTasks, totalXp, isMobile }) {
           style={{
             position:     'absolute',
             top:          '-4px',
-            left:         `clamp(0%, ${pace.expectedPct}%, 100%)`,
+            left:         `clamp(0%, ${totalArcXP > 0 ? (expectedXP / totalArcXP) * 100 : 0}%, 100%)`,
             transform:    'translateX(-50%)',
             width:        '2px',
             height:       '12px',
@@ -716,7 +690,7 @@ function PaceTracker({ currentTasks, totalXp, isMobile }) {
           letterSpacing: '0.02em',
         }}
       >
-        {pace.detail}
+        {detail}
       </span>
 
       {/* Hover tooltip */}
@@ -757,7 +731,7 @@ function PaceTracker({ currentTasks, totalXp, isMobile }) {
               XP expected
             </span>
             <span style={{ fontFamily: 'VT323, monospace', fontSize: '1.1rem', color: 'rgba(255,255,255,0.65)', letterSpacing: '0.04em' }}>
-              {pace.expectedXP} XP
+              {expectedXP.toLocaleString()} XP
             </span>
           </div>
 
@@ -774,10 +748,26 @@ function PaceTracker({ currentTasks, totalXp, isMobile }) {
             </span>
           </div>
 
-          {/* Task count */}
-          {pace.total > 0 && (
+          {/* Missed habits breakdown */}
+          {(paceData.missed_habits?.length ?? 0) > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
+              {paceData.missed_habits.map(h => (
+                <div key={h.habit_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)' }}>
+                    {h.title} ({h.missed_days}d)
+                  </span>
+                  <span style={{ fontFamily: 'VT323, monospace', fontSize: '0.95rem', color: '#C9A84C', letterSpacing: '0.04em' }}>
+                    −{h.total_missed_xp}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Missed tasks count */}
+          {(paceData.missed_tasks?.length ?? 0) > 0 && (
             <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: '2px' }}>
-              {pace.done} / {pace.total} tasks complete this month
+              {paceData.missed_tasks.length} missed task{paceData.missed_tasks.length !== 1 ? 's' : ''} from previous months
             </div>
           )}
         </div>
@@ -835,7 +825,7 @@ function ErrorScreen({ message }) {
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const {
-    state, todayHabits, streakStatus, currentTasks,
+    state, todayHabits, streakStatus, currentTasks, pace,
     loading, error, today, hasCheckedInToday, checkin, logHabit,
   } = useGameData()
 
@@ -859,7 +849,7 @@ export default function Dashboard() {
       <MorningMessage  isMobile={isMobile} />
       <CharInfoPanel   state={state} isMobile={isMobile} />
 
-      <PaceTracker currentTasks={currentTasks} totalXp={state?.total_xp} isMobile={isMobile} />
+      <PaceTracker pace={pace} isMobile={isMobile} />
 
       {isMobile ? (
         <MobileHabitsDrawer habits={todayHabits} today={today} onLogHabit={logHabit} />
