@@ -15,6 +15,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from plan_data import CHECKPOINTS, HABITS, MONTH_SUBTITLES, TASKS
 from schemas import (
     AssignDayRequest,
+    MissedHabitOut,
     MissedTaskOut,
     PaceResponse,
     PlanCheckpointCreate,
@@ -428,8 +429,8 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
     # Which month of the arc are we in (1–6)?
     current_month = min(6, math.ceil(arc_day / 30))
 
-    # Expected XP = all "once" task XP + checkpoint XP from fully elapsed months.
-    # This stays consistent with the missed-tasks list (same filter: month < current).
+    # Expected XP = "once" tasks + checkpoints from fully elapsed months
+    #             + habit XP for each elapsed day since the habit starts.
     expected_xp_today = sum(
         t["xp"] for t in TASKS.values()
         if t["frequency"] == "once" and t["month_number"] < current_month
@@ -438,10 +439,28 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
         if c["month_number"] < current_month
     )
 
-    # Total arc XP (once + checkpoints only) used for the progress bar reference.
+    # Habits: active from starts_at_month (or month 1) onward
+    # Expected XP assumes 1 completion per day for each active habit.
+    habit_expected_days: dict[str, int] = {}
+    for h in HABITS.values():
+        start_month = h.get("starts_at_month") or 1
+        habit_start_day = (start_month - 1) * 30 + 1
+        if arc_day < habit_start_day:
+            continue
+        active_days = arc_day - habit_start_day + 1
+        habit_expected_days[h["id"]] = active_days
+        expected_xp_today += h["xp_per_completion"] * active_days
+
+    # Total arc XP includes once + checkpoints + all habits over 180 days.
     total_arc_xp = sum(
         t["xp"] for t in TASKS.values() if t["frequency"] == "once"
     ) + sum(c["xp_reward"] for c in CHECKPOINTS.values())
+
+    for h in HABITS.values():
+        start_month = h.get("starts_at_month") or 1
+        habit_start_day = (start_month - 1) * 30 + 1
+        total_days = 180 - habit_start_day + 1
+        total_arc_xp += h["xp_per_completion"] * total_days
 
     earned_xp = state.total_xp if state else 0
     delta_xp = earned_xp - expected_xp_today
@@ -470,6 +489,34 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
     ]
     missed.sort(key=lambda x: (x.month_number, x.skill_type, x.title))
 
+    # Missed habits: count completed days per habit from habit_logs
+    habit_log_rows = await db.execute(
+        select(HabitLog.habit_id, HabitLog.count)
+        .where(HabitLog.completed.is_(True))
+    )
+    # Sum actual completions per habit (each log row count = 1 completion day)
+    habit_completed_days: dict[str, int] = {}
+    for row in habit_log_rows.fetchall():
+        habit_completed_days[row[0]] = habit_completed_days.get(row[0], 0) + 1
+
+    missed_habits = []
+    for h in HABITS.values():
+        expected_days = habit_expected_days.get(h["id"], 0)
+        if expected_days == 0:
+            continue
+        actual_days = habit_completed_days.get(h["id"], 0)
+        missed_days = max(0, expected_days - actual_days)
+        if missed_days > 0:
+            missed_habits.append(MissedHabitOut(
+                habit_id=h["id"],
+                title=h["title"],
+                skill_type=h["skill_type"],
+                xp_per_day=h["xp_per_completion"],
+                missed_days=missed_days,
+                total_missed_xp=missed_days * h["xp_per_completion"],
+            ))
+    missed_habits.sort(key=lambda x: (-x.total_missed_xp, x.title))
+
     return PaceResponse(
         arc_day=arc_day,
         arc_total_days=arc_total_days,
@@ -479,6 +526,7 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
         status=status_label,
         total_arc_xp=total_arc_xp,
         missed_tasks=missed,
+        missed_habits=missed_habits,
     )
 
 

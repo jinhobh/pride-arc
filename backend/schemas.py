@@ -264,6 +264,15 @@ class MissedTaskOut(BaseModel):
     month_number: int
 
 
+class MissedHabitOut(BaseModel):
+    habit_id: str
+    title: str
+    skill_type: str
+    xp_per_day: int
+    missed_days: int
+    total_missed_xp: int
+
+
 class PaceResponse(BaseModel):
     arc_day: int
     arc_total_days: int
@@ -273,3 +282,4 @@ class PaceResponse(BaseModel):
     status: str  # "On Track" | "Behind" | "Ahead"
     total_arc_xp: int
     missed_tasks: list[MissedTaskOut] = []
+    missed_habits: list[MissedHabitOut] = []

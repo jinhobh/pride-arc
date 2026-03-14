@@ -748,6 +748,22 @@ function PaceTracker({ pace: paceData, isMobile }) {
             </span>
           </div>
 
+          {/* Missed habits breakdown */}
+          {(paceData.missed_habits?.length ?? 0) > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
+              {paceData.missed_habits.map(h => (
+                <div key={h.habit_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)' }}>
+                    {h.title} ({h.missed_days}d)
+                  </span>
+                  <span style={{ fontFamily: 'VT323, monospace', fontSize: '0.95rem', color: '#C9A84C', letterSpacing: '0.04em' }}>
+                    −{h.total_missed_xp}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Missed tasks count */}
           {(paceData.missed_tasks?.length ?? 0) > 0 && (
             <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: '2px' }}>

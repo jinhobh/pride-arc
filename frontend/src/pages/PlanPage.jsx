@@ -703,7 +703,11 @@ function PaceWidget({ pace }) {
   const s = statusStyles[pace.status] ?? statusStyles['On Track']
   const pct = Math.min(100, Math.round((pace.arc_day / pace.arc_total_days) * 100))
   const missed = pace.missed_tasks ?? []
-  const missedXp = missed.reduce((sum, t) => sum + t.xp, 0)
+  const missedHabits = pace.missed_habits ?? []
+  const missedTaskXp = missed.reduce((sum, t) => sum + t.xp, 0)
+  const missedHabitXp = missedHabits.reduce((sum, h) => sum + h.total_missed_xp, 0)
+  const missedXp = missedTaskXp + missedHabitXp
+  const hasMissedItems = missed.length > 0 || missedHabits.length > 0
 
   return (
     <div
@@ -771,58 +775,96 @@ function PaceWidget({ pace }) {
         </div>
       </button>
 
-      {/* Expandable missed tasks panel */}
+      {/* Expandable missed items panel */}
       {expanded && (
         <div
           className="px-4 pb-4 flex flex-col gap-2"
           style={{ borderTop: `1px solid ${s.border}40` }}
         >
+          {/* Header */}
           <div className="flex items-center justify-between pt-3 pb-1">
             <span className="font-sans text-xs font-semibold" style={{ color: s.text }}>
-              Missed Tasks ({missed.length})
+              Behind Breakdown
             </span>
-            {missed.length > 0 && (
+            {hasMissedItems && (
               <span className="font-sans text-xs font-semibold" style={{ color: '#8B3A1A' }}>
                 −{missedXp.toLocaleString()} XP
               </span>
             )}
           </div>
 
-          {missed.length === 0 ? (
+          {!hasMissedItems ? (
             <p className="font-sans text-xs" style={{ color: '#6B7F6E' }}>
-              No missed tasks — great work!
+              Nothing missed — great work!
             </p>
           ) : (
-            <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-1">
-              {missed.map(t => {
-                const color = SKILL_COLORS[t.skill_type] ?? '#8B6F47'
-                return (
-                  <div
-                    key={t.id}
-                    className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5"
-                    style={{ background: color + '12', border: `1px solid ${color}28` }}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
-                        style={{ background: color }}
-                      />
-                      <span
-                        className="font-sans text-[11px] truncate"
-                        style={{ color: 'rgba(44,36,22,0.75)' }}
+            <div className="flex flex-col gap-3 max-h-72 overflow-y-auto pr-1">
+              {/* Missed habits */}
+              {missedHabits.length > 0 && (
+                <div className="flex flex-col gap-1.5">
+                  <span className="font-sans text-[10px] font-semibold uppercase tracking-wider" style={{ color: s.text + 'aa' }}>
+                    Daily Habits ({missedHabits.length})
+                  </span>
+                  {missedHabits.map(h => {
+                    const color = SKILL_COLORS[h.skill_type] ?? '#8B6F47'
+                    return (
+                      <div
+                        key={h.habit_id}
+                        className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5"
+                        style={{ background: color + '12', border: `1px solid ${color}28` }}
                       >
-                        {t.title}
-                      </span>
-                    </div>
-                    <span
-                      className="font-sans text-[11px] font-semibold flex-shrink-0"
-                      style={{ color }}
-                    >
-                      {t.xp} XP
-                    </span>
-                  </div>
-                )
-              })}
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+                            style={{ background: color }}
+                          />
+                          <span className="font-sans text-[11px] truncate" style={{ color: 'rgba(44,36,22,0.75)' }}>
+                            {h.title}
+                          </span>
+                          <span className="font-sans text-[10px] flex-shrink-0" style={{ color: 'rgba(44,36,22,0.45)' }}>
+                            {h.missed_days}d missed
+                          </span>
+                        </div>
+                        <span className="font-sans text-[11px] font-semibold flex-shrink-0" style={{ color }}>
+                          {h.total_missed_xp} XP
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Missed once-tasks */}
+              {missed.length > 0 && (
+                <div className="flex flex-col gap-1.5">
+                  <span className="font-sans text-[10px] font-semibold uppercase tracking-wider" style={{ color: s.text + 'aa' }}>
+                    Missed Tasks ({missed.length})
+                  </span>
+                  {missed.map(t => {
+                    const color = SKILL_COLORS[t.skill_type] ?? '#8B6F47'
+                    return (
+                      <div
+                        key={t.id}
+                        className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5"
+                        style={{ background: color + '12', border: `1px solid ${color}28` }}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+                            style={{ background: color }}
+                          />
+                          <span className="font-sans text-[11px] truncate" style={{ color: 'rgba(44,36,22,0.75)' }}>
+                            {t.title}
+                          </span>
+                        </div>
+                        <span className="font-sans text-[11px] font-semibold flex-shrink-0" style={{ color }}>
+                          {t.xp} XP
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
