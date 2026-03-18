@@ -125,11 +125,20 @@ async def get_state(db: AsyncSession = Depends(get_db)):
     completed_cp_ids = await crud.get_completed_checkpoint_ids(db)
     badges = await crud.get_badges(db)
 
+    import datetime as _dt
+    today = _dt.date.today()
+    yesterday = today - _dt.timedelta(days=1)
+    effective_streak = (
+        state.streak_current
+        if state.last_checkin_date in (today, yesterday)
+        else 0
+    )
+
     return StateResponse(
         current_month=state.current_month,
         total_xp=state.total_xp,
         character_level=state.character_level,
-        streak_current=state.streak_current,
+        streak_current=effective_streak,
         streak_longest=state.streak_longest,
         last_checkin_date=state.last_checkin_date,
         stats=[
@@ -1086,8 +1095,15 @@ async def get_streak_status(db: AsyncSession = Depends(get_db)):
         delta = (today - state.last_checkin_date).days
         days_missed = max(0, delta - 1) if not checked_in_today else 0
 
+    yesterday = today - datetime.timedelta(days=1)
+    effective_streak = (
+        state.streak_current
+        if state.last_checkin_date in (today, yesterday)
+        else 0
+    )
+
     return StreakStatusResponse(
-        streak=state.streak_current,
+        streak=effective_streak,
         longest=state.streak_longest,
         checked_in_today=checked_in_today,
         days_missed=days_missed,
