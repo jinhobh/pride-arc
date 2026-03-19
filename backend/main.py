@@ -12,7 +12,7 @@ from database import AsyncSessionLocal, Base, engine, get_db
 from models import CheckpointCompletion, HabitLog, PlanCheckpoint, PlanHabit, PlanSection, PlanSectionTask, PlanTask, TaskCompletion, TaskDayAssignment  # noqa: F401 — ensure models are imported so Base sees them
 from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from plan_data import CHECKPOINTS, HABITS, MONTH_SUBTITLES, TASKS
+from plan_data import MONTH_SUBTITLES
 from schemas import (
     AssignDayRequest,
     MissedHabitOut,
@@ -161,7 +161,7 @@ async def get_state(db: AsyncSession = Depends(get_db)):
 
 @app.post("/task/complete", response_model=TaskCompleteResponse)
 async def complete_task(body: TaskCompleteRequest, db: AsyncSession = Depends(get_db)):
-    task = TASKS.get(body.task_id) or await crud.resolve_custom_task(db, body.task_id)
+    task = await crud.get_task_by_id(db, body.task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task '{body.task_id}' not found")
 
@@ -189,7 +189,7 @@ async def complete_task(body: TaskCompleteRequest, db: AsyncSession = Depends(ge
 
 @app.post("/task/uncomplete", response_model=TaskUncompleteResponse)
 async def uncomplete_task(body: TaskCompleteRequest, db: AsyncSession = Depends(get_db)):
-    task = TASKS.get(body.task_id) or await crud.resolve_custom_task(db, body.task_id)
+    task = await crud.get_task_by_id(db, body.task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task '{body.task_id}' not found")
 
@@ -215,7 +215,7 @@ async def uncomplete_task(body: TaskCompleteRequest, db: AsyncSession = Depends(
 async def complete_checkpoint(
     body: CheckpointCompleteRequest, db: AsyncSession = Depends(get_db)
 ):
-    cp = CHECKPOINTS.get(body.checkpoint_id)
+    cp = await crud.get_checkpoint_by_id(db, body.checkpoint_id)
     if not cp:
         raise HTTPException(status_code=404, detail=f"Checkpoint '{body.checkpoint_id}' not found")
 
@@ -243,7 +243,7 @@ async def complete_checkpoint(
 
 @app.post("/habit/log", response_model=HabitLogResponse)
 async def log_habit(body: HabitLogRequest, db: AsyncSession = Depends(get_db)):
-    habit = HABITS.get(body.habit_id)
+    habit = await crud.get_habit_by_id(db, body.habit_id)
     if not habit:
         raise HTTPException(status_code=404, detail=f"Habit '{body.habit_id}' not found")
 
@@ -280,8 +280,10 @@ async def get_habits_for_date(date: str, db: AsyncSession = Depends(get_db)):
     logs = await crud.get_habit_logs_for_date(db, target_date)
     log_map = {log.habit_id: log for log in logs}
 
+    db_habits = await crud.get_all_active_habits(db)
+
     result = []
-    for habit in HABITS.values():
+    for habit in db_habits.values():
         starts_at = habit["starts_at_month"]
         if starts_at is not None and current_month < starts_at:
             continue  # not yet unlocked
@@ -310,11 +312,14 @@ async def get_current_tasks(db: AsyncSession = Depends(get_db)):
     current_month = state.current_month if state else 1
     completed_ids = set(await crud.get_completed_task_ids(db))
 
+    db_tasks = await crud.get_all_active_tasks(db)
+    db_checkpoints = await crud.get_all_active_checkpoints(db)
+
     daily = []
     weekly = []
     monthly = []  # one-time tasks
 
-    for task in TASKS.values():
+    for task in db_tasks.values():
         if task["month_number"] != current_month:
             continue
         entry = {
@@ -335,8 +340,7 @@ async def get_current_tasks(db: AsyncSession = Depends(get_db)):
     # Also include checkpoints for the current month as milestone tasks
     completed_cps = set(await crud.get_completed_checkpoint_ids(db))
     checkpoints = []
-    from plan_data import CHECKPOINTS
-    for cp in CHECKPOINTS.values():
+    for cp in db_checkpoints.values():
         if cp["month_number"] != current_month:
             continue
         checkpoints.append({
@@ -360,7 +364,7 @@ async def get_current_tasks(db: AsyncSession = Depends(get_db)):
 
 @app.get("/plan/month/{n}")
 async def get_month_plan(n: int, db: AsyncSession = Depends(get_db)):
-    """Return full month data for the MonthPage UI, directly from plan_data.py."""
+    """Return full month data for the MonthPage UI, reading from DB so Studio edits apply."""
     from plan_data import MONTH_SECTIONS, MONTH_SUBTITLES, CHAPTER_REWARDS
 
     if n < 1 or n > 6:
@@ -370,12 +374,16 @@ async def get_month_plan(n: int, db: AsyncSession = Depends(get_db)):
     completed_ids = set(await crud.get_completed_task_ids(db))
     completed_cps = set(await crud.get_completed_checkpoint_ids(db))
 
+    # Read tasks and checkpoints from DB (reflects Studio edits)
+    db_tasks = await crud.get_all_active_tasks(db)
+    db_checkpoints = await crud.get_all_active_checkpoints(db)
+
     # Build sections with full task objects
     sections = []
     for section_def in MONTH_SECTIONS.get(n, []):
         tasks = []
         for tid in section_def["task_ids"]:
-            task = TASKS.get(tid)
+            task = db_tasks.get(tid)
             if task:
                 tasks.append({
                     "id": task["id"],
@@ -392,12 +400,10 @@ async def get_month_plan(n: int, db: AsyncSession = Depends(get_db)):
             "tasks": tasks,
         })
 
-    # Build checkpoints
-    from plan_data import CHECKPOINTS_BY_MONTH
+    # Build checkpoints from DB
     checkpoints = []
-    for cp_id in CHECKPOINTS_BY_MONTH.get(n, []):
-        cp = CHECKPOINTS.get(cp_id)
-        if cp:
+    for cp_id, cp in db_checkpoints.items():
+        if cp["month_number"] == n:
             checkpoints.append({
                 "id": cp["id"],
                 "title": cp["title"],
@@ -438,20 +444,25 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
     # Which month of the arc are we in (1–6)?
     current_month = min(6, math.ceil(arc_day / 30))
 
+    # Read from DB so Studio edits are reflected
+    db_tasks = await crud.get_all_active_tasks(db)
+    db_checkpoints = await crud.get_all_active_checkpoints(db)
+    db_habits = await crud.get_all_active_habits(db)
+
     # Expected XP = "once" tasks + checkpoints from fully elapsed months
     #             + habit XP for each elapsed day since the habit starts.
     expected_xp_today = sum(
-        t["xp"] for t in TASKS.values()
+        t["xp"] for t in db_tasks.values()
         if t["frequency"] == "once" and t["month_number"] < current_month
     ) + sum(
-        c["xp_reward"] for c in CHECKPOINTS.values()
+        c["xp_reward"] for c in db_checkpoints.values()
         if c["month_number"] < current_month
     )
 
     # Habits: active from starts_at_month (or month 1) onward
     # Expected XP assumes 1 completion per day for each active habit.
     habit_expected_days: dict[str, int] = {}
-    for h in HABITS.values():
+    for h in db_habits.values():
         start_month = h.get("starts_at_month") or 1
         habit_start_day = (start_month - 1) * 30 + 1
         if arc_day < habit_start_day:
@@ -462,10 +473,10 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
 
     # Total arc XP includes once + checkpoints + all habits over 180 days.
     total_arc_xp = sum(
-        t["xp"] for t in TASKS.values() if t["frequency"] == "once"
-    ) + sum(c["xp_reward"] for c in CHECKPOINTS.values())
+        t["xp"] for t in db_tasks.values() if t["frequency"] == "once"
+    ) + sum(c["xp_reward"] for c in db_checkpoints.values())
 
-    for h in HABITS.values():
+    for h in db_habits.values():
         start_month = h.get("starts_at_month") or 1
         habit_start_day = (start_month - 1) * 30 + 1
         total_days = 180 - habit_start_day + 1
@@ -491,7 +502,7 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
             skill_type=t["skill_type"],
             month_number=t["month_number"],
         )
-        for t in TASKS.values()
+        for t in db_tasks.values()
         if t["frequency"] == "once"
         and t["month_number"] < current_month
         and t["id"] not in completed_ids
@@ -509,7 +520,7 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
         habit_completed_days[row[0]] = habit_completed_days.get(row[0], 0) + 1
 
     missed_habits = []
-    for h in HABITS.values():
+    for h in db_habits.values():
         expected_days = habit_expected_days.get(h["id"], 0)
         if expected_days == 0:
             continue
@@ -550,10 +561,14 @@ async def get_plan_roadmap(db: AsyncSession = Depends(get_db)):
     state = await crud.get_user_state(db)
     current_month = state.current_month if state else 1
 
+    # Read from DB so Studio edits are reflected
+    db_tasks = await crud.get_all_active_tasks(db)
+    db_checkpoints = await crud.get_all_active_checkpoints(db)
+
     months = []
     for n in range(1, 7):
-        month_tasks = [t for t in TASKS.values() if t["month_number"] == n]
-        month_cps = [c for c in CHECKPOINTS.values() if c["month_number"] == n]
+        month_tasks = [t for t in db_tasks.values() if t["month_number"] == n]
+        month_cps = [c for c in db_checkpoints.values() if c["month_number"] == n]
         once_tasks = [t for t in month_tasks if t["frequency"] == "once"]
 
         total_xp = (
@@ -637,8 +652,9 @@ async def get_plan_week(db: AsyncSession = Depends(get_db)):
         row.task_id: row.day_offset for row in assign_result.scalars().all()
     }
 
-    # ── Bucket tasks by type ───────────────────────────────────────────────────
-    month_tasks = [t for t in TASKS.values() if t["month_number"] == current_month]
+    # ── Read from DB so Studio edits are reflected ──────────────────────────────
+    db_tasks = await crud.get_all_active_tasks(db)
+    month_tasks = [t for t in db_tasks.values() if t["month_number"] == current_month]
     daily_tasks  = [t for t in month_tasks if t["frequency"] == "daily"]
     weekly_tasks = [t for t in month_tasks if t["frequency"] == "weekly"]
 
@@ -727,7 +743,7 @@ async def assign_task_day(
     """Assign a once or weekly task to a specific day (0=Mon…6=Sun).
     Pass day_offset=-1 to remove the assignment and reset to default.
     """
-    task = TASKS.get(task_id) or await crud.resolve_custom_task(db, task_id)
+    task = await crud.get_task_by_id(db, task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found")
 
@@ -1170,12 +1186,17 @@ async def get_activity(days: int = 180, db: AsyncSession = Depends(get_db)):
     )
     cp_rows = cc_result.scalars().all()
 
+    # Read from DB so Studio edits are reflected
+    db_tasks = await crud.get_all_active_tasks(db)
+    db_checkpoints = await crud.get_all_active_checkpoints(db)
+    db_habits = await crud.get_all_active_habits(db)
+
     # Aggregate by date
     from collections import defaultdict
     day_map: dict[str, dict] = defaultdict(lambda: {"total_xp": 0, "skills": defaultdict(int)})
 
     for tc in task_rows:
-        task = TASKS.get(tc.task_id)
+        task = db_tasks.get(tc.task_id)
         if not task:
             continue
         d = tc.completed_at.date().isoformat()
@@ -1183,7 +1204,7 @@ async def get_activity(days: int = 180, db: AsyncSession = Depends(get_db)):
         day_map[d]["skills"][task["skill_type"]] += task["xp"]
 
     for hl in habit_rows:
-        habit = HABITS.get(hl.habit_id)
+        habit = db_habits.get(hl.habit_id)
         if not habit:
             continue
         d = hl.logged_date.isoformat()
@@ -1191,7 +1212,7 @@ async def get_activity(days: int = 180, db: AsyncSession = Depends(get_db)):
         day_map[d]["skills"][habit["skill_type"]] += habit["xp_per_completion"]
 
     for cc in cp_rows:
-        cp = CHECKPOINTS.get(cc.checkpoint_id)
+        cp = db_checkpoints.get(cc.checkpoint_id)
         if not cp:
             continue
         d = cc.completed_at.date().isoformat()
@@ -1234,8 +1255,9 @@ async def get_habit_activity(days: int = 180, db: AsyncSession = Depends(get_db)
     user_state = await crud.get_user_state(db)
     current_month = user_state.current_month if user_state else 1
 
+    db_habits = await crud.get_all_active_habits(db)
     habits_total = sum(
-        1 for h in HABITS.values()
+        1 for h in db_habits.values()
         if h.get("starts_at_month") is None or h["starts_at_month"] <= current_month
     )
 
@@ -1283,10 +1305,14 @@ async def get_activity_feed(limit: int = 10, db: AsyncSession = Depends(get_db))
     )
     habit_rows = hl_result.scalars().all()
 
+    db_tasks = await crud.get_all_active_tasks(db)
+    db_checkpoints = await crud.get_all_active_checkpoints(db)
+    db_habits = await crud.get_all_active_habits(db)
+
     events = []
 
     for tc in task_rows:
-        task = TASKS.get(tc.task_id)
+        task = db_tasks.get(tc.task_id)
         if task:
             events.append({
                 "type": "task",
@@ -1297,7 +1323,7 @@ async def get_activity_feed(limit: int = 10, db: AsyncSession = Depends(get_db))
             })
 
     for cc in cp_rows:
-        cp = CHECKPOINTS.get(cc.checkpoint_id)
+        cp = db_checkpoints.get(cc.checkpoint_id)
         if cp:
             events.append({
                 "type": "checkpoint",
@@ -1308,7 +1334,7 @@ async def get_activity_feed(limit: int = 10, db: AsyncSession = Depends(get_db))
             })
 
     for hl in habit_rows:
-        habit = HABITS.get(hl.habit_id)
+        habit = db_habits.get(hl.habit_id)
         if habit:
             ts = datetime.datetime.combine(
                 hl.logged_date, datetime.time(12, 0), tzinfo=datetime.timezone.utc
@@ -1365,6 +1391,10 @@ async def get_weekly_summary(db: AsyncSession = Depends(get_db)):
     )
     cp_rows = cc_result.scalars().all()
 
+    db_tasks = await crud.get_all_active_tasks(db)
+    db_checkpoints = await crud.get_all_active_checkpoints(db)
+    db_habits = await crud.get_all_active_habits(db)
+
     from collections import defaultdict
     total_xp = 0
     problems_solved = 0
@@ -1372,7 +1402,7 @@ async def get_weekly_summary(db: AsyncSession = Depends(get_db)):
     skill_xp: dict[str, int] = defaultdict(int)
 
     for tc in task_rows:
-        task = TASKS.get(tc.task_id)
+        task = db_tasks.get(tc.task_id)
         if not task:
             continue
         total_xp += task["xp"]
@@ -1382,7 +1412,7 @@ async def get_weekly_summary(db: AsyncSession = Depends(get_db)):
             problems_solved += 1
 
     for hl in habit_rows:
-        habit = HABITS.get(hl.habit_id)
+        habit = db_habits.get(hl.habit_id)
         if not habit:
             continue
         total_xp += habit["xp_per_completion"]
@@ -1390,7 +1420,7 @@ async def get_weekly_summary(db: AsyncSession = Depends(get_db)):
         active_dates.add(hl.logged_date.isoformat())
 
     for cc in cp_rows:
-        cp = CHECKPOINTS.get(cc.checkpoint_id)
+        cp = db_checkpoints.get(cc.checkpoint_id)
         if not cp:
             continue
         total_xp += cp["xp_reward"]

@@ -7,7 +7,6 @@ from models import Badge, CheckpointCompletion, HabitLog, PlanCheckpoint, PlanHa
 from plan_data import (
     CHAPTER_REWARDS,
     CHECKPOINTS,
-    CHECKPOINTS_BY_MONTH,
     HABITS,
     INITIAL_STATS,
     MONTH_SECTIONS,
@@ -16,6 +15,123 @@ from plan_data import (
     calc_skill_level,
 )
 from schemas import BadgeOut, StatLevelOut
+
+
+# ── DB plan-data helpers ─────────────────────────────────────────────────────
+# These replace direct reads from plan_data.py so that Studio edits propagate.
+
+async def get_all_active_tasks(db: AsyncSession) -> dict[str, dict]:
+    """Return all active tasks from DB as {task_id: dict} matching plan_data format."""
+    result = await db.execute(
+        select(PlanTask).where(PlanTask.is_active == True)  # noqa: E712
+    )
+    return {
+        t.task_id: {
+            "id": t.task_id, "title": t.title, "skill_type": t.skill_type,
+            "frequency": t.frequency, "xp": t.xp, "month_number": t.month_number,
+        }
+        for t in result.scalars().all()
+    }
+
+
+async def get_all_active_checkpoints(db: AsyncSession) -> dict[str, dict]:
+    """Return all active checkpoints from DB as {checkpoint_id: dict}."""
+    result = await db.execute(
+        select(PlanCheckpoint).where(PlanCheckpoint.is_active == True)  # noqa: E712
+    )
+    return {
+        c.checkpoint_id: {
+            "id": c.checkpoint_id, "title": c.title, "skill_type": c.skill_type,
+            "xp_reward": c.xp_reward, "month_number": c.month_number,
+        }
+        for c in result.scalars().all()
+    }
+
+
+async def get_checkpoints_by_month(db: AsyncSession) -> dict[int, list[str]]:
+    """Return {month_number: [checkpoint_id, ...]} from DB."""
+    result = await db.execute(
+        select(PlanCheckpoint).where(PlanCheckpoint.is_active == True)  # noqa: E712
+    )
+    by_month: dict[int, list[str]] = {}
+    for c in result.scalars().all():
+        by_month.setdefault(c.month_number, []).append(c.checkpoint_id)
+    return by_month
+
+
+async def get_all_active_habits(db: AsyncSession) -> dict[str, dict]:
+    """Return all active habits from DB as {habit_id: dict}."""
+    result = await db.execute(
+        select(PlanHabit).where(PlanHabit.is_active == True)  # noqa: E712
+    )
+    return {
+        h.habit_id: {
+            "id": h.habit_id, "title": h.title, "skill_type": h.skill_type,
+            "xp_per_completion": h.xp_per_completion,
+            "starts_at_month": h.starts_at_month,
+        }
+        for h in result.scalars().all()
+    }
+
+
+async def get_tasks_by_month(db: AsyncSession) -> dict[int, list[str]]:
+    """Return {month_number: [task_id, ...]} from DB."""
+    result = await db.execute(
+        select(PlanTask).where(PlanTask.is_active == True)  # noqa: E712
+    )
+    by_month: dict[int, list[str]] = {}
+    for t in result.scalars().all():
+        by_month.setdefault(t.month_number, []).append(t.task_id)
+    return by_month
+
+
+async def get_task_by_id(db: AsyncSession, task_id: str) -> dict | None:
+    """Look up a single active task from DB."""
+    result = await db.execute(
+        select(PlanTask).where(PlanTask.task_id == task_id, PlanTask.is_active == True)  # noqa: E712
+    )
+    row = result.scalar_one_or_none()
+    if row:
+        return {
+            "id": row.task_id, "title": row.title, "skill_type": row.skill_type,
+            "frequency": row.frequency, "xp": row.xp, "month_number": row.month_number,
+        }
+    return None
+
+
+async def get_checkpoint_by_id(db: AsyncSession, checkpoint_id: str) -> dict | None:
+    """Look up a single active checkpoint from DB."""
+    result = await db.execute(
+        select(PlanCheckpoint).where(
+            PlanCheckpoint.checkpoint_id == checkpoint_id,
+            PlanCheckpoint.is_active == True  # noqa: E712
+        )
+    )
+    row = result.scalar_one_or_none()
+    if row:
+        return {
+            "id": row.checkpoint_id, "title": row.title, "skill_type": row.skill_type,
+            "xp_reward": row.xp_reward, "month_number": row.month_number,
+        }
+    return None
+
+
+async def get_habit_by_id(db: AsyncSession, habit_id: str) -> dict | None:
+    """Look up a single active habit from DB."""
+    result = await db.execute(
+        select(PlanHabit).where(
+            PlanHabit.habit_id == habit_id,
+            PlanHabit.is_active == True  # noqa: E712
+        )
+    )
+    row = result.scalar_one_or_none()
+    if row:
+        return {
+            "id": row.habit_id, "title": row.title, "skill_type": row.skill_type,
+            "xp_per_completion": row.xp_per_completion,
+            "starts_at_month": row.starts_at_month,
+        }
+    return None
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -80,8 +196,11 @@ async def _check_chapter_unlock(
     if existing.scalar_one_or_none():
         return False, None
 
-    # All checkpoints done?
-    cp_ids = CHECKPOINTS_BY_MONTH[month_number]
+    # All checkpoints done? (read from DB so Studio edits are respected)
+    cps_by_month = await get_checkpoints_by_month(db)
+    cp_ids = cps_by_month.get(month_number, [])
+    if not cp_ids:
+        return False, None
     result = await db.execute(
         select(CheckpointCompletion.checkpoint_id).where(
             CheckpointCompletion.checkpoint_id.in_(cp_ids)
@@ -102,7 +221,8 @@ async def _check_chapter_unlock(
     await db.flush()  # populate badge.id / earned_at via server defaults
     await db.refresh(badge)
 
-    await _update_xp(db, CHECKPOINTS[cp_ids[0]]["skill_type"], 0)  # no-op to keep flush chain
+    first_cp = await get_checkpoint_by_id(db, cp_ids[0])
+    await _update_xp(db, first_cp["skill_type"] if first_cp else "project", 0)  # no-op to keep flush chain
     await _update_total_xp(db, reward["xp_bonus"])
 
     return True, badge
@@ -273,23 +393,6 @@ async def seed_plan_data(db: AsyncSession) -> None:
     await db.commit()
 
 
-async def resolve_custom_task(db: AsyncSession, task_id: str) -> dict | None:
-    """Look up a task from the DB plan_tasks table (for custom tasks not in plan_data.py)."""
-    result = await db.execute(
-        select(PlanTask).where(PlanTask.task_id == task_id, PlanTask.is_active == True)  # noqa: E712
-    )
-    row = result.scalar_one_or_none()
-    if row:
-        return {
-            "id": row.task_id,
-            "title": row.title,
-            "skill_type": row.skill_type,
-            "frequency": row.frequency,
-            "xp": row.xp,
-            "month_number": row.month_number,
-        }
-    return None
-
 
 # ── Task operations ───────────────────────────────────────────────────────────
 
@@ -299,7 +402,9 @@ async def complete_task(
     """
     Returns: (xp_awarded, stat_out, new_total_xp, new_char_level, chapter_unlocked, chapter_badge)
     """
-    task = task_data or TASKS[task_id]
+    task = task_data or await get_task_by_id(db, task_id)
+    if not task:
+        task = TASKS[task_id]  # fallback to static data
     xp = task["xp"]
 
     db.add(TaskCompletion(task_id=task_id))
@@ -325,7 +430,9 @@ async def uncomplete_task(
     Deletes the most recent TaskCompletion for task_id, reverses XP.
     Returns: (xp_revoked, stat_out, new_total_xp, new_char_level)
     """
-    task = task_data or TASKS[task_id]
+    task = task_data or await get_task_by_id(db, task_id)
+    if not task:
+        task = TASKS[task_id]  # fallback to static data
     xp = task["xp"]
 
     # Delete most recent completion
@@ -355,7 +462,9 @@ async def complete_checkpoint(
     """
     Returns: (xp_awarded, stat_out, new_total_xp, new_char_level, chapter_unlocked, chapter_badge)
     """
-    cp = CHECKPOINTS[checkpoint_id]
+    cp = await get_checkpoint_by_id(db, checkpoint_id)
+    if not cp:
+        cp = CHECKPOINTS[checkpoint_id]  # fallback to static data
     xp = cp["xp_reward"]
 
     db.add(CheckpointCompletion(checkpoint_id=checkpoint_id))
@@ -384,7 +493,9 @@ async def upsert_habit_log(
     count = number of completions (e.g. 4 leetcode problems).
     XP = xp_per_completion * count.
     """
-    habit = HABITS[habit_id]
+    habit = await get_habit_by_id(db, habit_id)
+    if not habit:
+        habit = HABITS[habit_id]  # fallback to static data
     xp_per = habit["xp_per_completion"]
 
     existing = await get_habit_log(db, habit_id, log_date)
@@ -451,11 +562,14 @@ async def get_progress(db: AsyncSession) -> dict:
     completed_cp_ids = set(await get_completed_checkpoint_ids(db))
     stats = await get_stat_levels(db)
 
+    # Read from DB so Studio edits are reflected
+    db_tasks_by_month = await get_tasks_by_month(db)
+    db_cps_by_month = await get_checkpoints_by_month(db)
+
     months = []
     for m in range(1, 7):
-        from plan_data import TASKS_BY_MONTH
-        month_task_ids = TASKS_BY_MONTH.get(m, [])
-        month_cp_ids = CHECKPOINTS_BY_MONTH.get(m, [])
+        month_task_ids = db_tasks_by_month.get(m, [])
+        month_cp_ids = db_cps_by_month.get(m, [])
 
         tasks_done = sum(1 for tid in month_task_ids if tid in completed_task_ids)
         cps_done = sum(1 for cid in month_cp_ids if cid in completed_cp_ids)
@@ -487,7 +601,7 @@ async def get_progress(db: AsyncSession) -> dict:
         "total_xp": state.total_xp,
         "character_level": state.character_level,
         "tasks_completed": len(completed_task_ids),
-        "tasks_total": len(TASKS),
+        "tasks_total": sum(len(ids) for ids in db_tasks_by_month.values()),
         "months": months,
         "skills": skills,
     }
