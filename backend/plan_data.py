@@ -75,6 +75,10 @@ TASKS: dict[str, dict] = {
     "m1_be_w4_2":    {"id": "m1_be_w4_2",   "skill_type": "backend", "frequency": "once", "xp": 20, "month_number": 1, "title": "Wk 4 · Connect PostgreSQL to FastAPI with SQLAlchemy"},
     "m1_be_w4_3":    {"id": "m1_be_w4_3",   "skill_type": "backend", "frequency": "once", "xp": 20, "month_number": 1, "title": "Wk 4 · Build full CRUD endpoints (create, read, update, delete)"},
 
+    # ── Database Fundamentals ────────────────────────────────────────────────
+    "m1_be_w3_3":    {"id": "m1_be_w3_3",   "skill_type": "backend", "frequency": "once", "xp": 10, "month_number": 1, "title": "Wk 3 · Learn normalization (1NF–3NF) — normalize a denormalized table"},
+    "m1_be_w4_4":    {"id": "m1_be_w4_4",   "skill_type": "backend", "frequency": "once", "xp": 15, "month_number": 1, "title": "Wk 4 · Write a PostgreSQL transaction — demonstrate ACID atomicity"},
+
     # ── Project — Scaffold It ──────────────────────────────────────────────
     "m1_proj_w1_1":  {"id": "m1_proj_w1_1", "skill_type": "project", "frequency": "once",  "xp": 5,  "month_number": 1, "title": "Wk 1 · Create GitHub repo with README and .gitignore"},
     "m1_proj_w1_2":  {"id": "m1_proj_w1_2", "skill_type": "project", "frequency": "once",  "xp": 5,  "month_number": 1, "title": "Wk 1 · Set up folder structure (backend/, frontend/)"},
@@ -108,6 +112,10 @@ TASKS: dict[str, dict] = {
     "m2_devops_w2_2": {"id": "m2_devops_w2_2", "skill_type": "devops", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 2 · Verify your app runs end-to-end with docker-compose up"},
     "m2_devops_w3_1": {"id": "m2_devops_w3_1", "skill_type": "devops", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 3 · Learn essential Linux commands (ls, cd, grep, chmod, ssh)"},
     "m2_devops_w4_1": {"id": "m2_devops_w4_1", "skill_type": "devops", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 4 · Create a feature branch and open your first pull request"},
+
+    # ── Testing & CI/CD ──────────────────────────────────────────────────────
+    "m2_be_w1_1":     {"id": "m2_be_w1_1",    "skill_type": "backend", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 1 · Learn unit vs integration vs e2e testing — when to use each"},
+    "m2_devops_w3_2": {"id": "m2_devops_w3_2", "skill_type": "devops",  "frequency": "once", "xp": 15, "month_number": 2, "title": "Wk 3 · Set up GitHub Actions CI — run tests + linter on every push"},
 
     # ── ML Depth — PyTorch ─────────────────────────────────────────────────
     "m2_ml_w1_1":    {"id": "m2_ml_w1_1",   "skill_type": "ml", "frequency": "once", "xp": 10, "month_number": 2, "title": "Wk 1 · Install PyTorch and run basic tensor operations"},
@@ -153,6 +161,12 @@ TASKS: dict[str, dict] = {
     "m3_cloud_w3_1": {"id": "m3_cloud_w3_1", "skill_type": "cloud", "frequency": "once", "xp": 15, "month_number": 3, "title": "Wk 3 · Write a Lambda function triggered by API Gateway"},
     "m3_cloud_w3_2": {"id": "m3_cloud_w3_2", "skill_type": "cloud", "frequency": "once", "xp": 10, "month_number": 3, "title": "Wk 3 · Test your Lambda with a curl request end-to-end"},
 
+    # ── Web Security ─────────────────────────────────────────────────────────
+    "m3_sec_w1_1":    {"id": "m3_sec_w1_1",    "skill_type": "backend", "frequency": "once", "xp": 10, "month_number": 3, "title": "Wk 1 · Learn HTTPS/TLS — how certificates and the handshake work"},
+    "m3_sec_w2_1":    {"id": "m3_sec_w2_1",    "skill_type": "backend", "frequency": "once", "xp": 15, "month_number": 3, "title": "Wk 2 · Study OWASP Top 10 — identify which risks apply to your app"},
+    "m3_sec_w3_1":    {"id": "m3_sec_w3_1",    "skill_type": "backend", "frequency": "once", "xp": 10, "month_number": 3, "title": "Wk 3 · Configure CORS in FastAPI and test cross-origin requests"},
+    "m3_devops_w4_1": {"id": "m3_devops_w4_1", "skill_type": "devops",  "frequency": "once", "xp": 15, "month_number": 3, "title": "Wk 4 · Set up Nginx as reverse proxy in front of FastAPI (Docker)"},
+
     # ── ML Depth — HuggingFace & Transformers ──────────────────────────────
     "m3_ml_w1_1":    {"id": "m3_ml_w1_1",   "skill_type": "ml", "frequency": "once", "xp": 10, "month_number": 3, "title": "Wk 1 · Install HuggingFace transformers and run a pre-trained pipeline"},
     "m3_ml_w1_2":    {"id": "m3_ml_w1_2",   "skill_type": "ml", "frequency": "once", "xp": 15, "month_number": 3, "title": "Wk 1 · Use a tokenizer — encode/decode text, inspect token IDs"},
@@ -196,6 +210,12 @@ TASKS: dict[str, dict] = {
 
     # ── DDIA Reading ────────────────────────────────────────────────────────
     "m4_ddia_weekly": {"id": "m4_ddia_weekly", "skill_type": "system_design", "frequency": "weekly", "xp": 20, "month_number": 4, "title": "Read 1 DDIA section (sects 1–4 of 12)"},
+
+    # ── Backend Depth — APIs, DB Internals ───────────────────────────────────
+    "m4_be_w1_1":    {"id": "m4_be_w1_1",   "skill_type": "backend", "frequency": "once", "xp": 10, "month_number": 4, "title": "Wk 1 · Enable and review auto-generated OpenAPI/Swagger docs"},
+    "m4_be_w2_1":    {"id": "m4_be_w2_1",   "skill_type": "backend", "frequency": "once", "xp": 15, "month_number": 4, "title": "Wk 2 · Add database migrations with Alembic — create and apply one"},
+    "m4_be_w3_1":    {"id": "m4_be_w3_1",   "skill_type": "backend", "frequency": "once", "xp": 15, "month_number": 4, "title": "Wk 3 · Learn the N+1 query problem — identify and fix with eager loading"},
+    "m4_be_w4_1":    {"id": "m4_be_w4_1",   "skill_type": "backend", "frequency": "once", "xp": 10, "month_number": 4, "title": "Wk 4 · Add a database index and benchmark query speed improvement"},
 
     # ── Probability Bootcamp ────────────────────────────────────────────────
     "m4_prob_weekly": {"id": "m4_prob_weekly", "skill_type": "ml", "frequency": "weekly", "xp": 15, "month_number": 4, "title": "Watch 2 Brunton Probability Bootcamp videos (vids 25–32)"},
@@ -326,6 +346,7 @@ CHECKPOINTS: dict[str, dict] = {
     "m2_cp_3": {"id": "m2_cp_3", "skill_type": "dsa",     "xp_reward":  100, "month_number": 2, "title": "Trees BFS/DFS — 10+ problems solved"},
     "m2_cp_4": {"id": "m2_cp_4", "skill_type": "ml",      "xp_reward":  150, "month_number": 2, "title": "Reproduced Generative Models via Drifting"},
     "m2_cp_6": {"id": "m2_cp_6", "skill_type": "dsa",     "xp_reward":  150, "month_number": 2, "title": "Neetcode 150 — 75+ problems total"},
+    "m2_cp_7": {"id": "m2_cp_7", "skill_type": "devops",  "xp_reward":   75, "month_number": 2, "title": "CI/CD — GitHub Actions pipeline running on every push"},
 
     # Month 3
     "m3_cp_1": {"id": "m3_cp_1", "skill_type": "project", "xp_reward": 150, "month_number": 3, "title": "Project deployed — live URL accessible to anyone"},
@@ -334,6 +355,7 @@ CHECKPOINTS: dict[str, dict] = {
     "m3_cp_4": {"id": "m3_cp_4", "skill_type": "ml",      "xp_reward": 100, "month_number": 3, "title": "HuggingFace — fine-tuned a transformer model"},
     "m3_cp_5": {"id": "m3_cp_5", "skill_type": "dsa",     "xp_reward":  75, "month_number": 3, "title": "LeetCode Weekly Contest — attempted 2+ contests"},
     "m3_cp_6": {"id": "m3_cp_6", "skill_type": "dsa",     "xp_reward":  100, "month_number": 3, "title": "Neetcode 150 — 120+ problems total"},
+    "m3_cp_7": {"id": "m3_cp_7", "skill_type": "backend", "xp_reward":   75, "month_number": 3, "title": "Web security — CORS configured, OWASP risks understood"},
 
     # Month 4
     "m4_cp_1": {"id": "m4_cp_1", "skill_type": "dsa",           "xp_reward": 75, "month_number": 4, "title": "DP — 15+ problems solved (1D and 2D)"},
@@ -342,6 +364,7 @@ CHECKPOINTS: dict[str, dict] = {
     "m4_cp_4": {"id": "m4_cp_4", "skill_type": "career",        "xp_reward": 100, "month_number": 4, "title": "Applied to all 4 freshman programs"},
     "m4_cp_5": {"id": "m4_cp_5", "skill_type": "project",       "xp_reward":  75, "month_number": 4, "title": "Project — auth + caching added"},
     "m4_cp_6": {"id": "m4_cp_6", "skill_type": "dsa",           "xp_reward":  75, "month_number": 4, "title": "Neetcode 150 — 120+ problems total"},
+    "m4_cp_7": {"id": "m4_cp_7", "skill_type": "backend",      "xp_reward":  75, "month_number": 4, "title": "Database depth — migrations, indexes, and N+1 mastered"},
 
     # Month 5
     "m5_cp_1": {"id": "m5_cp_1", "skill_type": "dsa",          "xp_reward": 200, "month_number": 5, "title": "Neetcode 150 — fully complete"},
@@ -364,9 +387,9 @@ CHECKPOINTS: dict[str, dict] = {
 # Checkpoint IDs grouped by month (for chapter-unlock checks)
 CHECKPOINTS_BY_MONTH: dict[int, list[str]] = {
     1: ["m1_cp_1", "m1_cp_2", "m1_cp_3", "m1_cp_4"],
-    2: ["m2_cp_1", "m2_cp_2", "m2_cp_3", "m2_cp_4", "m2_cp_6"],
-    3: ["m3_cp_1", "m3_cp_2", "m3_cp_3", "m3_cp_4", "m3_cp_5", "m3_cp_6"],
-    4: ["m4_cp_1", "m4_cp_2", "m4_cp_3", "m4_cp_4", "m4_cp_5", "m4_cp_6"],
+    2: ["m2_cp_1", "m2_cp_2", "m2_cp_3", "m2_cp_4", "m2_cp_6", "m2_cp_7"],
+    3: ["m3_cp_1", "m3_cp_2", "m3_cp_3", "m3_cp_4", "m3_cp_5", "m3_cp_6", "m3_cp_7"],
+    4: ["m4_cp_1", "m4_cp_2", "m4_cp_3", "m4_cp_4", "m4_cp_5", "m4_cp_6", "m4_cp_7"],
     5: ["m5_cp_1", "m5_cp_2", "m5_cp_3", "m5_cp_4", "m5_cp_5", "m5_cp_6"],
     6: ["m6_cp_1", "m6_cp_2", "m6_cp_3", "m6_cp_4", "m6_cp_5", "m6_cp_6", "m6_cp_7"],
 }
@@ -432,8 +455,8 @@ MONTH_SECTIONS: dict[int, list[dict]] = {
         {"id": "m1_backend", "title": "Tech Stack — FastAPI & PostgreSQL", "skill_type": "backend", "task_ids": [
             "m1_be_w1_1", "m1_be_w1_2",
             "m1_be_w2_1", "m1_be_w2_2",
-            "m1_be_w3_1", "m1_be_w3_2",
-            "m1_be_w4_1", "m1_be_w4_2", "m1_be_w4_3",
+            "m1_be_w3_1", "m1_be_w3_2", "m1_be_w3_3",
+            "m1_be_w4_1", "m1_be_w4_2", "m1_be_w4_3", "m1_be_w4_4",
         ]},
         {"id": "m1_project", "title": "Project — Scaffold It", "skill_type": "project", "task_ids": [
             "m1_proj_w1_1", "m1_proj_w1_2",
@@ -459,6 +482,10 @@ MONTH_SECTIONS: dict[int, list[dict]] = {
             "m2_devops_w2_1", "m2_devops_w2_2",
             "m2_devops_w3_1",
             "m2_devops_w4_1",
+        ]},
+        {"id": "m2_testing", "title": "Testing & CI/CD", "skill_type": "devops", "task_ids": [
+            "m2_be_w1_1",
+            "m2_devops_w3_2",
         ]},
         {"id": "m2_ml", "title": "ML Depth — PyTorch", "skill_type": "ml", "task_ids": [
             "m2_ml_w1_1", "m2_ml_w1_2",
@@ -486,6 +513,11 @@ MONTH_SECTIONS: dict[int, list[dict]] = {
             "m3_cloud_w2_1", "m3_cloud_w2_2",
             "m3_cloud_w3_1", "m3_cloud_w3_2",
         ]},
+        {"id": "m3_security", "title": "Web Security — OWASP & HTTPS", "skill_type": "backend", "task_ids": [
+            "m3_sec_w1_1", "m3_sec_w2_1",
+            "m3_sec_w3_1",
+            "m3_devops_w4_1",
+        ]},
         {"id": "m3_ml", "title": "ML Depth — HuggingFace & Transformers", "skill_type": "ml", "task_ids": [
             "m3_ml_w1_1", "m3_ml_w1_2",
             "m3_ml_w2_1", "m3_ml_w2_2",
@@ -512,6 +544,12 @@ MONTH_SECTIONS: dict[int, list[dict]] = {
             "m4_sd_w3_1",
             "m4_sd_w4_1", "m4_sd_w4_2",
             "m4_ddia_weekly",
+        ]},
+        {"id": "m4_backend", "title": "Backend Depth — APIs, DB & Migrations", "skill_type": "backend", "task_ids": [
+            "m4_be_w1_1",
+            "m4_be_w2_1",
+            "m4_be_w3_1",
+            "m4_be_w4_1",
         ]},
         {"id": "m4_prob", "title": "Probability Bootcamp — Brunton", "skill_type": "ml", "task_ids": [
             "m4_prob_weekly",

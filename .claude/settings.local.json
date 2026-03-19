@@ -13,7 +13,9 @@
       "Bash(find C:Usersjinhoprojectspride-arc -type f -name *studio* -o -name *Studio*)",
       "Bash(find C:Usersjinhoprojectspride-arc -type f -name *plan* -o -name *Plan*)",
       "Bash(python -c \"import ast; ast.parse\\(open\\(''crud.py''\\).read\\(\\)\\); print\\(''crud.py OK''\\)\")",
-      "Bash(python -c \"import ast; ast.parse\\(open\\(''main.py''\\).read\\(\\)\\); print\\(''main.py OK''\\)\")"
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''main.py''\\).read\\(\\)\\); print\\(''main.py OK''\\)\")",
+      "WebFetch(domain:roadmap.sh)",
+      "Bash(python:*)"
     ]
   }
 }
