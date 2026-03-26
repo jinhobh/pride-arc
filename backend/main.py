@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import crud
 from database import AsyncSessionLocal, Base, engine, get_db
-from models import CheckpointCompletion, HabitLog, PlanCheckpoint, PlanHabit, PlanSection, PlanSectionTask, PlanTask, TaskCompletion, TaskDayAssignment  # noqa: F401 — ensure models are imported so Base sees them
+from models import Badge, CheckpointCompletion, HabitLog, PlanCheckpoint, PlanHabit, PlanSection, PlanSectionTask, PlanTask, StatLevel, TaskCompletion, TaskDayAssignment, UserState  # noqa: F401 — ensure models are imported so Base sees them
 from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from plan_data import MONTH_SUBTITLES
@@ -1445,3 +1445,40 @@ async def get_weekly_summary(db: AsyncSession = Depends(get_db)):
         days_active=len(active_dates),
         skill_breakdown=skill_breakdown,
     )
+
+
+# ── Reset ─────────────────────────────────────────────────────────────────────
+
+@app.post("/reset")
+async def reset_progress(db: AsyncSession = Depends(get_db)):
+    """Wipe all user progress and reset to day-1 state.
+    Plan data (tasks/checkpoints/habits definitions) is preserved."""
+    from plan_data import INITIAL_STATS
+
+    # Delete all progress rows
+    await db.execute(delete(TaskCompletion))
+    await db.execute(delete(CheckpointCompletion))
+    await db.execute(delete(HabitLog))
+    await db.execute(delete(Badge))
+    await db.execute(delete(TaskDayAssignment))
+
+    # Reset user state
+    state = await crud.get_user_state(db)
+    if state:
+        state.created_at = datetime.datetime.now(datetime.timezone.utc)
+        state.current_month = 1
+        state.total_xp = 0
+        state.streak_current = 0
+        state.streak_longest = 0
+        state.last_checkin_date = None
+        state.character_level = 1
+
+    # Reset all stat levels to initial values
+    result = await db.execute(select(StatLevel))
+    for stat in result.scalars().all():
+        info = INITIAL_STATS.get(stat.skill_type, {"xp": 0, "level": 1})
+        stat.xp = info["xp"]
+        stat.level = info["level"]
+
+    await db.commit()
+    return {"status": "ok", "message": "All progress has been reset to day 1"}

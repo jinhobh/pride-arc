@@ -99,6 +99,16 @@ export function useGameData() {
     }
   }, [today, fetchAll])
 
+  const resetProgress = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE}/reset`, { method: 'POST' })
+      if (res.ok) await fetchAll()
+      return res.ok
+    } catch {
+      return false
+    }
+  }, [fetchAll])
+
   const hasCheckedInToday = streakStatus?.checked_in_today ?? (state?.last_checkin_date === today)
 
   return {
@@ -117,6 +127,7 @@ export function useGameData() {
     hasCheckedInToday,
     checkin,
     logHabit,
+    resetProgress,
     refetch: fetchAll,
   }
 }

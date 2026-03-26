@@ -826,7 +826,7 @@ function ErrorScreen({ message }) {
 export default function Dashboard() {
   const {
     state, todayHabits, streakStatus, currentTasks, pace,
-    loading, error, today, hasCheckedInToday, checkin, logHabit,
+    loading, error, today, hasCheckedInToday, checkin, logHabit, resetProgress,
   } = useGameData()
 
   const isMobile = useIsMobile()
@@ -843,6 +843,7 @@ export default function Dashboard() {
         streakStatus={streakStatus}
         hasCheckedIn={hasCheckedInToday}
         onCheckin={checkin}
+        onReset={resetProgress}
       />
 
       <CharacterSprite daysMissed={daysMissed} isMobile={isMobile} />
