@@ -4,17 +4,50 @@ An RPG-gamified learning tracker that turns a 6-month backend engineering study 
 
 ## Quick Start
 
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose)
+  - Windows/Mac: install Docker Desktop and make sure it's running
+  - Linux: install [Docker Engine](https://docs.docker.com/engine/install/) + [Docker Compose](https://docs.docker.com/compose/install/)
+- [Git](https://git-scm.com/downloads)
+
+### Setup (3 steps)
+
 ```bash
+# 1. Clone the repo
+git clone https://github.com/jinhobh/pride-arc.git
+cd pride-arc
+
+# 2. Create your environment file (default values work out of the box)
 cp .env.example .env
+
+# 3. Build and run everything
 docker-compose up --build
 ```
 
-| Service  | URL                         |
-|----------|-----------------------------|
-| Frontend | http://localhost:5173       |
-| Backend  | http://localhost:8000       |
-| API Docs | http://localhost:8000/docs  |
-| Health   | http://localhost:8000/health|
+That's it. Wait for the build to finish, then open **http://localhost:5173** in your browser.
+
+> First build takes 1-2 minutes to download images and install dependencies. Subsequent runs are much faster.
+
+### What's Running
+
+| Service  | URL                         | Description |
+|----------|-----------------------------|-------------|
+| Frontend | http://localhost:5173       | React app   |
+| Backend  | http://localhost:8000       | FastAPI server |
+| API Docs | http://localhost:8000/docs  | Interactive Swagger UI |
+| Database | localhost:5432              | PostgreSQL (not exposed to browser) |
+
+### Stopping & Resetting
+
+```bash
+# Stop the app
+docker-compose down
+
+# Stop and wipe all data (fresh start)
+docker-compose down -v
+docker-compose up --build
+```
 
 ## Tech Stack
 
@@ -181,43 +214,38 @@ All routes are prefixed with `/api` from the frontend (Vite proxy).
 
 ## Environment Variables
 
-Copy `.env.example` to `.env`:
+The `.env.example` file has working defaults — you only need to change them if you want custom credentials.
 
-```bash
-cp .env.example .env
-```
-
-| Variable | Description |
-|----------|-------------|
-| `POSTGRES_DB` | Database name |
-| `POSTGRES_USER` | Database user |
-| `POSTGRES_PASSWORD` | Database password |
-| `DATABASE_URL` | Full connection string |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `POSTGRES_DB` | `pridearc` | Database name |
+| `POSTGRES_USER` | `pridearc` | Database user |
+| `POSTGRES_PASSWORD` | `changeme` | Database password |
+| `DATABASE_URL` | `postgresql://pridearc:changeme@postgres:5432/pridearc` | Full connection string (must match the above) |
 
 ## Development Without Docker
 
-**Backend:**
+If you prefer running things natively, you'll need **Python 3.11+**, **Node 20+**, and a **PostgreSQL** instance running locally.
+
+**1. Database** — create a PostgreSQL database and update `.env` with your connection string (change `postgres` hostname to `localhost`).
+
+**2. Backend:**
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn main:app --reload
+uvicorn main:app --reload --port 8000
 ```
 
-**Frontend:**
+**3. Frontend:**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-> When running locally without Docker, update the Vite proxy target in `vite.config.js` from `http://backend:8000` to `http://localhost:8000`.
+**4. Update the Vite proxy** — in `frontend/vite.config.js`, change the proxy target from `http://backend:8000` to `http://localhost:8000`.
 
-## Database
-
-- PostgreSQL 16-alpine with Docker healthcheck
-- Tables auto-created on startup via SQLAlchemy `create_all`
-- Initial user state, stat levels, and plan data seeded idempotently at startup
-- To reset: `docker-compose down -v && docker-compose up --build`
+Then open http://localhost:5173.
 
 ## Key Design Decisions
 
