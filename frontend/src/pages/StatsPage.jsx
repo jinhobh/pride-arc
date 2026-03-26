@@ -193,7 +193,7 @@ export default function StatsPage() {
 
         <BossBanner progress={progress} daysMissed={daysMissed} />
         <StatPanel stats={state?.stats} daysMissed={daysMissed} />
-        <ActivityHeatmap activity={habitActivity} />
+        <ActivityHeatmap activity={habitActivity} startDate={state?.created_at} />
         <WeeklySummary summary={weeklySummary} />
         <OverallProgress progress={progress} />
 

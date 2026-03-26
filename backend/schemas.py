@@ -48,6 +48,7 @@ class StateResponse(BaseModel):
     streak_current: int
     streak_longest: int
     last_checkin_date: date | None
+    created_at: date | None
     stats: list[StatLevelOut]
     completed_task_ids: list[str]
     completed_checkpoint_ids: list[str]

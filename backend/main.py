@@ -141,6 +141,7 @@ async def get_state(db: AsyncSession = Depends(get_db)):
         streak_current=effective_streak,
         streak_longest=state.streak_longest,
         last_checkin_date=state.last_checkin_date,
+        created_at=state.created_at.date() if state.created_at else None,
         stats=[
             StatLevelOut(
                 skill_type=s.skill_type,

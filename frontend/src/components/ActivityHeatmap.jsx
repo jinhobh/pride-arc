@@ -11,7 +11,7 @@ function getCellColor(done, total) {
     return 'hsla(140, 40%, 58%, 0.55)'                            // some done — light green
 }
 
-function Tooltip({ day }) {
+function Tooltip({ day, isDay1 }) {
     if (!day) return null
     const label = day.habits_total === 0
         ? 'No habits'
@@ -23,6 +23,7 @@ function Tooltip({ day }) {
       pointer-events-none whitespace-nowrap px-3 py-2 rounded-xl
       bg-ghibli-cream border border-ghibli-earth/40 shadow-ghibli-card
       opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+            {isDay1 && <div className="font-display text-[10px] italic text-ghibli-gold leading-none mb-1">Day 1</div>}
             <div className="font-vt text-sm text-ghibli-ink leading-none">{day.date}</div>
             <div className="font-vt text-lg text-ghibli-forest leading-none mt-1">{label}</div>
             <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0
@@ -32,7 +33,7 @@ function Tooltip({ day }) {
     )
 }
 
-export default function ActivityHeatmap({ activity }) {
+export default function ActivityHeatmap({ activity, startDate }) {
     if (!activity?.length) return null
 
     const dateMap = useMemo(() => {
@@ -49,13 +50,13 @@ export default function ActivityHeatmap({ activity }) {
         rawStart.setDate(today.getDate() - totalDays + 1)
         const startDow = rawStart.getDay()
         const mondayShift = startDow === 0 ? -6 : 1 - startDow
-        const startDate = new Date(rawStart)
-        startDate.setDate(rawStart.getDate() + mondayShift)
+        const gridStart = new Date(rawStart)
+        gridStart.setDate(rawStart.getDate() + mondayShift)
 
         const cols = []
         const mHeaders = []
         let prevMonth = -1
-        let current = new Date(startDate)
+        let current = new Date(gridStart)
         let weekIdx = 0
 
         while (current <= today) {
@@ -122,23 +123,30 @@ export default function ActivityHeatmap({ activity }) {
 
                     {weeks.map((col, wi) => (
                         <div key={wi} className="flex flex-col flex-shrink-0" style={{ gap: 2 }}>
-                            {col.map((day, di) => (
-                                <div
-                                    key={di}
-                                    className="group relative"
-                                    style={{
-                                        width: 14, height: 14, marginRight: 2,
-                                        borderRadius: 3,
-                                        backgroundColor: day ? getCellColor(day.habits_done, day.habits_total) : 'transparent',
-                                        transition: 'transform 0.1s',
-                                        cursor: day ? 'pointer' : 'default',
-                                    }}
-                                    onMouseEnter={e => day && (e.currentTarget.style.transform = 'scale(1.3)')}
-                                    onMouseLeave={e => day && (e.currentTarget.style.transform = 'scale(1)')}
-                                >
-                                    {day && <Tooltip day={day} />}
-                                </div>
-                            ))}
+                            {col.map((day, di) => {
+                                const isDay1 = day && startDate && day.date === startDate
+                                return (
+                                    <div
+                                        key={di}
+                                        className="group relative"
+                                        style={{
+                                            width: 14, height: 14, marginRight: 2,
+                                            borderRadius: 3,
+                                            backgroundColor: day ? getCellColor(day.habits_done, day.habits_total) : 'transparent',
+                                            transition: 'transform 0.1s',
+                                            cursor: day ? 'pointer' : 'default',
+                                            boxShadow: isDay1 ? '0 0 0 2px #d97706' : undefined,
+                                        }}
+                                        onMouseEnter={e => day && (e.currentTarget.style.transform = 'scale(1.3)')}
+                                        onMouseLeave={e => day && (e.currentTarget.style.transform = 'scale(1)')}
+                                    >
+                                        {isDay1 && (
+                                            <div className="absolute -top-[2px] -right-[2px] w-[6px] h-[6px] rounded-full bg-ghibli-gold z-10" />
+                                        )}
+                                        {day && <Tooltip day={day} isDay1={isDay1} />}
+                                    </div>
+                                )
+                            })}
                         </div>
                     ))}
                 </div>
@@ -150,6 +158,15 @@ export default function ActivityHeatmap({ activity }) {
                     <div style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: getCellColor(4, 5) }} />
                     <div style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: getCellColor(5, 5) }} />
                     <span className="font-sans text-[8px] text-ghibli-earth/50 uppercase">All</span>
+                    {startDate && (
+                        <>
+                            <div className="w-px h-3 bg-ghibli-earth/20 mx-1" />
+                            <div className="relative" style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: getCellColor(0, 5), boxShadow: '0 0 0 1.5px #d97706' }}>
+                                <div className="absolute -top-[1px] -right-[1px] w-[5px] h-[5px] rounded-full bg-ghibli-gold" />
+                            </div>
+                            <span className="font-sans text-[8px] text-ghibli-earth/50 uppercase">Day 1</span>
+                        </>
+                    )}
                 </div>
             </div>
         </section>
