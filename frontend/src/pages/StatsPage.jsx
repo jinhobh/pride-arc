@@ -15,28 +15,31 @@ function useStatsData() {
   const [habitActivity, setHabitActivity] = useState([])
   const [weeklySummary, setWeeklySummary] = useState(null)
   const [streakStatus, setStreakStatus] = useState(null)
+  const [pace, setPace] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [stateRes, progressRes, habitActivityRes, weeklyRes, streakRes] = await Promise.all([
+      const [stateRes, progressRes, habitActivityRes, weeklyRes, streakRes, paceRes] = await Promise.all([
         fetch(`${BASE}/state`),
         fetch(`${BASE}/progress`),
         fetch(`${BASE}/activity-habits?days=180`),
         fetch(`${BASE}/weekly-summary`),
         fetch(`${BASE}/streak-status`),
+        fetch(`${BASE}/plan/pace`),
       ])
       if (!stateRes.ok)    throw new Error(`State fetch failed: ${stateRes.status}`)
       if (!progressRes.ok) throw new Error(`Progress fetch failed: ${progressRes.status}`)
 
-      const [stateData, progressData, habitActivityData, weeklyData, streakData] = await Promise.all([
+      const [stateData, progressData, habitActivityData, weeklyData, streakData, paceData] = await Promise.all([
         stateRes.json(),
         progressRes.json(),
         habitActivityRes.ok ? habitActivityRes.json() : Promise.resolve([]),
         weeklyRes.ok        ? weeklyRes.json()        : Promise.resolve(null),
         streakRes.ok        ? streakRes.json()        : Promise.resolve(null),
+        paceRes.ok          ? paceRes.json()          : Promise.resolve(null),
       ])
 
       setState(stateData)
@@ -44,6 +47,7 @@ function useStatsData() {
       setHabitActivity(Array.isArray(habitActivityData) ? habitActivityData : [])
       setWeeklySummary(weeklyData)
       setStreakStatus(streakData)
+      setPace(paceData)
       setError(null)
     } catch (err) {
       setError(err.message)
@@ -54,7 +58,7 @@ function useStatsData() {
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
-  return { state, progress, habitActivity, weeklySummary, streakStatus, loading, error }
+  return { state, progress, habitActivity, weeklySummary, streakStatus, pace, loading, error }
 }
 
 function HeadlineStat({ label, value, unit, colorClass = 'text-ghibli-forest' }) {
@@ -142,7 +146,7 @@ function OverallProgress({ progress }) {
 }
 
 export default function StatsPage() {
-  const { state, progress, habitActivity, weeklySummary, streakStatus, loading, error } = useStatsData()
+  const { state, progress, habitActivity, weeklySummary, streakStatus, pace, loading, error } = useStatsData()
 
   if (loading) {
     return (
@@ -191,7 +195,7 @@ export default function StatsPage() {
           <HeadlineStat label="Longest Streak" value={longestStreak} unit={longestStreak === 1 ? 'day' : 'days'} colorClass="text-ghibli-sunset" />
         </div>
 
-        <BossBanner progress={progress} daysMissed={daysMissed} />
+        <BossBanner progress={progress} pace={pace} />
         <StatPanel stats={state?.stats} daysMissed={daysMissed} />
         <ActivityHeatmap activity={habitActivity} startDate={state?.created_at} />
         <WeeklySummary summary={weeklySummary} />

@@ -282,5 +282,6 @@ class PaceResponse(BaseModel):
     delta_xp: int
     status: str  # "On Track" | "Behind" | "Ahead"
     total_arc_xp: int
+    projected_completion_date: str | None = None
     missed_tasks: list[MissedTaskOut] = []
     missed_habits: list[MissedHabitOut] = []

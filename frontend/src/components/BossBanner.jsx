@@ -14,7 +14,12 @@ function defaultRecruitingDate() {
   return d.toISOString().split('T')[0]
 }
 
-export default function BossBanner({ progress, daysMissed = 0 }) {
+function formatDate(isoDate) {
+  const d = new Date(isoDate + 'T00:00:00')
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+export default function BossBanner({ progress, pace }) {
   const [recruitingDate, setRecruitingDate] = useState(
     () => localStorage.getItem('prideArcRecruitingDate') || defaultRecruitingDate()
   )
@@ -27,21 +32,14 @@ export default function BossBanner({ progress, daysMissed = 0 }) {
     setEditing(false)
   }
 
-  const overallPct = progress
-    ? (progress.tasks_completed / Math.max(1, progress.tasks_total)) * 100
-    : 0
+  const daysToRecruiting = daysUntil(recruitingDate)
+  const projectedDate = pace?.projected_completion_date
+  const hasProjection = !!projectedDate
 
-  const hpCreep = daysMissed >= 3 ? Math.min(20, (daysMissed - 2) * 5) : 0
-  const bossHpPct = Math.min(100, Math.max(0, 100 - overallPct) + hpCreep)
-  const isCritical = bossHpPct <= 25
-  const days = daysUntil(recruitingDate)
-
-  const hpColor =
-    bossHpPct > 50
-      ? 'from-ghibli-dusk to-ghibli-sunset'
-      : bossHpPct > 25
-        ? 'from-ghibli-gold to-yellow-400'
-        : 'from-ghibli-forest to-ghibli-forest-light'
+  // How many days between projected completion and recruiting
+  const projectedDaysToRecruiting = hasProjection ? daysUntil(recruitingDate) - daysUntil(projectedDate) : null
+  const isAhead = projectedDaysToRecruiting !== null && projectedDaysToRecruiting >= 0
+  const daysDiff = projectedDaysToRecruiting !== null ? Math.abs(projectedDaysToRecruiting) : 0
 
   return (
     <div
@@ -63,7 +61,7 @@ export default function BossBanner({ progress, daysMissed = 0 }) {
       <div className="absolute bottom-0 right-0 w-32 h-32 bg-ghibli-dusk/15 blur-2xl rounded-full translate-x-8 translate-y-8" />
 
       <div className="relative px-6 sm:px-8 py-6 sm:py-8">
-        {/* Warning tag */}
+        {/* Tag */}
         <div className="flex items-center gap-2 mb-2">
           <div className="flex gap-1">
             <span className="block w-1.5 h-1.5 rounded-full bg-ghibli-sunset animate-pulse" />
@@ -75,60 +73,61 @@ export default function BossBanner({ progress, daysMissed = 0 }) {
           </span>
         </div>
 
-        {/* Boss name */}
+        {/* Title */}
         <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl text-ghibli-ink italic font-bold tracking-wide mb-1">
-          Recruiting Season
+          Recruiting Readiness
         </h2>
         <p className="font-sans text-xs text-ghibli-mist mb-6 tracking-wider">
-          The final obstacle — earn an offer
+          Projected completion based on your pace
         </p>
 
-        {/* HP bar */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="font-display text-sm italic text-ghibli-earth/80">
-              Boss HP
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="font-vt text-xl leading-none text-ghibli-dusk tabular-nums">
-                {bossHpPct.toFixed(1)}%
+        {/* Projected date display */}
+        <div className="mb-5">
+          {hasProjection ? (
+            <div className="flex items-end gap-3 flex-wrap">
+              <div>
+                <div className="font-sans text-[11px] text-ghibli-mist/70 mb-1 uppercase tracking-wider">
+                  Projected ready by
+                </div>
+                <div className="font-vt text-4xl sm:text-5xl leading-none text-ghibli-ink tabular-nums">
+                  {formatDate(projectedDate)}
+                </div>
+              </div>
+              <div className={`mb-1 px-3 py-1 rounded-lg font-display text-xs italic ${
+                isAhead
+                  ? 'bg-ghibli-forest/15 text-ghibli-forest border border-ghibli-forest/30'
+                  : 'bg-ghibli-sunset/15 text-ghibli-dusk border border-ghibli-sunset/30'
+              }`}>
+                {isAhead
+                  ? daysDiff === 0 ? 'Right on time' : `${daysDiff} day${daysDiff !== 1 ? 's' : ''} early`
+                  : `${daysDiff} day${daysDiff !== 1 ? 's' : ''} behind`
+                }
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="font-vt text-2xl text-ghibli-mist/50">— — —</div>
+              <span className="font-sans text-sm text-ghibli-mist/60 italic">
+                Complete some tasks to see your projection
               </span>
-              {isCritical && (
-                <span className="font-display text-xs text-ghibli-gold italic hp-critical">
-                  CRITICAL
-                </span>
-              )}
             </div>
-          </div>
-
-          <div className="h-6 rounded-xl bg-ghibli-earth/15 border border-ghibli-earth/25 overflow-hidden relative">
-            {/* Damage segments */}
-            <div className="absolute inset-0 flex">
-              {Array.from({ length: 20 }).map((_, i) => (
-                <div key={i} className="flex-1 border-r border-ghibli-earth/10 last:border-0" />
-              ))}
-            </div>
-
-            <div
-              className={`h-full bg-gradient-to-r ${hpColor} transition-all duration-1000 ease-out relative ${isCritical ? 'hp-critical' : ''}`}
-              style={{ width: `${bossHpPct}%` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent" />
-            </div>
-          </div>
-
-          <div className="flex justify-between mt-1">
-            <span className="font-sans text-[11px] text-ghibli-mist/70">
-              {overallPct.toFixed(0)}% defeated
-            </span>
-            <span className="font-sans text-[11px] text-ghibli-mist/70">
-              {progress?.tasks_completed ?? 0} / {progress?.tasks_total ?? '?'} tasks
-            </span>
-          </div>
+          )}
         </div>
 
-        {/* Countdown */}
-        <div className="flex items-center gap-2">
+        {/* Progress context */}
+        <div className="flex items-center gap-4 mb-4 text-[11px] font-sans text-ghibli-mist/70">
+          <span>{progress?.tasks_completed ?? 0} / {progress?.tasks_total ?? '?'} tasks done</span>
+          {pace && <span>Day {pace.arc_day} of {pace.arc_total_days}</span>}
+          {pace && pace.earned_xp > 0 && (
+            <span>{Math.round(pace.earned_xp / pace.arc_day)} XP/day avg</span>
+          )}
+        </div>
+
+        {/* Recruiting target date */}
+        <div className="flex items-center gap-2 pt-3 border-t border-ghibli-earth/20">
+          <span className="font-sans text-[11px] text-ghibli-mist/60 uppercase tracking-wider mr-1">
+            Target
+          </span>
           {editing ? (
             <input
               type="date"
@@ -141,13 +140,13 @@ export default function BossBanner({ progress, daysMissed = 0 }) {
           ) : (
             <>
               <span className="font-sans text-sm text-ghibli-ink/80">
-                {days > 0 ? (
+                {daysToRecruiting > 0 ? (
                   <>
-                    <span className="font-vt text-2xl leading-none text-ghibli-ink">{days}</span>
-                    <span className="ml-1 text-ghibli-mist"> days until recruiting</span>
+                    <span className="font-vt text-xl leading-none text-ghibli-ink">{daysToRecruiting}</span>
+                    <span className="ml-1 text-ghibli-mist">days until recruiting</span>
                   </>
-                ) : days === 0 ? (
-                  <span className="font-display text-sm text-ghibli-sunset italic neon-text-red">
+                ) : daysToRecruiting === 0 ? (
+                  <span className="font-display text-sm text-ghibli-sunset italic">
                     Recruiting starts TODAY
                   </span>
                 ) : (

@@ -538,6 +538,16 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
             ))
     missed_habits.sort(key=lambda x: (-x.total_missed_xp, x.title))
 
+    # Projected completion date based on actual XP pace
+    projected_completion_date = None
+    if earned_xp > 0 and earned_xp < total_arc_xp:
+        xp_per_day = earned_xp / arc_day
+        days_remaining = math.ceil((total_arc_xp - earned_xp) / xp_per_day)
+        projected_date = today + datetime.timedelta(days=days_remaining)
+        projected_completion_date = projected_date.isoformat()
+    elif earned_xp >= total_arc_xp:
+        projected_completion_date = today.isoformat()
+
     return PaceResponse(
         arc_day=arc_day,
         arc_total_days=arc_total_days,
@@ -546,6 +556,7 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
         delta_xp=delta_xp,
         status=status_label,
         total_arc_xp=total_arc_xp,
+        projected_completion_date=projected_completion_date,
         missed_tasks=missed,
         missed_habits=missed_habits,
     )
