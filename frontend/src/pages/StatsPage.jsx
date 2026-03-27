@@ -58,7 +58,18 @@ function useStatsData() {
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
-  return { state, progress, habitActivity, weeklySummary, streakStatus, pace, loading, error }
+  const togglePause = useCallback(async () => {
+    try {
+      const isPaused = pace?.is_paused
+      const res = await fetch(`${BASE}/${isPaused ? 'unpause' : 'pause'}`, { method: 'POST' })
+      if (res.ok) await fetchAll()
+      return res.ok
+    } catch {
+      return false
+    }
+  }, [pace, fetchAll])
+
+  return { state, progress, habitActivity, weeklySummary, streakStatus, pace, loading, error, togglePause }
 }
 
 function HeadlineStat({ label, value, unit, colorClass = 'text-ghibli-forest' }) {
@@ -146,7 +157,7 @@ function OverallProgress({ progress }) {
 }
 
 export default function StatsPage() {
-  const { state, progress, habitActivity, weeklySummary, streakStatus, pace, loading, error } = useStatsData()
+  const { state, progress, habitActivity, weeklySummary, streakStatus, pace, loading, error, togglePause } = useStatsData()
 
   if (loading) {
     return (
@@ -195,7 +206,7 @@ export default function StatsPage() {
           <HeadlineStat label="Longest Streak" value={longestStreak} unit={longestStreak === 1 ? 'day' : 'days'} colorClass="text-ghibli-sunset" />
         </div>
 
-        <BossBanner progress={progress} pace={pace} />
+        <BossBanner progress={progress} pace={pace} onTogglePause={togglePause} />
         <StatPanel stats={state?.stats} daysMissed={daysMissed} />
         <ActivityHeatmap activity={habitActivity} startDate={state?.created_at} />
         <WeeklySummary summary={weeklySummary} />

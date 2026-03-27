@@ -109,6 +109,17 @@ export function useGameData() {
     }
   }, [fetchAll])
 
+  const togglePause = useCallback(async () => {
+    try {
+      const isPaused = pace?.is_paused
+      const res = await fetch(`${BASE}/${isPaused ? 'unpause' : 'pause'}`, { method: 'POST' })
+      if (res.ok) await fetchAll()
+      return res.ok
+    } catch {
+      return false
+    }
+  }, [pace, fetchAll])
+
   const hasCheckedInToday = streakStatus?.checked_in_today ?? (state?.last_checkin_date === today)
 
   return {
@@ -128,6 +139,7 @@ export function useGameData() {
     checkin,
     logHabit,
     resetProgress,
+    togglePause,
     refetch: fetchAll,
   }
 }

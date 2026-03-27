@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 
 function daysUntil(isoDate) {
   const target = new Date(isoDate)
@@ -19,7 +19,7 @@ function formatDate(isoDate) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export default function BossBanner({ progress, pace }) {
+export default function BossBanner({ progress, pace, onTogglePause }) {
   const [recruitingDate, setRecruitingDate] = useState(
     () => localStorage.getItem('prideArcRecruitingDate') || defaultRecruitingDate()
   )
@@ -32,6 +32,17 @@ export default function BossBanner({ progress, pace }) {
     setEditing(false)
   }
 
+  const [pausing, setPausing] = useState(false)
+
+  const handleTogglePause = useCallback(async () => {
+    if (!onTogglePause || pausing) return
+    setPausing(true)
+    await onTogglePause()
+    setPausing(false)
+  }, [onTogglePause, pausing])
+
+  const isPaused = pace?.is_paused ?? false
+  const totalPausedDays = pace?.total_paused_days ?? 0
   const daysToRecruiting = daysUntil(recruitingDate)
   const projectedDate = pace?.projected_completion_date
   const hasProjection = !!projectedDate
@@ -77,9 +88,48 @@ export default function BossBanner({ progress, pace }) {
         <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl text-ghibli-ink italic font-bold tracking-wide mb-1">
           Recruiting Readiness
         </h2>
-        <p className="font-sans text-xs text-ghibli-mist mb-6 tracking-wider">
+        <p className="font-sans text-xs text-ghibli-mist mb-4 tracking-wider">
           Projected completion based on your pace
         </p>
+
+        {/* Pause controls */}
+        <div className="flex items-center gap-3 mb-5">
+          <button
+            onClick={handleTogglePause}
+            disabled={pausing}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-display text-xs italic border transition-all duration-200 cursor-pointer ${
+              isPaused
+                ? 'bg-ghibli-forest/15 text-ghibli-forest border-ghibli-forest/30 hover:bg-ghibli-forest/25'
+                : 'bg-ghibli-earth/10 text-ghibli-mist border-ghibli-earth/30 hover:bg-ghibli-earth/20'
+            } ${pausing ? 'opacity-50 cursor-wait' : ''}`}
+          >
+            {isPaused ? (
+              <>
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                Resume
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                </svg>
+                Pause
+              </>
+            )}
+          </button>
+          {isPaused && (
+            <span className="px-3 py-1.5 rounded-lg bg-ghibli-sunset/15 text-ghibli-dusk border border-ghibli-sunset/30 font-display text-xs italic animate-pulse">
+              Progress paused
+            </span>
+          )}
+          {totalPausedDays > 0 && (
+            <span className="font-sans text-[11px] text-ghibli-mist/60">
+              {totalPausedDays} day{totalPausedDays !== 1 ? 's' : ''} paused total
+            </span>
+          )}
+        </div>
 
         {/* Projected date display */}
         <div className="mb-5">
@@ -117,7 +167,7 @@ export default function BossBanner({ progress, pace }) {
         {/* Progress context */}
         <div className="flex items-center gap-4 mb-4 text-[11px] font-sans text-ghibli-mist/70">
           <span>{progress?.tasks_completed ?? 0} / {progress?.tasks_total ?? '?'} tasks done</span>
-          {pace && <span>Day {pace.arc_day} of {pace.arc_total_days}</span>}
+          {pace && <span>Day {pace.arc_day} of {pace.arc_total_days}{isPaused ? ' (paused)' : ''}</span>}
           {pace && pace.earned_xp > 0 && (
             <span>{Math.round(pace.earned_xp / pace.arc_day)} XP/day avg</span>
           )}

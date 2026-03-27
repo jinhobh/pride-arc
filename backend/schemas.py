@@ -285,3 +285,11 @@ class PaceResponse(BaseModel):
     projected_completion_date: str | None = None
     missed_tasks: list[MissedTaskOut] = []
     missed_habits: list[MissedHabitOut] = []
+    is_paused: bool = False
+    total_paused_days: int = 0
+
+
+class PauseStatusResponse(BaseModel):
+    is_paused: bool
+    paused_at: date | None = None
+    total_paused_days: int = 0

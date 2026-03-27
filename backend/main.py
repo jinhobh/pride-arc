@@ -18,6 +18,7 @@ from schemas import (
     MissedHabitOut,
     MissedTaskOut,
     PaceResponse,
+    PauseStatusResponse,
     PlanCheckpointCreate,
     PlanCheckpointOut,
     PlanCheckpointUpdate,
@@ -61,6 +62,18 @@ async def lifespan(app: FastAPI):
             ))
         except Exception:
             pass  # column already exists or no table yet
+
+    # Migrate: add pause columns to user_state
+    async with engine.begin() as conn:
+        try:
+            await conn.execute(text(
+                "ALTER TABLE user_state ADD COLUMN IF NOT EXISTS paused_at DATE"
+            ))
+            await conn.execute(text(
+                "ALTER TABLE user_state ADD COLUMN IF NOT EXISTS total_paused_days INTEGER DEFAULT 0"
+            ))
+        except Exception:
+            pass
 
     # Seed initial data if the DB is empty
     async with AsyncSessionLocal() as db:
@@ -431,6 +444,57 @@ async def get_month_plan(n: int, db: AsyncSession = Depends(get_db)):
     }
 
 
+# ── Pause / Unpause ──────────────────────────────────────────────────────────
+
+@app.get("/pause-status", response_model=PauseStatusResponse)
+async def get_pause_status(db: AsyncSession = Depends(get_db)):
+    state = await crud.get_user_state(db)
+    if not state:
+        raise HTTPException(status_code=500, detail="User state not initialized")
+    return PauseStatusResponse(
+        is_paused=state.paused_at is not None,
+        paused_at=state.paused_at,
+        total_paused_days=state.total_paused_days or 0,
+    )
+
+
+@app.post("/pause", response_model=PauseStatusResponse)
+async def pause_progress(db: AsyncSession = Depends(get_db)):
+    state = await crud.get_user_state(db)
+    if not state:
+        raise HTTPException(status_code=500, detail="User state not initialized")
+    if state.paused_at is not None:
+        raise HTTPException(status_code=400, detail="Already paused")
+    state.paused_at = datetime.date.today()
+    await db.commit()
+    await db.refresh(state)
+    return PauseStatusResponse(
+        is_paused=True,
+        paused_at=state.paused_at,
+        total_paused_days=state.total_paused_days or 0,
+    )
+
+
+@app.post("/unpause", response_model=PauseStatusResponse)
+async def unpause_progress(db: AsyncSession = Depends(get_db)):
+    state = await crud.get_user_state(db)
+    if not state:
+        raise HTTPException(status_code=500, detail="User state not initialized")
+    if state.paused_at is None:
+        raise HTTPException(status_code=400, detail="Not currently paused")
+    today = datetime.date.today()
+    paused_days = max(0, (today - state.paused_at).days)
+    state.total_paused_days = (state.total_paused_days or 0) + paused_days
+    state.paused_at = None
+    await db.commit()
+    await db.refresh(state)
+    return PauseStatusResponse(
+        is_paused=False,
+        paused_at=None,
+        total_paused_days=state.total_paused_days,
+    )
+
+
 # ── Plan Pace ─────────────────────────────────────────────────────────────────
 
 @app.get("/plan/pace", response_model=PaceResponse)
@@ -439,7 +503,15 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
     state = await crud.get_user_state(db)
     today = datetime.date.today()
     created = state.created_at.date() if state and state.created_at else today
-    arc_day = max(1, (today - created).days + 1)
+
+    # Calculate total paused days (stored + current ongoing pause)
+    total_paused = state.total_paused_days or 0 if state else 0
+    is_paused = state.paused_at is not None if state else False
+    if is_paused and state.paused_at:
+        total_paused += max(0, (today - state.paused_at).days)
+
+    calendar_day = max(1, (today - created).days + 1)
+    arc_day = max(1, calendar_day - total_paused)
     arc_total_days = 180
 
     # Which month of the arc are we in (1–6)?
@@ -554,11 +626,13 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
         expected_xp_today=expected_xp_today,
         earned_xp=earned_xp,
         delta_xp=delta_xp,
-        status=status_label,
+        status="Paused" if is_paused else status_label,
         total_arc_xp=total_arc_xp,
         projected_completion_date=projected_completion_date,
         missed_tasks=missed,
         missed_habits=missed_habits,
+        is_paused=is_paused,
+        total_paused_days=total_paused,
     )
 
 

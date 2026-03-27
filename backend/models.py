@@ -16,6 +16,8 @@ class UserState(Base):
     streak_longest: Mapped[int] = mapped_column(Integer, default=0)
     last_checkin_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     character_level: Mapped[int] = mapped_column(Integer, default=1)
+    paused_at: Mapped[date | None] = mapped_column(Date, nullable=True)
+    total_paused_days: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class StatLevel(Base):
