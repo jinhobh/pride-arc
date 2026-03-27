@@ -28,7 +28,8 @@
       "Bash(timeout 30 bash -c 'while ! curl -s http://localhost:8000/health > /dev/null 2>&1; do sleep 2; done; echo \"\"Backend is up\"\"')",
       "Bash(curl -s http://localhost:8000/pause-status)",
       "Bash(curl -s -X POST http://localhost:8000/pause)",
-      "Bash(curl -s -X POST http://localhost:8000/unpause)"
+      "Bash(curl -s -X POST http://localhost:8000/unpause)",
+      "Bash(docker-compose exec:*)"
     ]
   }
 }

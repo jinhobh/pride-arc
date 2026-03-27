@@ -610,12 +610,16 @@ async def get_plan_pace(db: AsyncSession = Depends(get_db)):
             ))
     missed_habits.sort(key=lambda x: (-x.total_missed_xp, x.title))
 
-    # Projected completion date based on actual XP pace
+    # Projected completion date based on pace ratio.
+    # Compare earned XP against expected XP to get a pace multiplier,
+    # then scale the 180-day arc accordingly.
     projected_completion_date = None
-    if earned_xp > 0 and earned_xp < total_arc_xp:
-        xp_per_day = earned_xp / arc_day
-        days_remaining = math.ceil((total_arc_xp - earned_xp) / xp_per_day)
-        projected_date = today + datetime.timedelta(days=days_remaining)
+    if earned_xp > 0 and expected_xp_today > 0 and earned_xp < total_arc_xp:
+        pace_ratio = earned_xp / expected_xp_today
+        projected_effective_days = math.ceil(arc_total_days / pace_ratio)
+        projected_date = created + datetime.timedelta(
+            days=projected_effective_days + total_paused - 1
+        )
         projected_completion_date = projected_date.isoformat()
     elif earned_xp >= total_arc_xp:
         projected_completion_date = today.isoformat()
